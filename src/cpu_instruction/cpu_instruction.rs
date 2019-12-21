@@ -54,7 +54,7 @@ impl fmt::Display for LogLine {
             None        => String::new(),
         };
 
-        write!(f, "#0x{:04X}: {: <14}{: <4} {: <10} {}", self.address, byte_sequence, self.mnemonic, self.resolution, dest_addr)
+        write!(f, "#0x{:04X}: {: <14}{: <4} {: <10}{: >10}", self.address, byte_sequence, self.mnemonic, self.resolution, dest_addr)
     }
 }
 

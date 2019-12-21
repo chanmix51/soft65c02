@@ -1,5 +1,17 @@
 const MEMMAX:usize = 65535;
 
+pub fn little_endian(bytes: Vec<u8>) -> usize {
+    let mut bytes = bytes.clone();
+    bytes.reverse();
+    let mut addr:usize = 0;
+
+    for byte in bytes {
+        addr = addr << 8 | (byte as usize);
+    }
+
+    addr
+}
+
 pub struct RAM {
     ram: Box<[u8; MEMMAX + 1]>,
 }

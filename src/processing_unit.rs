@@ -7,9 +7,16 @@ use super::cpu_instruction::microcode;
 fn resolve_opcode(address: usize, opcode: u8) -> CPUInstruction {
     match opcode {
         0x48    => CPUInstruction::new(address, opcode, "PHA", AddressingMode::Implied, microcode::pha),
+        0x51    => CPUInstruction::new(address, opcode, "EOR", AddressingMode::ZeroPageIndirectYIndexed, microcode::eor),
+        0x6c    => CPUInstruction::new(address, opcode, "JMP", AddressingMode::Indirect, microcode::jmp),
+        0x7d    => CPUInstruction::new(address, opcode, "ADC", AddressingMode::AbsoluteXIndexed, microcode::adc),
         0x8d    => CPUInstruction::new(address, opcode, "STA", AddressingMode::Absolute, microcode::sta),
-        0xa9    => CPUInstruction::new(address, opcode, "LDA", AddressingMode::ZeroPage, microcode::lda),
+        0x95    => CPUInstruction::new(address, opcode, "STA", AddressingMode::ZeroPageXIndexed, microcode::sta),
+        0x96    => CPUInstruction::new(address, opcode, "STX", AddressingMode::ZeroPageYIndexed, microcode::stx),
+        0xa1    => CPUInstruction::new(address, opcode, "LDA", AddressingMode::ZeroPageXIndexedIndirect, microcode::lda),
+        0xa9    => CPUInstruction::new(address, opcode, "LDA", AddressingMode::Immediate, microcode::lda),
         0xca    => CPUInstruction::new(address, opcode, "DEX", AddressingMode::Implied, microcode::dex),
+        0xf9    => CPUInstruction::new(address, opcode, "SBC", AddressingMode::AbsoluteYIndexed, microcode::sbc),
         _       => panic!("Yet unsupported instruction opcode {:02x} at address #{:04X}.", opcode, address),
     }
 }
@@ -32,6 +39,7 @@ pub fn disassemble(start: usize, end: usize, registers: &Registers, memory: &Mem
 
     while cp < end {
         let log_line = read_step(cp, registers, memory);
+        println!("{}", log_line);
         cp = cp + 1 + log_line.resolution.operands.len();
         output.push(log_line);
     }
