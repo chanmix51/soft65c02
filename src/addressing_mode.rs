@@ -3,9 +3,9 @@ use super::memory::RAM as Memory;
 use std::fmt;
 
 pub struct AddressingModeResolution {
-    pub operands: Vec<u8>,
-    addressing_mode: AddressingMode,
-    target_address: Option<usize>,
+    pub operands:       Vec<u8>,
+    pub addressing_mode:    AddressingMode,
+    pub target_address:     Option<usize>,
 }
 
 impl AddressingModeResolution {
@@ -14,6 +14,16 @@ impl AddressingModeResolution {
             operands: operands,
             addressing_mode: addressing_mode,
             target_address: target_address,
+        }
+    }
+}
+
+impl fmt::Display for AddressingModeResolution {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.addressing_mode {
+            Implied  => write!(f, ""),
+            ZeroPage => write!(f, "${:02x}", self.target_address.unwrap()),
+            _ => panic!("Unsupported Display::fmt"),
         }
     }
 }
