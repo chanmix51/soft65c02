@@ -25,6 +25,16 @@ impl CPUInstruction {
     pub fn execute(&self, memory: &mut Memory, registers: &mut Registers) -> LogLine {
         (self.microcode)(memory, registers, &self)
     }
+
+    pub fn simulate(&self, memory: &Memory, registers: &Registers) -> LogLine {
+       let resolution = self.addressing_mode.solve(self.address, memory, registers);
+       LogLine {
+            address:    self.address,
+            opcode:     self.opcode,
+            mnemonic:   self.mnemonic.clone(),
+            resolution: resolution,
+       }
+    }
 }
 
 pub struct LogLine {

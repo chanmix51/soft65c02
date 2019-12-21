@@ -3,7 +3,7 @@ use super::memory::RAM as Memory;
 use std::fmt;
 
 pub struct AddressingModeResolution {
-    pub operands:       Vec<u8>,
+    pub operands:           Vec<u8>,
     pub addressing_mode:    AddressingMode,
     pub target_address:     Option<usize>,
 }

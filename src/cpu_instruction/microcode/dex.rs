@@ -28,6 +28,7 @@ pub fn dex(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
         resolution: resolution,
     }
 }
+
 #[cfg(test)]
 mod tests {
     use super::*;
