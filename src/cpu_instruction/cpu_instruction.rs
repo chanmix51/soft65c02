@@ -54,7 +54,7 @@ impl fmt::Display for LogLine {
             None        => String::new(),
         };
 
-        write!(f, "#0x{:04X}: {: <10} {: <4} {: <10} {} ", self.address, byte_sequence, self.mnemonic, self.resolution, dest_addr)
+        write!(f, "#0x{:04X}: {: <14}{: <4} {: <10} {}", self.address, byte_sequence, self.mnemonic, self.resolution, dest_addr)
     }
 }
 
@@ -64,7 +64,7 @@ pub mod tests {
 
     pub fn get_stuff(addr: usize, program: Vec<u8>) -> (Memory, Registers) {
         let mut memory = Memory::new();
-        memory.write(addr, program);
+        memory.write(addr, program).unwrap();
         let mut registers = Registers::new(addr);
 
         (memory, registers)

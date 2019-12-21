@@ -21,8 +21,9 @@ impl AddressingModeResolution {
 impl fmt::Display for AddressingModeResolution {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.addressing_mode {
-            Implied  => write!(f, ""),
-            ZeroPage => write!(f, "${:02x}", self.target_address.unwrap()),
+            AddressingMode::Implied  => write!(f, ""),
+            AddressingMode::ZeroPage => write!(f, "${:02x}", self.target_address.unwrap()),
+            AddressingMode::Absolute => write!(f, "${:04x}", self.target_address.unwrap()),
             _ => panic!("Unsupported Display::fmt"),
         }
     }
@@ -32,9 +33,15 @@ impl fmt::Display for AddressingModeResolution {
 pub enum AddressingMode {
     Implied,
     ZeroPage,
+    Absolute,
 }
 
 impl AddressingMode {
+    /*
+     * solve
+     * Create a AddressingModeResolution using the memory and/or registers for
+     * each AddressingMode.
+     */
     pub fn solve(&self, opcode_address: usize, memory: &Memory, registers: &Registers) -> AddressingModeResolution {
         match *self {
             AddressingMode::Implied  => AddressingModeResolution::new(vec![], self.clone(), None),
@@ -42,6 +49,11 @@ impl AddressingMode {
                 let byte = memory.read(opcode_address + 1, 1).unwrap()[0];
                 AddressingModeResolution::new(vec![byte], self.clone(), Some(byte as usize))
             },
+            AddressingMode::Absolute => {
+                let bytes = memory.read(opcode_address + 1, 2).unwrap();
+                let dest_addr = (bytes[1] as usize) << 8 | bytes[0] as usize;
+                AddressingModeResolution::new(bytes, self.clone(), Some(dest_addr))
+            }
             _   => panic!("Can not solve this AddressingMode!"),
         }
     }
@@ -54,7 +66,7 @@ mod tests {
     #[test]
     fn test_implied() {
         let mut memory = Memory::new();
-        memory.write(0x1000, vec![0xe8, 0xff, 0xff]);
+        memory.write(0x1000, vec![0xe8, 0xff, 0xff]).unwrap();
         let mut registers = Registers::new(0x1000);
         let am = AddressingMode::Implied;
         let resolution:AddressingModeResolution = am.solve(0x1000, &mut memory, &mut registers);
@@ -66,7 +78,7 @@ mod tests {
     #[test]
     fn test_zero_page() {
         let mut memory = Memory::new();
-        memory.write(0x1000, vec![0xa5, 0x21, 0x22]);
+        memory.write(0x1000, vec![0xa5, 0x21, 0x22]).unwrap();
         let mut registers = Registers::new(0x1000);
         let am = AddressingMode::ZeroPage;
         let resolution:AddressingModeResolution = am.solve(0x1000, &mut memory, &mut registers);

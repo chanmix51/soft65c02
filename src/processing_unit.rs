@@ -6,6 +6,9 @@ use super::cpu_instruction::microcode;
 
 fn resolve_opcode(address: usize, opcode: u8) -> CPUInstruction {
     match opcode {
+        0x48    => CPUInstruction::new(address, opcode, "PHA", AddressingMode::Implied, microcode::pha),
+        0x8d    => CPUInstruction::new(address, opcode, "STA", AddressingMode::Absolute, microcode::sta),
+        0xa9    => CPUInstruction::new(address, opcode, "LDA", AddressingMode::ZeroPage, microcode::lda),
         0xca    => CPUInstruction::new(address, opcode, "DEX", AddressingMode::Implied, microcode::dex),
         _       => panic!("Yet unsupported instruction opcode {:02x} at address #{:04X}.", opcode, address),
     }
@@ -18,11 +21,23 @@ fn execute_step(registers: &mut Registers, memory: &mut Memory) -> LogLine {
 }
 
 fn read_step(address: usize, registers: &Registers, memory: &Memory) -> LogLine {
-    let opcode = memory.read(registers.command_pointer, 1).unwrap()[0];
-    let cpu_instruction = resolve_opcode(registers.command_pointer, opcode);
+    let opcode = memory.read(address, 1).unwrap()[0];
+    let cpu_instruction = resolve_opcode(address, opcode);
     cpu_instruction.simulate(memory, registers)
 }
 
+pub fn disassemble(start: usize, end: usize, registers: &Registers, memory: &Memory) -> Vec<LogLine> {
+    let mut cp = start;
+    let mut output:Vec<LogLine> = vec![];
+
+    while cp < end {
+        let log_line = read_step(cp, registers, memory);
+        cp = cp + 1 + log_line.resolution.operands.len();
+        output.push(log_line);
+    }
+
+    output
+}
 
 #[cfg(test)]
 mod tests {
@@ -38,11 +53,11 @@ mod tests {
     #[test]
     fn test_execute_step_dex() {
         let mut memory = Memory::new();
-        memory.write(0x1000, vec![0xca]);
+        memory.write(0x1000, vec![0xca]).unwrap();
         let mut registers = Registers::new(0x1000);
         registers.register_x = 0x10;
 
-        let logline:LogLine = execute_step(&mut registers, &mut memory);
+        let _logline:LogLine = execute_step(&mut registers, &mut memory);
         assert_eq!(0x0f, registers.register_x);
         assert_eq!(0x1001, registers.command_pointer);
     }
@@ -50,7 +65,7 @@ mod tests {
     #[test]
     fn simulate_step_dex() {
         let mut memory = Memory::new();
-        memory.write(0x1000, vec![0xca]);
+        memory.write(0x1000, vec![0xca]).unwrap();
         let mut registers = Registers::new(0x1000);
         registers.register_x = 0x10;
         let logline:LogLine = read_step(0x1000, &registers, &memory);
