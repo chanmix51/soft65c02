@@ -8,6 +8,7 @@ mod stx;
 mod adc;
 mod sbc;
 mod bne;
+mod brk;
 
 pub use dex::dex;
 pub use pha::pha;
@@ -19,3 +20,4 @@ pub use stx::stx;
 pub use adc::adc;
 pub use sbc::sbc;
 pub use bne::bne;
+pub use brk::brk;

@@ -33,6 +33,7 @@ impl CPUInstruction {
             opcode:     self.opcode,
             mnemonic:   self.mnemonic.clone(),
             resolution: resolution,
+            is_simulated: true,
        }
     }
 }
@@ -42,6 +43,7 @@ pub struct LogLine {
     pub opcode:     u8,
     pub mnemonic:   String,
     pub resolution: AddressingModeResolution,
+    pub is_simulated: bool,
 }
 
 impl fmt::Display for LogLine {
@@ -49,9 +51,13 @@ impl fmt::Display for LogLine {
         let mut bytes = vec![self.opcode];
         for i in self.resolution.operands.clone() { bytes.push(i); }
         let byte_sequence = format!("({})", bytes.iter().fold(String::new(), |acc, s| format!("{} {:02x}", acc, s)).trim());
-        let dest_addr = match self.resolution.target_address {
-            Some(addr)  => format!("(#0x{:04X})", addr),
-            None        => String::new(),
+        let dest_addr = if self.is_simulated {
+            String::new()
+        } else {
+            match self.resolution.target_address {
+                Some(addr)  => format!("(#0x{:04X})", addr),
+                None        => String::new(),
+            }
         };
 
         write!(f, "#0x{:04X}: {: <14}{: <4} {: <10}{: >10}", self.address, byte_sequence, self.mnemonic, self.resolution, dest_addr)

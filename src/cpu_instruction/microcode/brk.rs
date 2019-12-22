@@ -3,18 +3,12 @@ use crate::registers::Registers;
 use crate::memory::RAM as Memory;
 use crate::addressing_mode::*;
 
-pub fn bne(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> LogLine {
+pub fn brk(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> LogLine {
     let resolution = cpu_instruction.addressing_mode.solve(registers.command_pointer, memory, registers);
-    let target_address = match resolution.target_address {
-        Some(v) => v,
-        None => panic!("Address resolver gave us no address. It might be an overflow from the relative operation."),
+    let _target_address:Option<usize> = match resolution.target_address {
+        Some(v) => panic!("Address resolver must NOT give us any address."),
+        None => None,
     };
-
-    if registers.status_register & 0b01000000 != 0 {
-        registers.command_pointer = target_address;
-    } else {
-        registers.command_pointer += 2;
-    }
 
     LogLine {
         address:    cpu_instruction.address,
@@ -31,12 +25,11 @@ mod tests {
     use crate::cpu_instruction::cpu_instruction::tests::get_stuff;
 
     #[test]
-    fn test_bne() {
-        let cpu_instruction = CPUInstruction::new(0x1000, 0xca, "BNE", AddressingMode::Relative, bne);
+    fn test_brk() {
+        let cpu_instruction = CPUInstruction::new(0x1000, 0xca, "BRK", AddressingMode::Implied, brk);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xca, 0x0a, 0x02]);
-        registers.status_register = 0b01011000;
         let log_line = cpu_instruction.execute(&mut memory, &mut registers);
-        assert_eq!("BNE".to_owned(), log_line.mnemonic);
-        assert_eq!(0x100a, registers.command_pointer);
+        assert_eq!("BRK".to_owned(), log_line.mnemonic);
+        assert_eq!(0x1000, registers.command_pointer);
     }
 }

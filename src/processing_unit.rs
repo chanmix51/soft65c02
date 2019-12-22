@@ -6,6 +6,7 @@ use super::cpu_instruction::microcode;
 
 fn resolve_opcode(address: usize, opcode: u8) -> CPUInstruction {
     match opcode {
+        0x00    => CPUInstruction::new(address, opcode, "BRK", AddressingMode::Implied, microcode::brk),
         0x48    => CPUInstruction::new(address, opcode, "PHA", AddressingMode::Implied, microcode::pha),
         0x51    => CPUInstruction::new(address, opcode, "EOR", AddressingMode::ZeroPageIndirectYIndexed, microcode::eor),
         0x6c    => CPUInstruction::new(address, opcode, "JMP", AddressingMode::Indirect, microcode::jmp),
