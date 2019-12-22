@@ -33,7 +33,10 @@ impl fmt::Display for AddressingModeResolution {
             AddressingMode::ZeroPageYIndexed => write!(f, "${:02x},Y", self.operands[0]),
             AddressingMode::ZeroPageXIndexedIndirect => write!(f, "(${:02x},X)", self.operands[0]),
             AddressingMode::ZeroPageIndirectYIndexed => write!(f, "(${:02x}),Y", self.operands[0]),
-            _ => panic!("Unsupported Display::fmt"),
+            AddressingMode::Relative  => {
+                let offset =  i8::from_ne_bytes(self.operands[0].to_ne_bytes());
+                write!(f, "{}", offset)
+            },
         }
     }
 }
@@ -51,6 +54,7 @@ pub enum AddressingMode {
     AbsoluteXIndexed,
     AbsoluteYIndexed,
     Indirect,
+    Relative,
 }
 
 impl AddressingMode {
@@ -111,7 +115,19 @@ impl AddressingMode {
                 let dst_addr = little_endian(memory.read(little_endian(bytes.clone()), 2).unwrap());
                 AddressingModeResolution::new(bytes, self.clone(), Some(dst_addr))
             },
-            _   => panic!("Can not solve this AddressingMode!"),
+            AddressingMode::Relative => {
+                let bytes = memory.read(opcode_address + 1, 1).unwrap();
+                let dst_addr = {
+                   let offset_i8  = i8::from_le_bytes(bytes[0].to_le_bytes());
+                    if offset_i8 < 0 {
+                        opcode_address.checked_sub( (0 - offset_i8) as usize)
+                    } else {
+                        opcode_address.checked_add(offset_i8 as usize)
+                    }
+                };
+
+                AddressingModeResolution::new(bytes, self.clone(), dst_addr)
+            },
         }
     }
 }

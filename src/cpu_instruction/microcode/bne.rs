@@ -7,13 +7,13 @@ pub fn bne(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
     let resolution = cpu_instruction.addressing_mode.solve(registers.command_pointer, memory, registers);
     let target_address = match resolution.target_address {
         Some(v) => v,
-        None => panic!("Ooops no target address from the addressing mode resolver."),
+        None => panic!("Address resolver gave us no address."),
     };
 
     if registers.status_register & 0b01000000 != 0 {
-        registers.command_pointer += 1 + { let a = resolution.operands[0] as usize; if a > 127 { a - 256 } else { a }};
+        registers.command_pointer = target_address;
     } else {
-        registers.command_pointer += 1 + resolution.operands.len();
+        registers.command_pointer += 2;
     }
 
     LogLine {
@@ -31,10 +31,11 @@ mod tests {
 
     #[test]
     fn test_bne() {
-        let cpu_instruction = CPUInstruction::new(0x1000, 0xca, "bne", AddressingMode::Immediate, bne);
-        let (mut memory, mut registers) = get_stuff(0x1000, vec![0x4c, 0x0a, 0x02]);
+        let cpu_instruction = CPUInstruction::new(0x1000, 0xca, "BNE", AddressingMode::Relative, bne);
+        let (mut memory, mut registers) = get_stuff(0x1000, vec![0xca, 0x0a, 0x02]);
+        registers.status_register = 0b01011000;
         let log_line = cpu_instruction.execute(&mut memory, &mut registers);
-        assert_eq!("bne".to_owned(), log_line.mnemonic);
+        assert_eq!("BNE".to_owned(), log_line.mnemonic);
         assert_eq!(0x100a, registers.command_pointer);
     }
 }
