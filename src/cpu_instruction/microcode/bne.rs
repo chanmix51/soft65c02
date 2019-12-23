@@ -3,7 +3,7 @@ use crate::registers::Registers;
 use crate::memory::RAM as Memory;
 use crate::addressing_mode::*;
 
-pub fn bne(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> LogLine {
+pub fn bne(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine, String> {
     let resolution = cpu_instruction.addressing_mode.solve(registers.command_pointer, memory, registers);
     let target_address = match resolution.target_address {
         Some(v) => v,
