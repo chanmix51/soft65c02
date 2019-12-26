@@ -1,6 +1,7 @@
 use crate::memory::RAM as Memory;
 use crate::registers::Registers;
 use crate::addressing_mode::*;
+use crate::cpu_instruction::microcode::Result as MicrocodeResult;
 use std::fmt;
 
 pub struct CPUInstruction {
@@ -8,11 +9,17 @@ pub struct CPUInstruction {
     pub opcode:     u8,
     pub mnemonic:   String,
     pub addressing_mode: AddressingMode,
-    pub microcode:  Box<dyn Fn(&mut Memory, &mut Registers, &CPUInstruction) -> LogLine>,
+    pub microcode:  Box<dyn Fn(&mut Memory, &mut Registers, &CPUInstruction) -> MicrocodeResult<LogLine>>,
 }
 
 impl CPUInstruction {
-    pub fn new(address: usize, opcode: u8, mnemonic: &str, addressing_mode: AddressingMode, microcode: impl Fn(&mut Memory, &mut Registers, &CPUInstruction) -> LogLine + 'static) -> CPUInstruction {
+    pub fn new(
+    address: usize,
+    opcode: u8,
+    mnemonic: &str,
+    addressing_mode: AddressingMode,
+    microcode: impl Fn(&mut Memory, &mut Registers, &CPUInstruction) -> MicrocodeResult<LogLine> + 'static
+    ) -> CPUInstruction {
         CPUInstruction {
             address:            address,
             opcode:             opcode,
@@ -22,12 +29,12 @@ impl CPUInstruction {
         }
     }
 
-    pub fn execute(&self, memory: &mut Memory, registers: &mut Registers) -> LogLine {
+    pub fn execute(&self, memory: &mut Memory, registers: &mut Registers) -> MicrocodeResult<LogLine> {
         (self.microcode)(memory, registers, &self)
     }
 
     pub fn simulate(&self, memory: &Memory, registers: &Registers) -> LogLine {
-       let resolution = self.addressing_mode.solve(self.address, memory, registers);
+       let resolution = self.addressing_mode.solve(self.address, memory, registers).unwrap();
        LogLine {
             address:    self.address,
             opcode:     self.opcode,

@@ -1,3 +1,6 @@
+mod error;
+pub use error::{MicrocodeError, Result};
+
 mod dex;
 mod pha;
 mod lda;

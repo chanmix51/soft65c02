@@ -2,9 +2,10 @@ use crate::cpu_instruction::{CPUInstruction, LogLine};
 use crate::registers::Registers;
 use crate::memory::RAM as Memory;
 use crate::addressing_mode::*;
+use super::{MicrocodeError, Result};
 
-pub fn dex(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> LogLine {
-    let resolution = cpu_instruction.addressing_mode.solve(registers.command_pointer, memory, registers);
+pub fn dex(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {
+    let resolution = cpu_instruction.addressing_mode.solve(registers.command_pointer, memory, registers)?;
 
     if registers.register_x != 0 {
         registers.register_x -= 1;
@@ -21,13 +22,13 @@ pub fn dex(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
 
     registers.command_pointer += 1 + resolution.operands.len();
 
-    LogLine {
+    Ok(LogLine {
         address:    cpu_instruction.address,
         opcode:     cpu_instruction.opcode,
         mnemonic:   cpu_instruction.mnemonic.clone(),
         resolution: resolution,
         is_simulated: false,
-    }
+    })
 }
 
 #[cfg(test)]
@@ -40,7 +41,7 @@ mod tests {
         let cpu_instruction = CPUInstruction::new(0x1000, 0xca, "DEX", AddressingMode::Implied, dex);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xca, 0x0a]);
         registers.register_x = 0x10;
-        let log_line = cpu_instruction.execute(&mut memory, &mut registers);
+        let log_line = cpu_instruction.execute(&mut memory, &mut registers).unwrap();
         assert_eq!("DEX".to_owned(), log_line.mnemonic);
         assert_eq!(0x0f, registers.register_x);
         assert_eq!(0b00000000, registers.status_register & 0b10000010);
@@ -51,7 +52,7 @@ mod tests {
     fn test_dex_zero() {
         let cpu_instruction = CPUInstruction::new(0x1000, 0xca, "DEX", AddressingMode::Implied, dex);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xca, 0x0a]);
-        let log_line = cpu_instruction.execute(&mut memory, &mut registers);
+        let log_line = cpu_instruction.execute(&mut memory, &mut registers).unwrap();
         assert_eq!("DEX".to_owned(), log_line.mnemonic);
         assert_eq!(0xff, registers.register_x);
         assert_eq!(0b10000000, registers.status_register & 0b10000010);

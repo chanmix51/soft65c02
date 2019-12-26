@@ -1,0 +1,115 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+AddressingMode	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^pub enum AddressingMode {$/;"	g
+AddressingModeResolution	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^pub struct AddressingModeResolution {$/;"	s
+CPUInstruction	/home/greg/rust/soft65c02/src/cpu_instruction/cpu_instruction.rs	/^pub struct CPUInstruction {$/;"	s
+INIT_VECTOR	/home/greg/rust/soft65c02/src/lib.rs	/^const INIT_VECTOR:usize = 0xFFFC;$/;"	c
+INTERRUPT_VECTOR	/home/greg/rust/soft65c02/src/lib.rs	/^const INTERRUPT_VECTOR:usize = 0xFFFE;$/;"	c
+LogLine	/home/greg/rust/soft65c02/src/cpu_instruction/cpu_instruction.rs	/^pub struct LogLine {$/;"	s
+MEMMAX	/home/greg/rust/soft65c02/src/memory.rs	/^pub const MEMMAX:usize = 65535;$/;"	c
+MemoryError	/home/greg/rust/soft65c02/src/memory.rs	/^pub enum MemoryError {$/;"	g
+MicrocodeError	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/error.rs	/^pub enum MicrocodeError {$/;"	g
+RAM	/home/greg/rust/soft65c02/src/memory.rs	/^pub struct RAM {$/;"	s
+Registers	/home/greg/rust/soft65c02/src/registers.rs	/^pub struct Registers {$/;"	s
+ResolutionError	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^pub enum ResolutionError {$/;"	g
+Result	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^pub type Result<T> = std::result::Result<T, ResolutionError>;$/;"	T
+Result	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/error.rs	/^pub type Result<T> = std::result::Result<T, MicrocodeError>;$/;"	T
+STACK_BASE_ADDR	/home/greg/rust/soft65c02/src/cpu_instruction/mod.rs	/^pub const STACK_BASE_ADDR:usize = 0x0100;$/;"	c
+adc	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/adc.rs	/^pub fn adc(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+b_flag_is_set	/home/greg/rust/soft65c02/src/registers.rs	/^    pub fn b_flag_is_set(&self) -> bool {$/;"	f
+bne	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bne.rs	/^pub fn bne(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+brk	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/brk.rs	/^pub fn brk(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+c_flag_is_set	/home/greg/rust/soft65c02/src/registers.rs	/^    pub fn c_flag_is_set(&self) -> bool {$/;"	f
+d_flag_is_set	/home/greg/rust/soft65c02/src/registers.rs	/^    pub fn d_flag_is_set(&self) -> bool {$/;"	f
+dex	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/dex.rs	/^pub fn dex(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+disassemble	/home/greg/rust/soft65c02/src/processing_unit.rs	/^pub fn disassemble(start: usize, end: usize, registers: &Registers, memory: &Memory) -> Vec<LogLine> {$/;"	f
+eor	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/eor.rs	/^pub fn eor(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+execute	/home/greg/rust/soft65c02/src/cpu_instruction/cpu_instruction.rs	/^    pub fn execute(&self, memory: &mut Memory, registers: &mut Registers) -> MicrocodeResult<LogLine> {$/;"	f
+execute_step	/home/greg/rust/soft65c02/src/processing_unit.rs	/^fn execute_step(registers: &mut Registers, memory: &mut Memory) -> MicrocodeResult<LogLine> {$/;"	f
+fmt	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {$/;"	f
+fmt	/home/greg/rust/soft65c02/src/cpu_instruction/cpu_instruction.rs	/^    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {$/;"	f
+fmt	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/error.rs	/^    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {$/;"	f
+fmt	/home/greg/rust/soft65c02/src/memory.rs	/^    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {$/;"	f
+fmt	/home/greg/rust/soft65c02/src/registers.rs	/^    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {$/;"	f
+from	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^    fn from(err: memory::MemoryError) -> ResolutionError {$/;"	f
+from	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/error.rs	/^    fn from(err: memory::MemoryError) -> MicrocodeError {$/;"	f
+get_stuff	/home/greg/rust/soft65c02/src/cpu_instruction/cpu_instruction.rs	/^    pub fn get_stuff(addr: usize, program: Vec<u8>) -> (Memory, Registers) {$/;"	f
+i_flag_is_set	/home/greg/rust/soft65c02/src/registers.rs	/^    pub fn i_flag_is_set(&self) -> bool {$/;"	f
+it_works	/home/greg/rust/soft65c02/src/lib.rs	/^    fn it_works() {$/;"	f
+jmp	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/jmp.rs	/^pub fn jmp(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> LogLine {$/;"	f
+lda	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/lda.rs	/^pub fn lda(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> LogLine {$/;"	f
+little_endian	/home/greg/rust/soft65c02/src/memory.rs	/^pub fn little_endian(bytes: Vec<u8>) -> usize {$/;"	f
+mem_dump	/home/greg/rust/soft65c02/src/lib.rs	/^fn mem_dump(start: usize, end: usize, memory: &Memory) {$/;"	f
+n_flag_is_set	/home/greg/rust/soft65c02/src/registers.rs	/^    pub fn n_flag_is_set(&self) -> bool {$/;"	f
+new	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^    fn new(operands: Vec<u8>, addressing_mode: AddressingMode, target_address: Option<usize>) -> Self {$/;"	f
+new	/home/greg/rust/soft65c02/src/cpu_instruction/cpu_instruction.rs	/^    pub fn new($/;"	f
+new	/home/greg/rust/soft65c02/src/memory.rs	/^    pub fn new() -> RAM {$/;"	f
+new	/home/greg/rust/soft65c02/src/registers.rs	/^    pub fn new(init_address: usize) -> Registers {$/;"	f
+pha	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/pha.rs	/^pub fn pha(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+read	/home/greg/rust/soft65c02/src/memory.rs	/^    pub fn read(&self, addr: usize, len: usize) -> Result<Vec<u8>, MemoryError> {$/;"	f
+read_step	/home/greg/rust/soft65c02/src/processing_unit.rs	/^fn read_step(address: usize, registers: &Registers, memory: &Memory) -> LogLine {$/;"	f
+resolve_opcode	/home/greg/rust/soft65c02/src/processing_unit.rs	/^fn resolve_opcode(address: usize, opcode: u8) -> CPUInstruction {$/;"	f
+sbc	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/sbc.rs	/^pub fn sbc(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> LogLine {$/;"	f
+set_b_flag	/home/greg/rust/soft65c02/src/registers.rs	/^    pub fn set_b_flag(&mut self, flag: bool) {$/;"	f
+set_c_flag	/home/greg/rust/soft65c02/src/registers.rs	/^    pub fn set_c_flag(&mut self, flag: bool) {$/;"	f
+set_d_flag	/home/greg/rust/soft65c02/src/registers.rs	/^    pub fn set_d_flag(&mut self, flag: bool) {$/;"	f
+set_i_flag	/home/greg/rust/soft65c02/src/registers.rs	/^    pub fn set_i_flag(&mut self, flag: bool) {$/;"	f
+set_n_flag	/home/greg/rust/soft65c02/src/registers.rs	/^    pub fn set_n_flag(&mut self, flag: bool) {$/;"	f
+set_v_flag	/home/greg/rust/soft65c02/src/registers.rs	/^    pub fn set_v_flag(&mut self, flag: bool) {$/;"	f
+set_z_flag	/home/greg/rust/soft65c02/src/registers.rs	/^    pub fn set_z_flag(&mut self, flag: bool) {$/;"	f
+simulate	/home/greg/rust/soft65c02/src/cpu_instruction/cpu_instruction.rs	/^    pub fn simulate(&self, memory: &Memory, registers: &Registers) -> LogLine {$/;"	f
+simulate_step_dex	/home/greg/rust/soft65c02/src/processing_unit.rs	/^    fn simulate_step_dex() {$/;"	f
+solve	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^    pub fn solve(&self, opcode_address: usize, memory: &Memory, registers: &Registers) -> Result<AddressingModeResolution> {$/;"	f
+source	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^    fn source(&self) -> Option<&(dyn error::Error + 'static)> {$/;"	f
+source	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/error.rs	/^    fn source(&self) -> Option<&(dyn error::Error + 'static)> {$/;"	f
+source	/home/greg/rust/soft65c02/src/memory.rs	/^    fn source(&self) -> Option<&(dyn error::Error + 'static)> {$/;"	f
+sta	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/sta.rs	/^pub fn sta(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> LogLine {$/;"	f
+stx	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/stx.rs	/^pub fn stx(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> LogLine {$/;"	f
+test_absolute	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^    fn test_absolute() {$/;"	f
+test_absolute_x_indexed	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^    fn test_absolute_x_indexed() {$/;"	f
+test_absolute_y_indexed	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^    fn test_absolute_y_indexed() {$/;"	f
+test_adc	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/adc.rs	/^    fn test_adc() {$/;"	f
+test_bne	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bne.rs	/^    fn test_bne() {$/;"	f
+test_brk	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/brk.rs	/^    fn test_brk() {$/;"	f
+test_dex	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/dex.rs	/^    fn test_dex() {$/;"	f
+test_dex	/home/greg/rust/soft65c02/src/processing_unit.rs	/^    fn test_dex() {$/;"	f
+test_dex_zero	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/dex.rs	/^    fn test_dex_zero() {$/;"	f
+test_eor	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/eor.rs	/^    fn test_eor() {$/;"	f
+test_execute_step_dex	/home/greg/rust/soft65c02/src/processing_unit.rs	/^    fn test_execute_step_dex() {$/;"	f
+test_immediate	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^    fn test_immediate() {$/;"	f
+test_implied	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^    fn test_implied() {$/;"	f
+test_indirect	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^    fn test_indirect() {$/;"	f
+test_jmp	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/jmp.rs	/^    fn test_jmp() {$/;"	f
+test_lda	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/lda.rs	/^    fn test_lda() {$/;"	f
+test_little_endian	/home/greg/rust/soft65c02/src/memory.rs	/^    fn test_little_endian() {$/;"	f
+test_pha	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/pha.rs	/^    fn test_pha() {$/;"	f
+test_sbc	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/sbc.rs	/^    fn test_sbc() {$/;"	f
+test_sta	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/sta.rs	/^    fn test_sta() {$/;"	f
+test_stx	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/stx.rs	/^    fn test_stx() {$/;"	f
+test_zero_page	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^    fn test_zero_page() {$/;"	f
+test_zero_page_indirect_y_indexed	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^    fn test_zero_page_indirect_y_indexed() {$/;"	f
+test_zero_page_x_indexed	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^    fn test_zero_page_x_indexed() {$/;"	f
+test_zero_page_y_indexed	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^    fn test_zero_page_y_indexed() {$/;"	f
+tests	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/cpu_instruction.rs	/^pub mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/adc.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bne.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/brk.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/dex.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/eor.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/jmp.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/lda.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/pha.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/sbc.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/sta.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/stx.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/lib.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/memory.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/processing_unit.rs	/^mod tests {$/;"	m
+v_flag_is_set	/home/greg/rust/soft65c02/src/registers.rs	/^    pub fn v_flag_is_set(&self) -> bool {$/;"	f
+write	/home/greg/rust/soft65c02/src/memory.rs	/^    pub fn write(&mut self, location: usize, data: Vec<u8>) -> Result<(), MemoryError> {$/;"	f
+z_flag_is_set	/home/greg/rust/soft65c02/src/registers.rs	/^    pub fn z_flag_is_set(&self) -> bool {$/;"	f

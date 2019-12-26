@@ -3,6 +3,7 @@ use super::registers::Registers;
 use super::addressing_mode::*;
 use super::cpu_instruction::{CPUInstruction, LogLine};
 use super::cpu_instruction::microcode;
+use crate::cpu_instruction::microcode::Result as MicrocodeResult;
 
 fn resolve_opcode(address: usize, opcode: u8) -> CPUInstruction {
     match opcode {
@@ -23,7 +24,7 @@ fn resolve_opcode(address: usize, opcode: u8) -> CPUInstruction {
     }
 }
 
-fn execute_step(registers: &mut Registers, memory: &mut Memory) -> LogLine {
+fn execute_step(registers: &mut Registers, memory: &mut Memory) -> MicrocodeResult<LogLine> {
     let opcode = memory.read(registers.command_pointer, 1).unwrap()[0];
     let cpu_instruction = resolve_opcode(registers.command_pointer, opcode);
     cpu_instruction.execute(memory, registers)
@@ -41,7 +42,6 @@ pub fn disassemble(start: usize, end: usize, registers: &Registers, memory: &Mem
 
     while cp < end {
         let log_line = read_step(cp, registers, memory);
-        println!("{}", log_line);
         cp = cp + 1 + log_line.resolution.operands.len();
         output.push(log_line);
     }
@@ -67,7 +67,7 @@ mod tests {
         let mut registers = Registers::new(0x1000);
         registers.register_x = 0x10;
 
-        let _logline:LogLine = execute_step(&mut registers, &mut memory);
+        let _logline:LogLine = execute_step(&mut registers, &mut memory).unwrap();
         assert_eq!(0x0f, registers.register_x);
         assert_eq!(0x1001, registers.command_pointer);
     }

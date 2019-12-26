@@ -4,6 +4,9 @@ mod addressing_mode;
 mod cpu_instruction;
 mod processing_unit;
 
+const INIT_VECTOR:usize = 0xFFFC;
+const INTERRUPT_VECTOR:usize = 0xFFFE;
+
 use memory::RAM as Memory;
 use registers::Registers;
 use processing_unit::*;
