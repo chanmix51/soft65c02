@@ -30,7 +30,7 @@ mod tests {
 
     #[test]
     fn test_stx() {
-        let cpu_instruction = CPUInstruction::new(0x1000, 0xca, "stx", AddressingMode::ZeroPage, stx);
+        let cpu_instruction = CPUInstruction::new(0x1000, 0xca, "stx", AddressingMode::ZeroPage([0x0a]), stx);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x4c, 0x0a, 0x02]);
         registers.register_x = 0x28;
         let log_line = cpu_instruction.execute(&mut memory, &mut registers).unwrap();

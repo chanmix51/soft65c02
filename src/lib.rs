@@ -52,7 +52,7 @@ mod tests {
         "#0x080F: (96 21)       STX  $21,Y",
         "#0x0811: (7d 01 02)    ADC  $0201,X",
         "#0x0814: (f9 10 12)    SBC  $1210,Y",
-        "#0x0817: (d0 f6)       BNE  -10",
+        "#0x0817: (d0 f6)       BNE  ±$f6",
         "#0x0819: (00)          BRK"
         ];
         let registers = Registers::new(init_vector);

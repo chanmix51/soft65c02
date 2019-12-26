@@ -33,7 +33,7 @@ mod tests {
 
     #[test]
     fn test_bne() {
-        let cpu_instruction = CPUInstruction::new(0x1000, 0xca, "BNE", AddressingMode::Relative, bne);
+        let cpu_instruction = CPUInstruction::new(0x1000, 0xca, "BNE", AddressingMode::Relative([0x0a]), bne);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xca, 0x0a, 0x02]);
         registers.status_register = 0b01011000;
         let log_line = cpu_instruction.execute(&mut memory, &mut registers).unwrap();

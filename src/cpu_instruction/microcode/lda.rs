@@ -30,7 +30,7 @@ mod tests {
 
     #[test]
     fn test_lda() {
-        let cpu_instruction = CPUInstruction::new(0x1000, 0xca, "LDA", AddressingMode::ZeroPage, lda);
+        let cpu_instruction = CPUInstruction::new(0x1000, 0xca, "LDA", AddressingMode::ZeroPage([0x0a]), lda);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xa9, 0x0a]);
         registers.accumulator = 0x10;
         memory.write(0x000a, vec![0xfa]).unwrap();

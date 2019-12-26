@@ -32,16 +32,16 @@ impl CPUInstruction {
     pub fn execute(&self, memory: &mut Memory, registers: &mut Registers) -> MicrocodeResult<LogLine> {
         (self.microcode)(memory, registers, &self)
     }
+}
 
-    pub fn simulate(&self, memory: &Memory, registers: &Registers) -> LogLine {
-       let resolution = self.addressing_mode.solve(self.address, memory, registers).unwrap();
-       LogLine {
-            address:    self.address,
-            opcode:     self.opcode,
-            mnemonic:   self.mnemonic.clone(),
-            resolution: resolution,
-            is_simulated: true,
-       }
+impl fmt::Display for CPUInstruction {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut bytes = vec![self.opcode];
+
+        for i in self.addressing_mode.get_operands() { bytes.push(i); }
+        let byte_sequence = format!("({})", bytes.iter().fold(String::new(), |acc, s| format!("{} {:02x}", acc, s)).trim());
+
+        write!(f, "#0x{:04X}: {: <14}{: <4} {: <15}", self.address, byte_sequence, self.mnemonic, self.addressing_mode)
     }
 }
 
@@ -58,16 +58,8 @@ impl fmt::Display for LogLine {
         let mut bytes = vec![self.opcode];
         for i in self.resolution.operands.clone() { bytes.push(i); }
         let byte_sequence = format!("({})", bytes.iter().fold(String::new(), |acc, s| format!("{} {:02x}", acc, s)).trim());
-        let dest_addr = if self.is_simulated {
-            String::new()
-        } else {
-            match self.resolution.target_address {
-                Some(addr)  => format!("(#0x{:04X})", addr),
-                None        => String::new(),
-            }
-        };
 
-        write!(f, "#0x{:04X}: {: <14}{: <4} {: <10}{: >10}", self.address, byte_sequence, self.mnemonic, self.resolution, dest_addr)
+        write!(f, "#0x{:04X}: {: <14}{: <4} {: <15}", self.address, byte_sequence, self.mnemonic, self.resolution)
     }
 }
 

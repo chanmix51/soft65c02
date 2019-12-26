@@ -60,22 +60,9 @@ impl AddressingModeResolution {
 
 impl fmt::Display for AddressingModeResolution {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.addressing_mode {
-            AddressingMode::Implied  => write!(f, ""),
-            AddressingMode::Immediate  => write!(f, "#${:02x}", self.operands[0]),
-            AddressingMode::ZeroPage => write!(f, "${:02x}", self.operands[0]),
-            AddressingMode::Absolute => write!(f, "${:04x}", self.target_address.unwrap()),
-            AddressingMode::AbsoluteXIndexed => write!(f, "${:04x},X", little_endian(self.operands.clone())),
-            AddressingMode::AbsoluteYIndexed => write!(f, "${:04x},Y", little_endian(self.operands.clone())),
-            AddressingMode::Indirect => write!(f, "(${:04x})", little_endian(self.operands.clone())),
-            AddressingMode::ZeroPageXIndexed => write!(f, "${:02x},X", self.operands[0]),
-            AddressingMode::ZeroPageYIndexed => write!(f, "${:02x},Y", self.operands[0]),
-            AddressingMode::ZeroPageXIndexedIndirect => write!(f, "(${:02x},X)", self.operands[0]),
-            AddressingMode::ZeroPageIndirectYIndexed => write!(f, "(${:02x}),Y", self.operands[0]),
-            AddressingMode::Relative  => {
-                let offset =  i8::from_ne_bytes(self.operands[0].to_ne_bytes());
-                write!(f, "{}", offset)
-            },
+        match self.target_address {
+            Some(addr)  => write!(f, "{: <9}(#0x{:04X})", format!("{}", self.addressing_mode), addr),
+            None        => write!(f, "{}", self.addressing_mode),
         }
     }
 }
@@ -83,17 +70,17 @@ impl fmt::Display for AddressingModeResolution {
 #[derive(Debug, Eq, PartialEq, Copy, Clone, Hash)]
 pub enum AddressingMode {
     Implied,
-    Immediate,
-    ZeroPage,
-    ZeroPageXIndexed,
-    ZeroPageYIndexed,
-    ZeroPageXIndexedIndirect,
-    ZeroPageIndirectYIndexed,
-    Absolute,
-    AbsoluteXIndexed,
-    AbsoluteYIndexed,
-    Indirect,
-    Relative,
+    Immediate([u8; 1]),
+    ZeroPage([u8; 1]),
+    ZeroPageXIndexed([u8; 1]),
+    ZeroPageYIndexed([u8; 1]),
+    ZeroPageXIndexedIndirect([u8; 1]),
+    ZeroPageIndirectYIndexed([u8; 1]),
+    Absolute([u8; 2]),
+    AbsoluteXIndexed([u8; 2]),
+    AbsoluteYIndexed([u8; 2]),
+    Indirect([u8; 2]),
+    Relative([u8; 1]),
 }
 
 impl AddressingMode {
@@ -105,67 +92,57 @@ impl AddressingMode {
     pub fn solve(&self, opcode_address: usize, memory: &Memory, registers: &Registers) -> Result<AddressingModeResolution> {
         match *self {
             AddressingMode::Implied  => Ok(AddressingModeResolution::new(vec![], self.clone(), None)),
-            AddressingMode::Immediate => {
-                let bytes = memory.read(opcode_address + 1, 1)?;
-                Ok(AddressingModeResolution::new(bytes, self.clone(), Some(opcode_address + 1 as usize)))
+            AddressingMode::Immediate(v) => {
+                Ok(AddressingModeResolution::new(vec![v[0]], self.clone(), Some(opcode_address + 1 as usize)))
             },
-            AddressingMode::ZeroPage => {
-                let bytes = memory.read(opcode_address + 1, 1)?;
-                let byte = bytes[0];
-                Ok(AddressingModeResolution::new(bytes, self.clone(), Some(byte as usize)))
+            AddressingMode::ZeroPage(v) => {
+                Ok(AddressingModeResolution::new(vec![v[0]], self.clone(), Some(v[0] as usize)))
             },
-            AddressingMode::ZeroPageXIndexed => {
-                let bytes = memory.read(opcode_address + 1, 1)?;
-                let byte = bytes[0];
-                Ok(AddressingModeResolution::new(bytes, self.clone(), Some((byte + registers.register_x) as usize)))
+            AddressingMode::ZeroPageXIndexed(v) => {
+                Ok(AddressingModeResolution::new(vec![v[0]], self.clone(), Some(v[0] as usize + registers.register_x as usize )))
             },
-            AddressingMode::ZeroPageYIndexed => {
-                let bytes = memory.read(opcode_address + 1, 1)?;
-                let byte = bytes[0];
-                Ok(AddressingModeResolution::new(bytes, self.clone(), Some((byte + registers.register_y) as usize)))
+            AddressingMode::ZeroPageYIndexed(v) => {
+                Ok(AddressingModeResolution::new(vec![v[0]], self.clone(), Some(v[0] as usize + registers.register_y as usize)))
             },
-            AddressingMode::ZeroPageXIndexedIndirect => {
-                let bytes = memory.read(opcode_address + 1, 1)?;
-                let dst_addr = little_endian(memory.read((bytes[0] + registers.register_x) as usize, 2)?);
+            AddressingMode::ZeroPageXIndexedIndirect(v) => {
+                let dst_addr = little_endian(memory.read((v[0] + registers.register_x) as usize, 2)?);
 
                 if dst_addr > memory::MEMMAX {
                     Err(ResolutionError::Solving(*self, opcode_address, Some(dst_addr)))
                 } else {
-                    Ok(AddressingModeResolution::new(bytes, self.clone(), Some(dst_addr)))
+                    Ok(AddressingModeResolution::new(vec![v[0]], self.clone(), Some(dst_addr)))
                 }
             },
-            AddressingMode::ZeroPageIndirectYIndexed => {
-                let bytes = memory.read(opcode_address + 1, 1)?;
-                let dst_addr = little_endian(memory.read(bytes[0] as usize, 2)?) + registers.register_y as usize;
+            AddressingMode::ZeroPageIndirectYIndexed(v) => {
+                let dst_addr = little_endian(memory.read(v[0] as usize, 2)?) + registers.register_y as usize;
 
                 if dst_addr > memory::MEMMAX {
                     Err(ResolutionError::Solving(*self, opcode_address, Some(dst_addr)))
                 } else {
-                    Ok(AddressingModeResolution::new(bytes, self.clone(), Some(dst_addr)))
+                    Ok(AddressingModeResolution::new(vec![v[0]], self.clone(), Some(dst_addr)))
                 }
             },
-            AddressingMode::Absolute => {
-                let bytes = memory.read(opcode_address + 1, 2)?;
-                let dest_addr = little_endian(bytes.clone());
-                Ok(AddressingModeResolution::new(bytes, self.clone(), Some(dest_addr)))
+            AddressingMode::Absolute(v) => {
+                let dest_addr = little_endian(vec![v[0], v[1]]);
+                Ok(AddressingModeResolution::new(vec![v[0],v[1]], self.clone(), Some(dest_addr)))
             },
-            AddressingMode::AbsoluteXIndexed => {
-                let bytes = memory.read(opcode_address + 1, 2)?;
+            AddressingMode::AbsoluteXIndexed(v) => {
+                let bytes = vec![v[0], v[1]];
                 let dest_addr = little_endian(bytes.clone()) + registers.register_x as usize;
                 Ok(AddressingModeResolution::new(bytes, self.clone(), Some(dest_addr)))
             },
-            AddressingMode::AbsoluteYIndexed => {
-                let bytes = memory.read(opcode_address + 1, 2)?;
+            AddressingMode::AbsoluteYIndexed(v) => {
+                let bytes = vec![v[0], v[1]];
                 let dest_addr = little_endian(bytes.clone()) + registers.register_y as usize;
                 Ok(AddressingModeResolution::new(bytes, self.clone(), Some(dest_addr)))
             },
-            AddressingMode::Indirect => {
-                let bytes = memory.read(opcode_address + 1, 2)?;
+            AddressingMode::Indirect(v) => {
+                let bytes = vec![v[0], v[1]];
                 let dst_addr = little_endian(memory.read(little_endian(bytes.clone()), 2)?);
                 Ok(AddressingModeResolution::new(bytes, self.clone(), Some(dst_addr)))
             },
-            AddressingMode::Relative => {
-                let bytes = memory.read(opcode_address + 1, 1)?;
+            AddressingMode::Relative(v) => {
+                let bytes = vec![v[0]];
                 let dst_addr = {
                    let offset_i8  = i8::from_le_bytes(bytes[0].to_le_bytes());
                     if offset_i8 < 0 {
@@ -183,23 +160,40 @@ impl AddressingMode {
             },
         }
     }
+
+    pub fn get_operands(&self) -> Vec<u8> {
+        match *self {
+            AddressingMode::Implied => vec![],
+            AddressingMode::Immediate(v) => v.to_vec(),
+            AddressingMode::ZeroPage(v) => v.to_vec(),
+            AddressingMode::ZeroPageXIndexed(v) => v.to_vec(),
+            AddressingMode::ZeroPageYIndexed(v) => v.to_vec(),
+            AddressingMode::ZeroPageXIndexedIndirect(v) => v.to_vec(),
+            AddressingMode::ZeroPageIndirectYIndexed(v) => v.to_vec(),
+            AddressingMode::Absolute(v) => v.to_vec(),
+            AddressingMode::AbsoluteXIndexed(v) => v.to_vec(),
+            AddressingMode::AbsoluteYIndexed(v) => v.to_vec(),
+            AddressingMode::Indirect(v) => v.to_vec(),
+            AddressingMode::Relative(v) => v.to_vec(),
+        }
+    }
 }
 
 impl fmt::Display for AddressingMode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
-            AddressingMode::Implied  => write!(f, "implied"),
-            AddressingMode::Immediate  => write!(f, "immediate"),
-            AddressingMode::ZeroPage => write!(f, "zero page"),
-            AddressingMode::Absolute => write!(f, "absolute"),
-            AddressingMode::AbsoluteXIndexed => write!(f, "absolute X indexed"),
-            AddressingMode::AbsoluteYIndexed => write!(f, "absolute Y indexed"),
-            AddressingMode::Indirect => write!(f, "indirect"),
-            AddressingMode::ZeroPageXIndexed => write!(f, "zero page X indexed"),
-            AddressingMode::ZeroPageYIndexed => write!(f, "zero page Y indexed"),
-            AddressingMode::ZeroPageXIndexedIndirect => write!(f, "zero page X indexed indirect"),
-            AddressingMode::ZeroPageIndirectYIndexed => write!(f, "zero page indirect Y indexed"),
-            AddressingMode::Relative  => write!(f, "relative"),
+            AddressingMode::Implied  => write!(f, ""),
+            AddressingMode::Immediate(v)  => write!(f, "#${:02x}", v[0]),
+            AddressingMode::ZeroPage(v) => write!(f, "${:02x}", v[0]),
+            AddressingMode::Absolute(v) => write!(f, "${:02X}{:02X}", v[1], v[0]),
+            AddressingMode::AbsoluteXIndexed(v) => write!(f, "${:02X}{:02X},X", v[1], v[0]),
+            AddressingMode::AbsoluteYIndexed(v) => write!(f, "${:02X}{:02X},Y", v[1], v[0]),
+            AddressingMode::Indirect(v) => write!(f, "(${:02X}{:02X})", v[1], v[0]),
+            AddressingMode::ZeroPageXIndexed(v) => write!(f, "${:02x},X", v[0]),
+            AddressingMode::ZeroPageYIndexed(v) => write!(f, "${:02x},Y", v[0]),
+            AddressingMode::ZeroPageXIndexedIndirect(v) => write!(f, "(${:02x},X)", v[0]),
+            AddressingMode::ZeroPageIndirectYIndexed(v) => write!(f, "(${:02x}),Y", v[0]),
+            AddressingMode::Relative(v)  => write!(f, "±${:02x}", v[0]),
         }
     }
 }
@@ -214,8 +208,9 @@ mod tests {
         memory.write(0x1000, vec![0xe8, 0xff, 0xff]).unwrap();
         let mut registers = Registers::new(0x1000);
         let am = AddressingMode::Implied;
-        let resolution:AddressingModeResolution = am.solve(0x1000, &mut memory, &mut registers).unwrap();
+        assert_eq!("".to_owned(), format!("{}", am));
 
+        let resolution:AddressingModeResolution = am.solve(0x1000, &mut memory, &mut registers).unwrap();
         assert_eq!(0, resolution.operands.len());
         assert_eq!(None, resolution.target_address);
         assert_eq!("".to_owned(), format!("{}", resolution));
@@ -226,12 +221,13 @@ mod tests {
         let mut memory = Memory::new();
         memory.write(0x1000, vec![0xe8, 0xff, 0xff]).unwrap();
         let mut registers = Registers::new(0x1000);
-        let am = AddressingMode::Immediate;
-        let resolution:AddressingModeResolution = am.solve(0x1000, &mut memory, &mut registers).unwrap();
+        let am = AddressingMode::Immediate([0xff]);
+        assert_eq!("#$ff".to_owned(), format!("{}", am));
 
+        let resolution:AddressingModeResolution = am.solve(0x1000, &mut memory, &mut registers).unwrap();
         assert_eq!(vec![0xff], resolution.operands);
         assert_eq!(0x1001, resolution.target_address.unwrap());
-        assert_eq!("#$ff".to_owned(), format!("{}", resolution));
+        assert_eq!("#$ff     (#0x1001)".to_owned(), format!("{}", resolution));
     }
 
     #[test]
@@ -239,25 +235,27 @@ mod tests {
         let mut memory = Memory::new();
         memory.write(0x1000, vec![0xa5, 0x21, 0x22]).unwrap();
         let mut registers = Registers::new(0x1000);
-        let am = AddressingMode::ZeroPage;
-        let resolution:AddressingModeResolution = am.solve(0x1000, &mut memory, &mut registers).unwrap();
+        let am = AddressingMode::ZeroPage([0x21]);
+        assert_eq!("$21".to_owned(), format!("{}", am));
 
+        let resolution:AddressingModeResolution = am.solve(0x1000, &mut memory, &mut registers).unwrap();
         assert_eq!(vec![0x21], resolution.operands);
         assert_eq!(0x0021, resolution.target_address.unwrap());
-        assert_eq!("$21".to_owned(), format!("{}", resolution));
+        assert_eq!("$21      (#0x0021)".to_owned(), format!("{}", resolution));
     }
 
     #[test]
     fn test_absolute() {
         let mut memory = Memory::new();
-        memory.write(0x1000, vec![0xa5, 0x21, 0x22]).unwrap();
+        memory.write(0x1000, vec![0xa5, 0x21, 0x2a]).unwrap();
         let mut registers = Registers::new(0x1000);
-        let am = AddressingMode::Absolute;
-        let resolution:AddressingModeResolution = am.solve(0x1000, &mut memory, &mut registers).unwrap();
+        let am = AddressingMode::Absolute([0x21, 0x2a]);
+        assert_eq!("$2A21".to_owned(), format!("{}", am));
 
-        assert_eq!(vec![0x21, 0x22], resolution.operands);
-        assert_eq!(0x2221, resolution.target_address.unwrap());
-        assert_eq!("$2221".to_owned(), format!("{}", resolution));
+        let resolution:AddressingModeResolution = am.solve(0x1000, &mut memory, &mut registers).unwrap();
+        assert_eq!(vec![0x21, 0x2a], resolution.operands);
+        assert_eq!(0x2a21, resolution.target_address.unwrap());
+        assert_eq!("$2A21    (#0x2A21)".to_owned(), format!("{}", resolution));
     }
 
     #[test]
@@ -266,12 +264,13 @@ mod tests {
         memory.write(0x1000, vec![0xa5, 0x21, 0x22]).unwrap();
         let mut registers = Registers::new(0x1000);
         registers.register_x = 0x05;
-        let am = AddressingMode::AbsoluteXIndexed;
-        let resolution:AddressingModeResolution = am.solve(0x1000, &mut memory, &mut registers).unwrap();
+        let am = AddressingMode::AbsoluteXIndexed([0x21, 0x22]);
+        assert_eq!("$2221,X".to_owned(), format!("{}", am));
 
+        let resolution:AddressingModeResolution = am.solve(0x1000, &mut memory, &mut registers).unwrap();
         assert_eq!(vec![0x21, 0x22], resolution.operands);
         assert_eq!(0x2226, resolution.target_address.unwrap());
-        assert_eq!("$2221,X".to_owned(), format!("{}", resolution));
+        assert_eq!("$2221,X  (#0x2226)".to_owned(), format!("{}", resolution));
     }
 
     #[test]
@@ -280,12 +279,13 @@ mod tests {
         memory.write(0x1000, vec![0xa5, 0x21, 0x22]).unwrap();
         let mut registers = Registers::new(0x1000);
         registers.register_y = 0x16;
-        let am = AddressingMode::AbsoluteYIndexed;
-        let resolution:AddressingModeResolution = am.solve(0x1000, &mut memory, &mut registers).unwrap();
+        let am = AddressingMode::AbsoluteYIndexed([0x21, 0x22]);
+        assert_eq!("$2221,Y".to_owned(), format!("{}", am));
 
+        let resolution:AddressingModeResolution = am.solve(0x1000, &mut memory, &mut registers).unwrap();
         assert_eq!(vec![0x21, 0x22], resolution.operands);
         assert_eq!(0x2237, resolution.target_address.unwrap());
-        assert_eq!("$2221,Y".to_owned(), format!("{}", resolution));
+        assert_eq!("$2221,Y  (#0x2237)".to_owned(), format!("{}", resolution));
     }
 
     #[test]
@@ -294,12 +294,13 @@ mod tests {
         memory.write(0x1000, vec![0xa5, 0x21, 0x22]).unwrap();
         memory.write(0x2221, vec![0x0a, 0x80]).unwrap();
         let mut registers = Registers::new(0x1000);
-        let am = AddressingMode::Indirect;
-        let resolution:AddressingModeResolution = am.solve(0x1000, &mut memory, &mut registers).unwrap();
+        let am = AddressingMode::Indirect([0x21, 0x22]);
+        assert_eq!("($2221)".to_owned(), format!("{}", am));
 
+        let resolution:AddressingModeResolution = am.solve(0x1000, &mut memory, &mut registers).unwrap();
         assert_eq!(vec![0x21, 0x22], resolution.operands);
         assert_eq!(0x800a, resolution.target_address.unwrap());
-        assert_eq!("($2221)".to_owned(), format!("{}", resolution));
+        assert_eq!("($2221)  (#0x800A)".to_owned(), format!("{}", resolution));
     }
 
     #[test]
@@ -308,12 +309,13 @@ mod tests {
         memory.write(0x1000, vec![0xa5, 0x21, 0x22]).unwrap();
         let mut registers = Registers::new(0x1000);
         registers.register_x = 0x05;
-        let am = AddressingMode::ZeroPageXIndexed;
-        let resolution:AddressingModeResolution = am.solve(0x1000, &mut memory, &mut registers).unwrap();
+        let am = AddressingMode::ZeroPageXIndexed([0x21]);
+        assert_eq!("$21,X".to_owned(), format!("{}", am));
 
+        let resolution:AddressingModeResolution = am.solve(0x1000, &mut memory, &mut registers).unwrap();
         assert_eq!(vec![0x21], resolution.operands);
         assert_eq!(0x0026, resolution.target_address.unwrap());
-        assert_eq!("$21,X".to_owned(), format!("{}", resolution));
+        assert_eq!("$21,X    (#0x0026)".to_owned(), format!("{}", resolution));
     }
 
     #[test]
@@ -322,12 +324,13 @@ mod tests {
         memory.write(0x1000, vec![0xa5, 0x21, 0x22]).unwrap();
         let mut registers = Registers::new(0x1000);
         registers.register_y = 0x05;
-        let am = AddressingMode::ZeroPageYIndexed;
-        let resolution:AddressingModeResolution = am.solve(0x1000, &mut memory, &mut registers).unwrap();
+        let am = AddressingMode::ZeroPageYIndexed([0x21]);
+        assert_eq!("$21,Y".to_owned(), format!("{}", am));
 
+        let resolution:AddressingModeResolution = am.solve(0x1000, &mut memory, &mut registers).unwrap();
         assert_eq!(vec![0x21], resolution.operands);
         assert_eq!(0x0026, resolution.target_address.unwrap());
-        assert_eq!("$21,Y".to_owned(), format!("{}", resolution));
+        assert_eq!("$21,Y    (#0x0026)".to_owned(), format!("{}", resolution));
     }
 
     #[test]
@@ -337,11 +340,12 @@ mod tests {
         memory.write(0x0021, vec![0x05, 0x80]).unwrap();
         let mut registers = Registers::new(0x1000);
         registers.register_y = 0x05;
-        let am = AddressingMode::ZeroPageIndirectYIndexed;
-        let resolution:AddressingModeResolution = am.solve(0x1000, &mut memory, &mut registers).unwrap();
+        let am = AddressingMode::ZeroPageIndirectYIndexed([0x21]);
+        assert_eq!("($21),Y".to_owned(), format!("{}", am));
 
+        let resolution:AddressingModeResolution = am.solve(0x1000, &mut memory, &mut registers).unwrap();
         assert_eq!(vec![0x21], resolution.operands);
         assert_eq!(0x800a, resolution.target_address.unwrap());
-        assert_eq!("($21),Y".to_owned(), format!("{}", resolution));
+        assert_eq!("($21),Y  (#0x800A)".to_owned(), format!("{}", resolution));
     }
 }

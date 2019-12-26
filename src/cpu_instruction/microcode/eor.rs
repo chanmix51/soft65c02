@@ -31,7 +31,7 @@ mod tests {
 
     #[test]
     fn test_eor() {
-        let cpu_instruction = CPUInstruction::new(0x1000, 0xca, "eor", AddressingMode::Immediate, eor);
+        let cpu_instruction = CPUInstruction::new(0x1000, 0xca, "eor", AddressingMode::Immediate([0x0a]), eor);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x4c, 0x0a, 0x02]);
         registers.accumulator = 0x02;
         let log_line = cpu_instruction.execute(&mut memory, &mut registers).unwrap();

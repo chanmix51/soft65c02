@@ -31,7 +31,7 @@ mod tests {
 
     #[test]
     fn test_adc() {
-        let cpu_instruction = CPUInstruction::new(0x1000, 0xca, "adc", AddressingMode::Immediate, adc);
+        let cpu_instruction = CPUInstruction::new(0x1000, 0xca, "adc", AddressingMode::Immediate([0x0a]), adc);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x4c, 0x0a, 0x02]);
         registers.accumulator = 0x28;
         let log_line = cpu_instruction.execute(&mut memory, &mut registers).unwrap();

@@ -5,48 +5,50 @@ use super::cpu_instruction::{CPUInstruction, LogLine};
 use super::cpu_instruction::microcode;
 use crate::cpu_instruction::microcode::Result as MicrocodeResult;
 
-fn resolve_opcode(address: usize, opcode: u8) -> CPUInstruction {
+fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> CPUInstruction {
+    let (op1, op2 ) = {
+        let y = memory.read(address + 1, 2).unwrap();
+        ([y[0]], [y[0], y[1]])
+    };
     match opcode {
         0x00    => CPUInstruction::new(address, opcode, "BRK", AddressingMode::Implied, microcode::brk),
         0x48    => CPUInstruction::new(address, opcode, "PHA", AddressingMode::Implied, microcode::pha),
-        0x51    => CPUInstruction::new(address, opcode, "EOR", AddressingMode::ZeroPageIndirectYIndexed, microcode::eor),
-        0x6c    => CPUInstruction::new(address, opcode, "JMP", AddressingMode::Indirect, microcode::jmp),
-        0x69    => CPUInstruction::new(address, opcode, "ADC", AddressingMode::Immediate, microcode::adc),
-        0x7d    => CPUInstruction::new(address, opcode, "ADC", AddressingMode::AbsoluteXIndexed, microcode::adc),
-        0x8d    => CPUInstruction::new(address, opcode, "STA", AddressingMode::Absolute, microcode::sta),
-        0x95    => CPUInstruction::new(address, opcode, "STA", AddressingMode::ZeroPageXIndexed, microcode::sta),
-        0x96    => CPUInstruction::new(address, opcode, "STX", AddressingMode::ZeroPageYIndexed, microcode::stx),
-        0xa1    => CPUInstruction::new(address, opcode, "LDA", AddressingMode::ZeroPageXIndexedIndirect, microcode::lda),
-        0xa9    => CPUInstruction::new(address, opcode, "LDA", AddressingMode::Immediate, microcode::lda),
+        0x51    => CPUInstruction::new(address, opcode, "EOR", AddressingMode::ZeroPageIndirectYIndexed(op1), microcode::eor),
+        0x6c    => CPUInstruction::new(address, opcode, "JMP", AddressingMode::Indirect(op2), microcode::jmp),
+        0x69    => CPUInstruction::new(address, opcode, "ADC", AddressingMode::Immediate(op1), microcode::adc),
+        0x7d    => CPUInstruction::new(address, opcode, "ADC", AddressingMode::AbsoluteXIndexed(op2), microcode::adc),
+        0x8d    => CPUInstruction::new(address, opcode, "STA", AddressingMode::Absolute(op2), microcode::sta),
+        0x95    => CPUInstruction::new(address, opcode, "STA", AddressingMode::ZeroPageXIndexed(op1), microcode::sta),
+        0x96    => CPUInstruction::new(address, opcode, "STX", AddressingMode::ZeroPageYIndexed(op1), microcode::stx),
+        0xa1    => CPUInstruction::new(address, opcode, "LDA", AddressingMode::ZeroPageXIndexedIndirect(op1), microcode::lda),
+        0xa9    => CPUInstruction::new(address, opcode, "LDA", AddressingMode::Immediate(op1), microcode::lda),
         0xaa    => CPUInstruction::new(address, opcode, "TAX", AddressingMode::Implied, microcode::tax),
         0xca    => CPUInstruction::new(address, opcode, "DEX", AddressingMode::Implied, microcode::dex),
-        0xd0    => CPUInstruction::new(address, opcode, "BNE", AddressingMode::Relative, microcode::bne),
+        0xd0    => CPUInstruction::new(address, opcode, "BNE", AddressingMode::Relative(op1), microcode::bne),
         0xe8    => CPUInstruction::new(address, opcode, "INX", AddressingMode::Implied, microcode::inx),
-        0xf9    => CPUInstruction::new(address, opcode, "SBC", AddressingMode::AbsoluteYIndexed, microcode::sbc),
+        0xf9    => CPUInstruction::new(address, opcode, "SBC", AddressingMode::AbsoluteYIndexed(op2), microcode::sbc),
         _       => panic!("Yet unsupported instruction opcode {:02x} at address #{:04X}.", opcode, address),
     }
 }
 
 fn execute_step(registers: &mut Registers, memory: &mut Memory) -> MicrocodeResult<LogLine> {
-    let opcode = memory.read(registers.command_pointer, 1)?[0];
-    let cpu_instruction = resolve_opcode(registers.command_pointer, opcode);
+    let cpu_instruction = read_step(registers.command_pointer, registers, memory);
     cpu_instruction.execute(memory, registers)
 }
 
-fn read_step(address: usize, registers: &Registers, memory: &Memory) -> LogLine {
+fn read_step(address: usize, registers: &Registers, memory: &Memory) -> CPUInstruction {
     let opcode = memory.read(address, 1).unwrap()[0];
-    let cpu_instruction = resolve_opcode(address, opcode);
-    cpu_instruction.simulate(memory, registers)
+    resolve_opcode(address, opcode, memory)
 }
 
-pub fn disassemble(start: usize, end: usize, registers: &Registers, memory: &Memory) -> Vec<LogLine> {
+pub fn disassemble(start: usize, end: usize, registers: &Registers, memory: &Memory) -> Vec<CPUInstruction> {
     let mut cp = start;
-    let mut output:Vec<LogLine> = vec![];
+    let mut output:Vec<CPUInstruction> = vec![];
 
     while cp < end {
-        let log_line = read_step(cp, registers, memory);
-        cp = cp + 1 + log_line.resolution.operands.len();
-        output.push(log_line);
+        let cpu_instruction = read_step(cp, registers, memory);
+        cp = cp + 1 + cpu_instruction.addressing_mode.get_operands().len();
+        output.push(cpu_instruction);
     }
 
     output
@@ -58,7 +60,8 @@ mod tests {
 
     #[test]
     fn test_dex() {
-        let instr:CPUInstruction = resolve_opcode(0x1000, 0xca);
+        let mut memory = Memory::new();
+        let instr:CPUInstruction = resolve_opcode(0x1000, 0xca, &memory);
         assert_eq!("DEX".to_owned(), instr.mnemonic);
         assert_eq!(AddressingMode::Implied, instr.addressing_mode);
     }
@@ -81,8 +84,8 @@ mod tests {
         memory.write(0x1000, vec![0xca]).unwrap();
         let mut registers = Registers::new(0x1000);
         registers.register_x = 0x10;
-        let logline:LogLine = read_step(0x1000, &registers, &memory);
-        assert_eq!(0x1000, logline.address);
-        assert_eq!("DEX".to_owned(), logline.mnemonic);
+        let cpu_instruction:CPUInstruction = read_step(0x1000, &registers, &memory);
+        assert_eq!(0x1000, cpu_instruction.address);
+        assert_eq!("DEX".to_owned(), cpu_instruction.mnemonic);
     }
 }

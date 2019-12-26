@@ -31,7 +31,7 @@ mod tests {
 
     #[test]
     fn test_sbc() {
-        let cpu_instruction = CPUInstruction::new(0x1000, 0xca, "sbc", AddressingMode::Immediate, sbc);
+        let cpu_instruction = CPUInstruction::new(0x1000, 0xca, "sbc", AddressingMode::Immediate([0x0a]), sbc);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x4c, 0x0a, 0x02]);
         registers.accumulator = 0x28;
         let log_line = cpu_instruction.execute(&mut memory, &mut registers).unwrap();
