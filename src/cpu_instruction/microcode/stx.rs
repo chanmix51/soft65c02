@@ -11,7 +11,7 @@ pub fn stx(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
         None => panic!("STX must have operands, crashing the application"),
     };
 
-    memory.write(target_address, vec![registers.register_x]).unwrap();
+    memory.write(target_address, vec![registers.register_x])?;
     registers.command_pointer += 1 + resolution.operands.len();
 
     Ok(LogLine {

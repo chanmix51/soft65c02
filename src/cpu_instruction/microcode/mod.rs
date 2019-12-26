@@ -12,6 +12,7 @@ mod adc;
 mod sbc;
 mod bne;
 mod brk;
+mod tax;
 
 pub use dex::dex;
 pub use pha::pha;
@@ -24,3 +25,4 @@ pub use adc::adc;
 pub use sbc::sbc;
 pub use bne::bne;
 pub use brk::brk;
+pub use tax::tax;
