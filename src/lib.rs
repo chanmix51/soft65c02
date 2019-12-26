@@ -10,6 +10,7 @@ const INTERRUPT_VECTOR:usize = 0xFFFE;
 use memory::RAM as Memory;
 use registers::Registers;
 use processing_unit::*;
+use cpu_instruction::{LogLine, CPUInstruction, MicrocodeError};
 
 fn mem_dump(start: usize, end: usize, memory: &Memory) {
     let mut line = String::new();
@@ -30,14 +31,28 @@ fn mem_dump(start: usize, end: usize, memory: &Memory) {
     println!("{}", line);
 }
 
+pub fn execute(memory: &mut Memory, registers: &mut Registers) -> Result<Vec<LogLine>, MicrocodeError> {
+    let mut logs:Vec<LogLine> = vec![];
 
+    loop {
+        let cp = registers.command_pointer;
+        match processing_unit::execute_step(registers, memory) {
+            Ok(v)  => logs.push(v),
+            Err(v) => break Err(v),
+        }
+
+        if registers.command_pointer == cp {
+            break Ok(logs);
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
+    fn read_program() {
         let init_vector:usize = 0x0800;
         let mut memory = memory::RAM::new();
         memory.write(init_vector, vec![0x48, 0xa9, 0x01, 0x8d, 0x00, 0x02, 0x6c, 0x00, 0x02, 0x95, 0x20, 0xa1, 0x20, 0x51, 0x21, 0x96, 0x21, 0x7d, 0x01, 0x02, 0xf9, 0x10, 0x12, 0xd0, 0xf6]).unwrap();
@@ -63,5 +78,28 @@ mod tests {
             assert_eq!(format!("{}", expected_output[count]), format!("{}", line).as_str().trim().to_owned());
             count = count + 1;
         }
+    }
+
+    #[test]
+    fn execute_program() {
+        let init_vector:usize = 0x0800;
+        let mut memory = memory::RAM::new();
+        memory.write(init_vector, vec![0xa9, 0xc0, 0xaa, 0xe8, 0x69, 0x14, 0x00]).unwrap();
+        let mut registers = Registers::new(init_vector);
+        let loglines = execute(&mut memory, &mut registers).unwrap();
+        let expected_output:Vec<&str> = vec![
+        "#0x0800: (a9 c0)       LDA  #$c0     (#0x0801)",
+        "#0x0802: (aa)          TAX",
+        "#0x0803: (e8)          INX",
+        "#0x0804: (69 14)       ADC  #$14     (#0x0805)",
+        "#0x0806: (00)          BRK"
+        ];
+        let mut count:usize = 0;
+        for line in loglines {
+            assert_eq!(format!("{}", expected_output[count]), format!("{}", line).as_str().trim().to_owned());
+            count += 1;
+        }
+        assert_eq!(0xc1, registers.register_x);
+        assert_eq!(0xd4, registers.accumulator);
     }
 }

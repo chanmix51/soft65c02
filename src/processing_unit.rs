@@ -31,12 +31,12 @@ fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> CPUInstruction
     }
 }
 
-fn execute_step(registers: &mut Registers, memory: &mut Memory) -> MicrocodeResult<LogLine> {
+pub fn execute_step(registers: &mut Registers, memory: &mut Memory) -> MicrocodeResult<LogLine> {
     let cpu_instruction = read_step(registers.command_pointer, registers, memory);
     cpu_instruction.execute(memory, registers)
 }
 
-fn read_step(address: usize, registers: &Registers, memory: &Memory) -> CPUInstruction {
+pub fn read_step(address: usize, registers: &Registers, memory: &Memory) -> CPUInstruction {
     let opcode = memory.read(address, 1).unwrap()[0];
     resolve_opcode(address, opcode, memory)
 }
