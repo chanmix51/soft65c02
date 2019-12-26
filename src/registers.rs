@@ -68,31 +68,59 @@ impl Registers {
     }
 
     pub fn set_n_flag(&mut self, flag: bool) {
-        self.status_register |= 0b10000000;
+        if flag {
+            self.status_register |= 0b10000000;
+        } else {
+            self.status_register &= 0b01111111;
+        }
     }
 
     pub fn set_v_flag(&mut self, flag: bool) {
-        self.status_register |= 0b01000000;
+        if flag {
+            self.status_register |= 0b01000000;
+        } else {
+            self.status_register &= 0b10111111;
+        }
     }
 
     pub fn set_b_flag(&mut self, flag: bool) {
-        self.status_register |= 0b00010000;
+        if flag {
+            self.status_register |= 0b00010000;
+        } else {
+            self.status_register &= 0b11101111;
+        }
     }
 
     pub fn set_d_flag(&mut self, flag: bool) {
-        self.status_register |= 0b00001000;
+        if flag {
+            self.status_register |= 0b00001000;
+        } else {
+            self.status_register &= 0b11110111;
+        }
     }
 
     pub fn set_i_flag(&mut self, flag: bool) {
-        self.status_register |= 0b00000100;
+        if flag {
+            self.status_register |= 0b00000100;
+        } else {
+            self.status_register &= 0b11111011;
+        }
     }
 
     pub fn set_z_flag(&mut self, flag: bool) {
-        self.status_register |= 0b00000010;
+        if flag {
+            self.status_register |= 0b00000010;
+        } else {
+            self.status_register &= 0b11111101;
+        }
     }
 
     pub fn set_c_flag(&mut self, flag: bool) {
-        self.status_register |= 0b00000001;
+        if flag {
+            self.status_register |= 0b00000001;
+        } else {
+            self.status_register &= 0b11111110;
+        }
     }
 }
 
@@ -108,5 +136,43 @@ impl fmt::Debug for Registers {
         self.command_pointer,
         self.status_register
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_init_flags() {
+        let mut registers = Registers::new(0x1000);
+        assert!(!registers.z_flag_is_set());
+        assert!(!registers.n_flag_is_set());
+        assert!(registers.b_flag_is_set());
+        assert!(!registers.i_flag_is_set());
+        assert!(!registers.d_flag_is_set());
+        assert!(!registers.c_flag_is_set());
+        assert!(!registers.v_flag_is_set());
+    }
+
+    #[test]
+    fn test_set_flags() {
+        let mut registers = Registers::new(0x1000);
+        registers.set_c_flag(true);
+        registers.set_v_flag(true);
+        registers.set_z_flag(true);
+        registers.set_n_flag(true);
+        assert!(registers.c_flag_is_set());
+        assert!(registers.v_flag_is_set());
+        assert!(registers.z_flag_is_set());
+        assert!(registers.n_flag_is_set());
+        registers.set_z_flag(false);
+        registers.set_n_flag(false);
+        registers.set_c_flag(false);
+        registers.set_v_flag(false);
+        assert!(!registers.z_flag_is_set());
+        assert!(!registers.n_flag_is_set());
+        assert!(!registers.c_flag_is_set());
+        assert!(!registers.v_flag_is_set());
     }
 }
