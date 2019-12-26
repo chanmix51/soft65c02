@@ -11,6 +11,7 @@ fn resolve_opcode(address: usize, opcode: u8) -> CPUInstruction {
         0x48    => CPUInstruction::new(address, opcode, "PHA", AddressingMode::Implied, microcode::pha),
         0x51    => CPUInstruction::new(address, opcode, "EOR", AddressingMode::ZeroPageIndirectYIndexed, microcode::eor),
         0x6c    => CPUInstruction::new(address, opcode, "JMP", AddressingMode::Indirect, microcode::jmp),
+        0x69    => CPUInstruction::new(address, opcode, "ADC", AddressingMode::Immediate, microcode::adc),
         0x7d    => CPUInstruction::new(address, opcode, "ADC", AddressingMode::AbsoluteXIndexed, microcode::adc),
         0x8d    => CPUInstruction::new(address, opcode, "STA", AddressingMode::Absolute, microcode::sta),
         0x95    => CPUInstruction::new(address, opcode, "STA", AddressingMode::ZeroPageXIndexed, microcode::sta),
@@ -27,7 +28,7 @@ fn resolve_opcode(address: usize, opcode: u8) -> CPUInstruction {
 }
 
 fn execute_step(registers: &mut Registers, memory: &mut Memory) -> MicrocodeResult<LogLine> {
-    let opcode = memory.read(registers.command_pointer, 1).unwrap()[0];
+    let opcode = memory.read(registers.command_pointer, 1)?[0];
     let cpu_instruction = resolve_opcode(registers.command_pointer, opcode);
     cpu_instruction.execute(memory, registers)
 }
