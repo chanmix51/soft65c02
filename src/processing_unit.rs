@@ -20,6 +20,7 @@ fn resolve_opcode(address: usize, opcode: u8) -> CPUInstruction {
         0xaa    => CPUInstruction::new(address, opcode, "TAX", AddressingMode::Implied, microcode::tax),
         0xca    => CPUInstruction::new(address, opcode, "DEX", AddressingMode::Implied, microcode::dex),
         0xd0    => CPUInstruction::new(address, opcode, "BNE", AddressingMode::Relative, microcode::bne),
+        0xe8    => CPUInstruction::new(address, opcode, "INX", AddressingMode::Implied, microcode::inx),
         0xf9    => CPUInstruction::new(address, opcode, "SBC", AddressingMode::AbsoluteYIndexed, microcode::sbc),
         _       => panic!("Yet unsupported instruction opcode {:02x} at address #{:04X}.", opcode, address),
     }
