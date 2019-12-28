@@ -66,11 +66,12 @@ impl fmt::Display for LogLine {
 #[cfg(test)]
 pub mod tests {
     use super::*;
+    use crate::memory::AddressableIO;
 
     pub fn get_stuff(addr: usize, program: Vec<u8>) -> (Memory, Registers) {
         let mut memory = Memory::new();
         memory.write(addr, program).unwrap();
-        let mut registers = Registers::new(addr);
+        let registers = Registers::new(addr);
 
         (memory, registers)
     }

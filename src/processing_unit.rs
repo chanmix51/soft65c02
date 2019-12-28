@@ -1,4 +1,5 @@
 use super::memory::RAM as Memory;
+use super::memory::AddressableIO;
 use super::registers::Registers;
 use super::addressing_mode::*;
 use super::cpu_instruction::{CPUInstruction, LogLine};
@@ -32,21 +33,21 @@ fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> CPUInstruction
 }
 
 pub fn execute_step(registers: &mut Registers, memory: &mut Memory) -> MicrocodeResult<LogLine> {
-    let cpu_instruction = read_step(registers.command_pointer, registers, memory);
+    let cpu_instruction = read_step(registers.command_pointer, memory);
     cpu_instruction.execute(memory, registers)
 }
 
-pub fn read_step(address: usize, registers: &Registers, memory: &Memory) -> CPUInstruction {
+pub fn read_step(address: usize, memory: &Memory) -> CPUInstruction {
     let opcode = memory.read(address, 1).unwrap()[0];
     resolve_opcode(address, opcode, memory)
 }
 
-pub fn disassemble(start: usize, end: usize, registers: &Registers, memory: &Memory) -> Vec<CPUInstruction> {
+pub fn disassemble(start: usize, end: usize, memory: &Memory) -> Vec<CPUInstruction> {
     let mut cp = start;
     let mut output:Vec<CPUInstruction> = vec![];
 
     while cp < end {
-        let cpu_instruction = read_step(cp, registers, memory);
+        let cpu_instruction = read_step(cp, memory);
         cp = cp + 1 + cpu_instruction.addressing_mode.get_operands().len();
         output.push(cpu_instruction);
     }
@@ -82,9 +83,7 @@ mod tests {
     fn simulate_step_dex() {
         let mut memory = Memory::new();
         memory.write(0x1000, vec![0xca]).unwrap();
-        let mut registers = Registers::new(0x1000);
-        registers.register_x = 0x10;
-        let cpu_instruction:CPUInstruction = read_step(0x1000, &registers, &memory);
+        let cpu_instruction:CPUInstruction = read_step(0x1000, &memory);
         assert_eq!(0x1000, cpu_instruction.address);
         assert_eq!("DEX".to_owned(), cpu_instruction.mnemonic);
     }

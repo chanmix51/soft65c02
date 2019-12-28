@@ -1,8 +1,4 @@
-use crate::cpu_instruction::{CPUInstruction, LogLine};
-use crate::registers::Registers;
-use crate::memory::RAM as Memory;
-use crate::addressing_mode::*;
-use super::{MicrocodeError, Result};
+use super::*;
 
 pub fn adc(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {
     let resolution = cpu_instruction.addressing_mode.solve(registers.command_pointer, memory, registers)?;
@@ -11,7 +7,7 @@ pub fn adc(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
         None => panic!("ADC must have operands, crashing the application"),
     };
 
-    let mut byte = memory.read(target_address, 1).unwrap()[0];
+    let byte = memory.read(target_address, 1).unwrap()[0];
     registers.accumulator += byte;
     registers.command_pointer += 1 + resolution.operands.len();
 

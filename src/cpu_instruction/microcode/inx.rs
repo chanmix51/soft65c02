@@ -1,8 +1,4 @@
-use crate::cpu_instruction::{CPUInstruction, LogLine};
-use crate::registers::Registers;
-use crate::memory::RAM as Memory;
-use crate::addressing_mode::*;
-use super::{MicrocodeError, Result};
+use super::*;
 
 pub fn inx(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {
     let resolution = cpu_instruction.addressing_mode.solve(registers.command_pointer, memory, registers)?;
@@ -49,7 +45,7 @@ mod tests {
         let cpu_instruction = CPUInstruction::new(0x1000, 0xca, "INX", AddressingMode::Implied, inx);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xe8, 0x0a, 0x02]);
         registers.register_x = 0xff;
-        let log_line = cpu_instruction.execute(&mut memory, &mut registers).unwrap();
+        let _log_line = cpu_instruction.execute(&mut memory, &mut registers).unwrap();
         assert_eq!(0x00, registers.register_x);
         assert!(registers.z_flag_is_set());
         assert!(!registers.n_flag_is_set());
@@ -61,12 +57,10 @@ mod tests {
         let cpu_instruction = CPUInstruction::new(0x1000, 0xca, "INX", AddressingMode::Implied, inx);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xe8, 0x0a, 0x02]);
         registers.register_x = 0xf7;
-        let log_line = cpu_instruction.execute(&mut memory, &mut registers).unwrap();
+        let _log_line = cpu_instruction.execute(&mut memory, &mut registers).unwrap();
         assert_eq!(0xf8, registers.register_x);
         assert!(!registers.z_flag_is_set());
         assert!(registers.n_flag_is_set());
         assert_eq!(0x1001, registers.command_pointer);
     }
 }
-
-

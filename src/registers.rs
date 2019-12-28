@@ -145,7 +145,7 @@ mod tests {
 
     #[test]
     fn test_init_flags() {
-        let mut registers = Registers::new(0x1000);
+        let registers = Registers::new(0x1000);
         assert!(!registers.z_flag_is_set());
         assert!(!registers.n_flag_is_set());
         assert!(registers.b_flag_is_set());

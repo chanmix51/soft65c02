@@ -1,6 +1,6 @@
 use super::registers::Registers;
 use super::memory::RAM as Memory;
-use super::memory::{little_endian, MemoryError};
+use super::memory::{little_endian, MemoryError, AddressableIO};
 use super::memory;
 use std::error;
 use std::fmt;
