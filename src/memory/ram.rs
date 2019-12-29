@@ -36,4 +36,5 @@ impl AddressableIO for RAM {
     }
 }
 
-
+impl DebugIO for RAM {
+}
