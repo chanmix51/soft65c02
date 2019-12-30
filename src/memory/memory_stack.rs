@@ -49,9 +49,10 @@ impl fmt::Debug for Subsystem {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
                 f,
-                "Subsystem '{}', address range=#{:?}, size = {} bytes",
+                "Subsystem {}, address range=#0x{:04X} → #0x{:04X}, size = {} bytes",
                 self.name,
-                self.address_range,
+                self.address_range.start,
+                self.address_range.end - 1,
                 self.get_size()
               )
     }
@@ -70,40 +71,76 @@ impl MemoryStack {
     pub fn add_subsystem(&mut self, name: &str, start_address: usize, memory: impl AddressableIO + 'static) {
         self.stack.push(Subsystem::new(name, start_address, memory));
     }
+
+    pub fn get_subsystems_info(&self) -> Vec<String> {
+        let mut output:Vec<String> = vec![];
+
+        for sub in self.stack.iter() {
+            output.push(format!("#{}: {:?}", output.len(), sub));
+        }
+
+        output
+    }
 }
 
 impl AddressableIO for MemoryStack {
     fn read(&self, addr: usize, len: usize) -> Result<Vec<u8>, MemoryError> {
         let read_range: Range<usize> = Range::new(addr, addr + len);
 
+        // iter on reverse order as our stack is LIFO
         for sub in self.stack.iter().rev() {
+            // does our read range interfer with the current subsystem?
             if let Some(inter) = sub.address_range.intersection(&read_range) {
-                if inter == sub.address_range {
-                    return sub.read(addr, len);
-                } else {
-                    let mut bytes = match sub.read(addr, inter.end - addr) {
-                        Ok(v) => v,
-                        e => return e,
-                    };
-                    match self.read(inter.end + 1, len - (inter.end + addr)) {
-                        Ok(b) => {
-                            bytes.extend_from_slice(b.as_slice());
-                            return Ok(bytes)
-                        },
-                        e => return e,
+                // a touching range does not count, we deal with overlapping ranges
+                if inter.start == inter.end {
+                    continue;
+                }
+                // is the read range completely contained in the current subsystem?
+                if inter == read_range {
+                    return sub.read(addr - sub.address_range.start, len);
+                } else { // the read range runs accross several subsystems
+                    // is this subsystem on the left or on the right of the read range?
+                    if inter.start == read_range.start {
+                        // we are on the left (the ending part of the current subsystem)
+                        let mut left = sub.read(0, inter.end - addr)?;
+                        let right = self.read(inter.end, len - (inter.end - addr))?;
+                        left.extend_from_slice(right.as_slice());
+                        return Ok(left);
+                    } else { // we are on the right (the starting part of the current subsystem)
+                        let right = sub.read(0, inter.end - inter.start)?;
+                        let mut left = self.read(addr, len - (inter.end - inter.start))?;
+                        left.extend_from_slice(right.as_slice());
+                        return Ok(left);
                     }
                 }
             }
         }
-        Err(MemoryError::Other(addr, "no memory at given location"))
+        Err(MemoryError::Other(addr, "no memory subsystem at given location"))
     }
 
     fn write(&mut self, addr: usize, data: Vec<u8>) -> Result<(), MemoryError> {
-        let read_range: Range<usize> = Range::new(addr, addr + data.len());
-
+        let write_range: Range<usize> = Range::new(addr, addr + data.len());
         for sub in self.stack.iter_mut().rev() {
-            if let Some(inter) = sub.address_range.intersection(&read_range) {
-                return sub.write(addr, data);
+            if let Some(inter) = sub.address_range.intersection(&write_range) {
+                if inter == write_range {
+                    println!("FULL RANGE WRITE AT SUB {} #0x{:04X}, {} bytes. (#0x{:04X}→#0x{:04X})", sub.name, addr, data.len(), sub.address_range.start, sub.address_range.end - 1);
+                    return sub.write(addr - sub.address_range.start, data);
+                } else if sub.address_range.contains(addr) { // we are at the end of the current subsystem
+                    let mut data = data;
+                    let subdata = data.split_off(sub.address_range.end - addr);
+                    println!("PARTIAL RANGE WRITE AT END OF SUB {} #0x{:04X}, {} bytes. (#0x{:04X}→#0x{:04X})", sub.name, addr, data.len(), sub.address_range.start, sub.address_range.end - 1);
+                    sub.write(addr - sub.address_range.start, data)?;
+                    let addr = sub.address_range.end;
+                    println!("CALLING WRITE AT #0x{:4X} for the remaining {} bytes.", addr, subdata.len());
+                    return self.write(addr, subdata);
+                } else { // we are at the start of the current subsystem
+                    let mut data = data;
+                    let subdata = data.split_off(sub.address_range.start - addr);
+                    println!("PARTIAL RANGE WRITE AT START OF SUB {} #0x{:04X}, {} bytes. (#0x{:04X}→#0x{:04X})", sub.name, addr, data.len(), sub.address_range.start, sub.address_range.end - 1);
+                    sub.write(0, subdata)?;
+                    println!("CALLING WRITE AT #0x{:4X} for the remaining {} bytes.", addr, data.len());
+                    return self.write(addr, data);
+                }
             }
         }
         Err(MemoryError::Other(addr, "no memory at given location"))
@@ -114,8 +151,66 @@ impl AddressableIO for MemoryStack {
     }
 }
 
-#[cfg(tests)]
-mod test {
+#[cfg(test)]
+mod tests {
     use super::*;
+
+    fn init_memory() -> MemoryStack {
+        let mut memory_stack = MemoryStack::new();
+        memory_stack.add_subsystem("RAM", 0x0000, RAM::new());
+        memory_stack.add_subsystem("ROM", 0xC000, ROM::new([0xAE; 16384]));
+
+        memory_stack
+    }
+
+    #[test]
+    fn test_add_subsystem() {
+        let mut memory_stack = init_memory();
+        let output = memory_stack.get_subsystems_info();
+        assert_eq!(2, output.len());
+        assert_eq!("#0: Subsystem RAM, address range=#0x0000 → #0xFFFF, size = 65536 bytes", output[0]);
+        assert_eq!("#1: Subsystem ROM, address range=#0xC000 → #0xFFFF, size = 16384 bytes", output[1]);
+    }
+
+    #[test]
+    fn test_read_one_subsystem() {
+        let memory_stack = init_memory();
+        let expected:Vec<u8> = vec![0x00, 0x00, 0x00, 0x00];
+        assert_eq!(expected, memory_stack.read(0xAFFE, 4).unwrap());
+        let expected:Vec<u8> = vec![0xae, 0xae, 0xae, 0xae];
+        assert_eq!(expected, memory_stack.read(0xDFFE, 4).unwrap());
+    }
+
+    #[test]
+    fn test_read_overlaping_subsystems() {
+        let memory_stack = init_memory();
+        let expected:Vec<u8> = vec![0x00, 0x00, 0xae, 0xae];
+        assert_eq!(expected, memory_stack.read(0xBFFE, 4).unwrap());
+        let expected:Vec<u8> = vec![0xae, 0xae];
+        assert_eq!(expected, memory_stack.read(0xC000, 2).unwrap());
+        let expected:Vec<u8> = vec![0x00, 0x00];
+        assert_eq!(expected, memory_stack.read(0xBFFE, 2).unwrap());
+    }
+
+    #[test]
+    fn test_write_one_subsystem() {
+        let mut memory_stack = init_memory();
+        let data:Vec<u8> = vec![0xff, 0xae, 0x81];
+        memory_stack.write(0x1000, data).unwrap();
+        assert_eq!(vec![0xff, 0xae, 0x81], memory_stack.read(0x1000, 3).unwrap());
+    }
+
+    #[test]
+    fn test_write_overlapping_subsystems() {
+        let mut memory_stack = init_memory();
+        let data:Vec<u8> = vec![0xff, 0xae, 0x81];
+        match memory_stack.write(0xBFFE, data) {
+            Err(MemoryError::Other(addr, msg)) => {
+                assert_eq!(0x0000, addr);
+                assert_eq!("trying to write in a read-only memory".to_owned(), msg);
+            },
+            v => panic!("it should return the expected error, got {:?}", v),
+        };
+    }
 
 }

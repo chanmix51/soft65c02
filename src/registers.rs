@@ -128,7 +128,7 @@ impl fmt::Debug for Registers {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
         f,
-        "Registers {{ A: {:02x}, X: {:02x}, Y: {:02x} | SP: {:02x} CP: {:04x}\rNV-BDIZC\r{:08b} }}",
+        "Registers {{ A: {:02x}, X: {:02x}, Y: {:02x} | SP: {:02x} CP: {:04x}\nNV-BDIZC\n{:08b} }}",
         self.accumulator,
         self.register_x,
         self.register_y,
