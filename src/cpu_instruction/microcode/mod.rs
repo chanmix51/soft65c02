@@ -21,6 +21,7 @@ mod bne;
 mod brk;
 mod tax;
 mod inx;
+mod ina;
 
 pub use dex::dex;
 pub use pha::pha;
@@ -35,3 +36,4 @@ pub use bne::bne;
 pub use brk::brk;
 pub use tax::tax;
 pub use inx::inx;
+pub use ina::ina;

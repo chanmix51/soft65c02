@@ -146,9 +146,9 @@ impl AddressingMode {
                 let dst_addr = {
                    let offset_i8  = i8::from_le_bytes(bytes[0].to_le_bytes());
                     if offset_i8 < 0 {
-                        opcode_address.checked_sub( (0 - offset_i8) as usize)
+                        opcode_address.checked_sub( (-2 - offset_i8) as usize)
                     } else {
-                        opcode_address.checked_add(offset_i8 as usize)
+                        opcode_address.checked_add((offset_i8 + 1) as usize)
                     }
                 };
 
@@ -347,5 +347,33 @@ mod tests {
         assert_eq!(vec![0x21], resolution.operands);
         assert_eq!(0x800a, resolution.target_address.unwrap());
         assert_eq!("($21),Y  (#0x800A)".to_owned(), format!("{}", resolution));
+    }
+
+    #[test]
+    fn test_relative_positive() {
+        let mut memory = Memory::new_with_ram();
+        memory.write(0x1000, vec![0xd0, 0x04, 0x22, 0x00, 0x12, 0x0a]).unwrap();
+        let mut registers = Registers::new(0x1000);
+        let am = AddressingMode::Relative([0x04]);
+        assert_eq!("±$04".to_owned(), format!("{}", am));
+
+        let resolution:AddressingModeResolution = am.solve(0x1000, &mut memory, &mut registers).unwrap();
+        assert_eq!(vec![0x04], resolution.operands);
+        assert_eq!(0x1005, resolution.target_address.unwrap());
+        assert_eq!("±$04     (#0x1005)".to_owned(), format!("{}", resolution));
+    }
+
+    #[test]
+    fn test_relative_negative() {
+        let mut memory = Memory::new_with_ram();
+        memory.write(0x0ffa, vec![0xfa, 0xfb, 0xfc, 0xfd, 0xfe, 0xff, 0xd0, 0xfb, 0x22, 0x00, 0x12, 0x0a]).unwrap();
+        let mut registers = Registers::new(0x1000);
+        let am = AddressingMode::Relative([0xfb]);
+        assert_eq!("±$fb".to_owned(), format!("{}", am));
+
+        let resolution:AddressingModeResolution = am.solve(0x1000, &mut memory, &mut registers).unwrap();
+        assert_eq!(vec![0xfb], resolution.operands);
+        assert_eq!(0x0ffd, resolution.target_address.unwrap());
+        assert_eq!("±$fb     (#0x0FFD)".to_owned(), format!("{}", resolution));
     }
 }

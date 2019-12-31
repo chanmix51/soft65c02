@@ -10,7 +10,7 @@ pub use memory_stack::MemoryStack;
 pub use error::MemoryError;
 pub use ram::RAM;
 pub use rom::ROM;
-pub use minifb_adapter::MiniFBMemoryAdapter;
+pub use minifb_adapter::{MiniFBMemoryAdapter, MINIFB_HEIGHT, MINIFB_WIDTH};
 
 pub const MEMMAX:usize = 65535;
 

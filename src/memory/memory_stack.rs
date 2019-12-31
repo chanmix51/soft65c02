@@ -129,6 +129,9 @@ impl AddressableIO for MemoryStack {
         let write_range: Range<usize> = Range::new(addr, addr + data.len());
         for sub in self.stack.iter_mut().rev() {
             if let Some(inter) = sub.address_range.intersection(&write_range) {
+                if inter.start == inter.end {
+                    continue;
+                }
                 if inter == write_range {
                     return sub.write(addr - sub.address_range.start, data);
                 } else if sub.address_range.contains(addr) { // we are at the end of the current subsystem

@@ -77,4 +77,3 @@ pub mod tests {
         (memory, registers)
     }
 }
-

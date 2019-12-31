@@ -7,11 +7,12 @@ pub const MINIFB_HEIGHT: usize = 96;
 pub struct MiniFBMemoryAdapter {
     minifb: Vec<u32>,
     palette: [(u8, u8, u8); 16],
-    memory: Box<[u8; MINIFB_WIDTH * MINIFB_HEIGHT / 2]>
+    memory: Box<[u8; MINIFB_WIDTH * MINIFB_HEIGHT / 2]>,
+    window: Window,
 }
 
 impl MiniFBMemoryAdapter {
-    pub fn new() -> MiniFBMemoryAdapter {
+    pub fn new(window: Window) -> MiniFBMemoryAdapter {
         MiniFBMemoryAdapter {
             minifb: vec![0; MINIFB_WIDTH * MINIFB_HEIGHT],
             palette: [
@@ -33,6 +34,7 @@ impl MiniFBMemoryAdapter {
                 (0xff, 0xff, 0xff), // intense white
                 ],
             memory: Box::new([0; MINIFB_WIDTH * MINIFB_HEIGHT / 2]),
+            window: window,
         }
     }
 
@@ -47,8 +49,8 @@ impl MiniFBMemoryAdapter {
         self.minifb[minifb_addr + 1] = ((r as u32) << 16) | ((g as u32) << 8) | b as u32;
     }
 
-    pub fn window_update(&self, window: &mut Window) -> Result<(), minifb::Error> {
-        window.update_with_buffer(&(self.minifb), MINIFB_WIDTH, MINIFB_HEIGHT)
+    pub fn window_update(&mut self) -> Result<(), minifb::Error> {
+        self.window.update_with_buffer(&(self.minifb), MINIFB_WIDTH, MINIFB_HEIGHT)
     }
 }
 
@@ -78,7 +80,7 @@ impl AddressableIO for MiniFBMemoryAdapter {
             self.update_minifb(pointer);
             offset += 1;
         }
-
+        self.window_update();
         Ok(())
     }
 }
