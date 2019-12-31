@@ -8,3 +8,4 @@ edition = "2018"
 
 [dependencies]
 range-map = "0.1.5"
+minifb = "0.15.1"

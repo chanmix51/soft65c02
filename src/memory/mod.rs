@@ -4,10 +4,13 @@ mod memory_stack;
 mod error;
 mod ram;
 mod rom;
+mod minifb_adapter;
+
 pub use memory_stack::MemoryStack;
 pub use error::MemoryError;
 pub use ram::RAM;
 pub use rom::ROM;
+pub use minifb_adapter::MiniFBMemoryAdapter;
 
 pub const MEMMAX:usize = 65535;
 
@@ -31,6 +34,9 @@ pub trait AddressableIO {
     fn get_size(&self) -> usize;
 }
 
+/*
+ * TODO: this is completely broken.
+ */
 pub trait DebugIO: AddressableIO {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut line = String::new();

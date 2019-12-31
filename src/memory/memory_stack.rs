@@ -1,5 +1,5 @@
-use fmt::Debug;
 use range_map::Range;
+use fmt::Debug;
 use super::*;
 
 struct Subsystem {

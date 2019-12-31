@@ -1,3 +1,5 @@
+extern crate minifb;
+
 mod memory;
 mod registers;
 mod addressing_mode;
