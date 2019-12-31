@@ -1,5 +1,5 @@
 use super::registers::Registers;
-use super::memory::RAM as Memory;
+use super::memory::MemoryStack as Memory;
 use super::memory::{little_endian, MemoryError, AddressableIO};
 use super::memory;
 use std::error;
@@ -204,7 +204,7 @@ mod tests {
 
     #[test]
     fn test_implied() {
-        let mut memory = Memory::new();
+        let mut memory = Memory::new_with_ram();
         memory.write(0x1000, vec![0xe8, 0xff, 0xff]).unwrap();
         let mut registers = Registers::new(0x1000);
         let am = AddressingMode::Implied;
@@ -218,7 +218,7 @@ mod tests {
 
     #[test]
     fn test_immediate() {
-        let mut memory = Memory::new();
+        let mut memory = Memory::new_with_ram();
         memory.write(0x1000, vec![0xe8, 0xff, 0xff]).unwrap();
         let mut registers = Registers::new(0x1000);
         let am = AddressingMode::Immediate([0xff]);
@@ -232,7 +232,7 @@ mod tests {
 
     #[test]
     fn test_zero_page() {
-        let mut memory = Memory::new();
+        let mut memory = Memory::new_with_ram();
         memory.write(0x1000, vec![0xa5, 0x21, 0x22]).unwrap();
         let mut registers = Registers::new(0x1000);
         let am = AddressingMode::ZeroPage([0x21]);
@@ -246,7 +246,7 @@ mod tests {
 
     #[test]
     fn test_absolute() {
-        let mut memory = Memory::new();
+        let mut memory = Memory::new_with_ram();
         memory.write(0x1000, vec![0xa5, 0x21, 0x2a]).unwrap();
         let mut registers = Registers::new(0x1000);
         let am = AddressingMode::Absolute([0x21, 0x2a]);
@@ -260,7 +260,7 @@ mod tests {
 
     #[test]
     fn test_absolute_x_indexed() {
-        let mut memory = Memory::new();
+        let mut memory = Memory::new_with_ram();
         memory.write(0x1000, vec![0xa5, 0x21, 0x22]).unwrap();
         let mut registers = Registers::new(0x1000);
         registers.register_x = 0x05;
@@ -275,7 +275,7 @@ mod tests {
 
     #[test]
     fn test_absolute_y_indexed() {
-        let mut memory = Memory::new();
+        let mut memory = Memory::new_with_ram();
         memory.write(0x1000, vec![0xa5, 0x21, 0x22]).unwrap();
         let mut registers = Registers::new(0x1000);
         registers.register_y = 0x16;
@@ -290,7 +290,7 @@ mod tests {
 
     #[test]
     fn test_indirect() {
-        let mut memory = Memory::new();
+        let mut memory = Memory::new_with_ram();
         memory.write(0x1000, vec![0xa5, 0x21, 0x22]).unwrap();
         memory.write(0x2221, vec![0x0a, 0x80]).unwrap();
         let mut registers = Registers::new(0x1000);
@@ -305,7 +305,7 @@ mod tests {
 
     #[test]
     fn test_zero_page_x_indexed() {
-        let mut memory = Memory::new();
+        let mut memory = Memory::new_with_ram();
         memory.write(0x1000, vec![0xa5, 0x21, 0x22]).unwrap();
         let mut registers = Registers::new(0x1000);
         registers.register_x = 0x05;
@@ -320,7 +320,7 @@ mod tests {
 
     #[test]
     fn test_zero_page_y_indexed() {
-        let mut memory = Memory::new();
+        let mut memory = Memory::new_with_ram();
         memory.write(0x1000, vec![0xa5, 0x21, 0x22]).unwrap();
         let mut registers = Registers::new(0x1000);
         registers.register_y = 0x05;
@@ -335,7 +335,7 @@ mod tests {
 
     #[test]
     fn test_zero_page_indirect_y_indexed() {
-        let mut memory = Memory::new();
+        let mut memory = Memory::new_with_ram();
         memory.write(0x1000, vec![0xa5, 0x21, 0x22]).unwrap();
         memory.write(0x0021, vec![0x05, 0x80]).unwrap();
         let mut registers = Registers::new(0x1000);

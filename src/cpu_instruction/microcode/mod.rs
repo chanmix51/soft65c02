@@ -3,7 +3,7 @@ pub use error::{MicrocodeError, Result};
 
 pub use crate::cpu_instruction::{CPUInstruction, LogLine};
 pub use crate::registers::Registers;
-pub use crate::memory::RAM as Memory;
+pub use crate::memory::MemoryStack as Memory;
 pub use crate::memory::AddressableIO;
 pub use crate::addressing_mode::*;
 pub use super::STACK_BASE_ADDR;

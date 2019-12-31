@@ -1,4 +1,4 @@
-use super::memory::RAM as Memory;
+use super::memory::MemoryStack as Memory;
 use super::memory::AddressableIO;
 use super::registers::Registers;
 use super::addressing_mode::*;
@@ -61,7 +61,7 @@ mod tests {
 
     #[test]
     fn test_dex() {
-        let mut memory = Memory::new();
+        let mut memory = Memory::new_with_ram();
         let instr:CPUInstruction = resolve_opcode(0x1000, 0xca, &memory);
         assert_eq!("DEX".to_owned(), instr.mnemonic);
         assert_eq!(AddressingMode::Implied, instr.addressing_mode);
@@ -69,7 +69,7 @@ mod tests {
 
     #[test]
     fn test_execute_step_dex() {
-        let mut memory = Memory::new();
+        let mut memory = Memory::new_with_ram();
         memory.write(0x1000, vec![0xca]).unwrap();
         let mut registers = Registers::new(0x1000);
         registers.register_x = 0x10;
@@ -81,7 +81,7 @@ mod tests {
 
     #[test]
     fn simulate_step_dex() {
-        let mut memory = Memory::new();
+        let mut memory = Memory::new_with_ram();
         memory.write(0x1000, vec![0xca]).unwrap();
         let cpu_instruction:CPUInstruction = read_step(0x1000, &memory);
         assert_eq!(0x1000, cpu_instruction.address);

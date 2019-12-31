@@ -1,4 +1,4 @@
-use crate::memory::RAM as Memory;
+use crate::memory::MemoryStack as Memory;
 use crate::registers::Registers;
 use crate::addressing_mode::*;
 use crate::cpu_instruction::microcode::Result as MicrocodeResult;
@@ -70,7 +70,7 @@ pub mod tests {
     use crate::memory::AddressableIO;
 
     pub fn get_stuff(addr: usize, program: Vec<u8>) -> (Memory, Registers) {
-        let mut memory = Memory::new();
+        let mut memory = Memory::new_with_ram();
         memory.write(addr, program).unwrap();
         let registers = Registers::new(addr);
 

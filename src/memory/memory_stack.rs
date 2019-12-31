@@ -68,6 +68,13 @@ impl MemoryStack {
         MemoryStack { stack: vec![] }
     }
 
+    pub fn new_with_ram() -> MemoryStack {
+        let mut memory_stack = Self::new();
+        memory_stack.add_subsystem("RAM", 0x0000, RAM::new());
+
+        memory_stack
+    }
+
     pub fn add_subsystem(&mut self, name: &str, start_address: usize, memory: impl AddressableIO + 'static) {
         self.stack.push(Subsystem::new(name, start_address, memory));
     }

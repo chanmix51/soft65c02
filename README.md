@@ -9,7 +9,7 @@ To learn the Rust language and … the 65C02.
 
 The Rust language OK, but why the 6502 and not a modern processor?
 ------------------------------------------------------------------
-Because the 6502 comes from an age where processors were built by humans for humans so the 6502 is a very good way to learn how processors work and are programmed. Plus, the 65C02 is cool. It's all the fault of [Ben Heaters](https://www.youtube.com/watch?v=LnzuMJLZRdU) by the way.
+Because the 6502 comes from an age where processors were built by humans for humans so the 6502 is a very good way to learn how processors work and are programmed. Plus, the 65C02 is cool. It's all [Ben Eater](https://www.youtube.com/watch?v=LnzuMJLZRdU)'s fault by the way.
 
 What this simulator is supposed to do?
 --------------------------------------

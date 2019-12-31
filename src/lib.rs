@@ -9,7 +9,7 @@ mod processing_unit;
 const INIT_VECTOR:usize = 0xFFFC;
 const INTERRUPT_VECTOR:usize = 0xFFFE;
 
-use memory::RAM as Memory;
+use memory::MemoryStack as Memory;
 use memory::AddressableIO;
 use registers::Registers;
 use processing_unit::*;
@@ -57,7 +57,7 @@ mod tests {
     #[test]
     fn read_program() {
         let init_vector:usize = 0x0800;
-        let mut memory = memory::RAM::new();
+        let mut memory = Memory::new_with_ram();
         memory.write(init_vector, vec![0x48, 0xa9, 0x01, 0x8d, 0x00, 0x02, 0x6c, 0x00, 0x02, 0x95, 0x20, 0xa1, 0x20, 0x51, 0x21, 0x96, 0x21, 0x7d, 0x01, 0x02, 0xf9, 0x10, 0x12, 0xd0, 0xf6]).unwrap();
         let expected_output:Vec<&str> = vec![
             "#0x0800: (48)          PHA",
@@ -85,7 +85,7 @@ mod tests {
     #[test]
     fn execute_program() {
         let init_vector:usize = 0x0800;
-        let mut memory = memory::RAM::new();
+        let mut memory = Memory::new_with_ram();
         memory.write(init_vector, vec![0xa9, 0xc0, 0xaa, 0xe8, 0x69, 0x14, 0x00]).unwrap();
         let mut registers = Registers::new(init_vector);
         let loglines = execute(&mut memory, &mut registers).unwrap();
