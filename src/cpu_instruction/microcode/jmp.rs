@@ -1,11 +1,10 @@
 use super::*;
 
 pub fn jmp(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {
-    let resolution = cpu_instruction.addressing_mode.solve(registers.command_pointer, memory, registers)?;
-    let target_address = match resolution.target_address {
-        Some(v) => v,
-        None => panic!("Ooops no target address from the addressing mode resolver."),
-    };
+    let resolution = cpu_instruction.addressing_mode
+        .solve(registers.command_pointer, memory, registers)?;
+    let target_address = resolution.target_address
+        .expect("JMP must have an operand, crashing the application");
 
     registers.command_pointer = target_address;
 

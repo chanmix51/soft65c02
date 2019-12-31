@@ -1,7 +1,8 @@
 use super::*;
 
 pub fn dex(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {
-    let resolution = cpu_instruction.addressing_mode.solve(registers.command_pointer, memory, registers)?;
+    let resolution = cpu_instruction.addressing_mode
+        .solve(registers.command_pointer, memory, registers)?;
 
     if registers.register_x != 0 {
         registers.register_x -= 1;

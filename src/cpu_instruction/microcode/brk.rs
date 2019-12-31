@@ -1,7 +1,8 @@
 use super::*;
 
 pub fn brk(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {
-    let resolution = cpu_instruction.addressing_mode.solve(registers.command_pointer, memory, registers)?;
+    let resolution = cpu_instruction.addressing_mode
+        .solve(registers.command_pointer, memory, registers)?;
 
     Ok(LogLine {
         address:    cpu_instruction.address,

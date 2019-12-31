@@ -1,13 +1,12 @@
 use super::*;
 
 pub fn adc(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {
-    let resolution = cpu_instruction.addressing_mode.solve(registers.command_pointer, memory, registers)?;
-    let target_address = match resolution.target_address {
-        Some(v) => v,
-        None => panic!("ADC must have operands, crashing the application"),
-    };
+    let resolution = cpu_instruction.addressing_mode
+        .solve(registers.command_pointer, memory, registers)?;
+    let target_address = resolution.target_address
+        .expect("ADC must have operands, crashing the application");
 
-    let byte = memory.read(target_address, 1).unwrap()[0];
+    let byte = memory.read(target_address, 1)?[0];
     registers.accumulator += byte;
     registers.command_pointer += 1 + resolution.operands.len();
 

@@ -1,11 +1,10 @@
 use super::*;
 
 pub fn eor(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {
-    let resolution = cpu_instruction.addressing_mode.solve(registers.command_pointer, memory, registers)?;
-    let target_address = match resolution.target_address {
-        Some(v) => v,
-        None => panic!("No operand given to EOR instruction, crashing application."),
-    };
+    let resolution = cpu_instruction.addressing_mode
+        .solve(registers.command_pointer, memory, registers)?;
+    let target_address = resolution.target_address
+        .expect("No operand given to EOR instruction, crashing application.");
 
     let byte = memory.read(target_address, 1)?[0];
     registers.accumulator = registers.accumulator ^ byte;

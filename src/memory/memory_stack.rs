@@ -123,22 +123,17 @@ impl AddressableIO for MemoryStack {
         for sub in self.stack.iter_mut().rev() {
             if let Some(inter) = sub.address_range.intersection(&write_range) {
                 if inter == write_range {
-                    println!("FULL RANGE WRITE AT SUB {} #0x{:04X}, {} bytes. (#0x{:04X}→#0x{:04X})", sub.name, addr, data.len(), sub.address_range.start, sub.address_range.end - 1);
                     return sub.write(addr - sub.address_range.start, data);
                 } else if sub.address_range.contains(addr) { // we are at the end of the current subsystem
                     let mut data = data;
                     let subdata = data.split_off(sub.address_range.end - addr);
-                    println!("PARTIAL RANGE WRITE AT END OF SUB {} #0x{:04X}, {} bytes. (#0x{:04X}→#0x{:04X})", sub.name, addr, data.len(), sub.address_range.start, sub.address_range.end - 1);
                     sub.write(addr - sub.address_range.start, data)?;
                     let addr = sub.address_range.end;
-                    println!("CALLING WRITE AT #0x{:4X} for the remaining {} bytes.", addr, subdata.len());
                     return self.write(addr, subdata);
                 } else { // we are at the start of the current subsystem
                     let mut data = data;
                     let subdata = data.split_off(sub.address_range.start - addr);
-                    println!("PARTIAL RANGE WRITE AT START OF SUB {} #0x{:04X}, {} bytes. (#0x{:04X}→#0x{:04X})", sub.name, addr, data.len(), sub.address_range.start, sub.address_range.end - 1);
                     sub.write(0, subdata)?;
-                    println!("CALLING WRITE AT #0x{:4X} for the remaining {} bytes.", addr, data.len());
                     return self.write(addr, data);
                 }
             }

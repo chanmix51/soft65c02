@@ -1,11 +1,10 @@
 use super::*;
 
 pub fn sbc(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {
-    let resolution = cpu_instruction.addressing_mode.solve(registers.command_pointer, memory, registers)?;
-    let target_address = match resolution.target_address {
-        Some(v) => v,
-        None => panic!("Ooops no target address from the addressing mode resolver."),
-    };
+    let resolution = cpu_instruction.addressing_mode
+        .solve(registers.command_pointer, memory, registers)?;
+    let target_address = resolution.target_address
+        .expect("SBC must have operands, crashing the application");
 
     let byte = memory.read(target_address, 1).unwrap()[0];
     registers.accumulator -= byte;

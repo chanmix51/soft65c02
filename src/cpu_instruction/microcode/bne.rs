@@ -1,11 +1,10 @@
 use super::*;
 
 pub fn bne(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {
-    let resolution = cpu_instruction.addressing_mode.solve(registers.command_pointer, memory, registers)?;
-    let target_address = match resolution.target_address {
-        Some(v) => v,
-        None => panic!("BNE must have operands, crashing the application"),
-    };
+    let resolution = cpu_instruction.addressing_mode
+        .solve(registers.command_pointer, memory, registers)?;
+    let target_address = resolution.target_address
+        .expect("BNE must have operands, crashing the application");
 
     if registers.status_register & 0b01000000 != 0 {
         registers.command_pointer = target_address;

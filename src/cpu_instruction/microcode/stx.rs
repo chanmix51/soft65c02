@@ -1,11 +1,10 @@
 use super::*;
 
 pub fn stx(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {
-    let resolution = cpu_instruction.addressing_mode.solve(registers.command_pointer, memory, registers)?;
-    let target_address = match resolution.target_address {
-        Some(v) => v,
-        None => panic!("STX must have operands, crashing the application"),
-    };
+    let resolution = cpu_instruction.addressing_mode
+        .solve(registers.command_pointer, memory, registers)?;
+    let target_address = resolution.target_address
+        .expect("STX must have operands, crashing the application");
 
     memory.write(target_address, vec![registers.register_x])?;
     registers.command_pointer += 1 + resolution.operands.len();

@@ -1,7 +1,8 @@
 use super::*;
 
 pub fn tax(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {
-    let resolution = cpu_instruction.addressing_mode.solve(registers.command_pointer, memory, registers)?;
+    let resolution = cpu_instruction.addressing_mode
+        .solve(registers.command_pointer, memory, registers)?;
 
     registers.register_x = registers.accumulator;
     registers.set_n_flag(registers.register_x & 0b10000000 != 0);

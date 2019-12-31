@@ -1,7 +1,8 @@
 use super::*;
 
 pub fn pha(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {
-    let resolution = cpu_instruction.addressing_mode.solve(registers.command_pointer, memory, registers)?;
+    let resolution = cpu_instruction.addressing_mode
+        .solve(registers.command_pointer, memory, registers)?;
 
     memory.write(STACK_BASE_ADDR + (registers.stack_pointer as usize), vec![registers.accumulator])?;
     registers.stack_pointer -= 1;
