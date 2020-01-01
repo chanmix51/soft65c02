@@ -56,7 +56,7 @@ fn init_window() -> Window {
             ..WindowOptions::default()
         },
     )
-    .unwrap_or_else(|e| { panic!("{}", e); });
+    .expect("Failed to open window.");
 
     // Limit to max ~60 fps update rate
     window.limit_update_rate(Some(std::time::Duration::from_micros(16600)));

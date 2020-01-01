@@ -29,6 +29,7 @@ pub struct MiniFBMemoryAdapter {
 
 impl MiniFBMemoryAdapter {
     pub fn new(window: Window) -> MiniFBMemoryAdapter {
+        window.get_keys().map(|keys|
         MiniFBMemoryAdapter {
             minifb: vec![0; MINIFB_WIDTH * MINIFB_HEIGHT],
             memory: Box::new([0; MINIFB_WIDTH * MINIFB_HEIGHT / 2 + 0xFF]),
@@ -57,6 +58,19 @@ impl MiniFBMemoryAdapter {
 
     pub fn window_update(&mut self) -> Result<(), minifb::Error> {
         self.window.update_with_buffer(&(self.minifb), MINIFB_WIDTH, MINIFB_HEIGHT)
+    }
+}
+
+impl minifb::InputCallback for MiniFBMemoryAdapter {
+    fn add_char(&mut self, uni_char: u32) {
+        let mut offset = self.memory[KEY_STACK_POINTER];
+        if offset == 0xff {
+            offset = 0x31;
+        } else {
+            offset += 1;
+        }
+        self.memory[KEY_STACK_POINTER + (offset as usize)] = u32::to_ne_bytes(uni_char)[3];
+        self.memory[KEY_STACK_POINTER] = offset;
     }
 }
 
