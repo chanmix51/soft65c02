@@ -3,16 +3,35 @@ use soft65c02::{Memory, Registers, AddressableIO, LogLine};
 use soft65c02::memory::{MINIFB_HEIGHT, MINIFB_WIDTH, MiniFBMemoryAdapter};
 
 #[test]
+#[ignore]
 fn minifb() {
     use std::{thread, time};
     use std::io::prelude::*;
     use std::fs;
 
-    let init_vector:usize = 0x1A00;
+    let init_vector:usize = 0x1B00;
     let mut memory = Memory::new_with_ram();
     let mut window = init_window();
     memory.add_subsystem("VIDEO TERMINAL", 0x0200, MiniFBMemoryAdapter::new(window));
-    //memory.write(init_vector, vec![0xa9, 0x01, 0x8d, 0x00, 0x02, 0xa9, 0x05, 0x8d, 0x01, 0x02, 0xa9, 0x08, 0x8d, 0x02, 0x02]);
+    // ↓ init the video palette
+    memory.write(0x0200, vec![
+        0x00, 0x00, 0x00, // black
+        0x88, 0x00, 0x00, // red
+        0x00, 0x88, 0x00, // green
+        0x00, 0x00, 0x88, // blue
+        0x88, 0x88, 0x00, // yellow
+        0x88, 0x00, 0x88, // pink
+        0x00, 0x88, 0x88, // cyan
+        0x88, 0x88, 0x88, // white
+        0x22, 0x22, 0x22, // grey
+        0xff, 0x00, 0x00, // intense red
+        0x00, 0xff, 0x00, // intense green
+        0x00, 0x00, 0xff, // intense blue
+        0xff, 0xff, 0x00, // intense yellow
+        0xff, 0x00, 0xff, // intense pink
+        0x00, 0xff, 0xff, // intense cyan
+        0xff, 0xff, 0xff, // intense white
+    ]).unwrap();
     memory.write(init_vector, dump_program());
     let mut registers = Registers::new(init_vector);
     let mut cp = 0x0000;
@@ -32,7 +51,7 @@ fn init_window() -> Window {
             MINIFB_HEIGHT,
             WindowOptions {
             resize: true,
-            scale: Scale::X2,
+            scale: Scale::FitScreen,
             scale_mode: ScaleMode::AspectRatioStretch,
             ..WindowOptions::default()
         },
@@ -53,17 +72,17 @@ fn dump_program() -> Vec<u8> {
 loop:
    ina
    sbc $8000
-   sta $0200,X
    sta $0300,X
    sta $0400,X
+   sta $0500,X
    inx
    bne loop
    brk
    */
     vec![
         0xa9, 0x0f, 0x8d, 0x00, 0x80, 0xa9, 0x00, 0xaa,
-        0x1a, 0xed, 0x00, 0x80, 0x9d, 0x00, 0x02, 0x9d,
-        0x00, 0x03, 0x9d, 0x00, 0x04, 0xe8, 0xd0, 0xf0,
+        0x1a, 0xed, 0x00, 0x80, 0x9d, 0x00, 0x03, 0x9d,
+        0x00, 0x04, 0x9d, 0x00, 0x05, 0xe8, 0xd0, 0xf0,
         0x00
     ]
 }
