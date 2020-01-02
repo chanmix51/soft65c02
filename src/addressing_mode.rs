@@ -193,7 +193,7 @@ impl fmt::Display for AddressingMode {
             AddressingMode::ZeroPageYIndexed(v) => write!(f, "${:02x},Y", v[0]),
             AddressingMode::ZeroPageXIndexedIndirect(v) => write!(f, "(${:02x},X)", v[0]),
             AddressingMode::ZeroPageIndirectYIndexed(v) => write!(f, "(${:02x}),Y", v[0]),
-            AddressingMode::Relative(v)  => write!(f, "±${:02x}", v[0]),
+            AddressingMode::Relative(v)  => write!(f, "{: <+2}", { i8::from_le_bytes(u8::to_le_bytes(v[0])) }),
         }
     }
 }
@@ -355,12 +355,12 @@ mod tests {
         memory.write(0x1000, vec![0xd0, 0x04, 0x22, 0x00, 0x12, 0x0a]).unwrap();
         let mut registers = Registers::new(0x1000);
         let am = AddressingMode::Relative([0x04]);
-        assert_eq!("±$04".to_owned(), format!("{}", am));
+        assert_eq!("+4".to_owned(), format!("{}", am));
 
         let resolution:AddressingModeResolution = am.solve(0x1000, &mut memory, &mut registers).unwrap();
         assert_eq!(vec![0x04], resolution.operands);
         assert_eq!(0x1005, resolution.target_address.unwrap());
-        assert_eq!("±$04     (#0x1005)".to_owned(), format!("{}", resolution));
+        assert_eq!("+4       (#0x1005)".to_owned(), format!("{}", resolution));
     }
 
     #[test]
@@ -369,11 +369,11 @@ mod tests {
         memory.write(0x0ffa, vec![0xfa, 0xfb, 0xfc, 0xfd, 0xfe, 0xff, 0xd0, 0xfb, 0x22, 0x00, 0x12, 0x0a]).unwrap();
         let mut registers = Registers::new(0x1000);
         let am = AddressingMode::Relative([0xfb]);
-        assert_eq!("±$fb".to_owned(), format!("{}", am));
+        assert_eq!("-5".to_owned(), format!("{}", am));
 
         let resolution:AddressingModeResolution = am.solve(0x1000, &mut memory, &mut registers).unwrap();
         assert_eq!(vec![0xfb], resolution.operands);
         assert_eq!(0x0ffd, resolution.target_address.unwrap());
-        assert_eq!("±$fb     (#0x0FFD)".to_owned(), format!("{}", resolution));
+        assert_eq!("-5       (#0x0FFD)".to_owned(), format!("{}", resolution));
     }
 }
