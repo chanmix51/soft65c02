@@ -44,5 +44,40 @@ It is possible to load this program at by example address 0x0800: `48 a9 01 8d 0
 
 Each operation is unit tested, so simple oprtation might work. Arithmetic operation may not work properly and everything that uses the status register does not work correctly.
 
-Error handling should be done properly in the adressing mode resolution mechanisme. Today it just panics when an expected address is not given by the resolever but in some cases, by example the Relative addressing mode may perform an overflow and not give any results. So the Microcode shall then return an Error and the user be notified something went wrong in place of the application crash.
+A memory stack mechanism allows to create almost all memory addressing configurations possible. 
+
+It is possible to actually execute some code, there are still lot of opcodes / addressing modes associations missing. The MiniFB test is running the following code successfuly:
+
+       .orig $1B00
+       lda #$0f
+       sta $8000
+       lda #$00
+       tax
+    loop:
+       ina
+       sbc $8000
+       sta $0300,X
+       sta $0400,X
+       sta $0500,X
+       inx
+       bne loop
+       brk
+
+It launches a minifb window that shows pixels as they are written in the video memory. The first lines of the execution log are:
+
+    #0x1B00: (a9 0f)       LDA  #$0f     (#0x1B01)
+    #0x1B02: (8d 00 80)    STA  $8000    (#0x8000)
+    #0x1B05: (a9 00)       LDA  #$00     (#0x1B06)
+    #0x1B07: (aa)          TAX
+    #0x1B08: (1a)          INA
+    #0x1B09: (ed 00 80)    SBC  $8000    (#0x8000)
+    #0x1B0C: (9d 00 03)    STA  $0300,X  (#0x0300)
+    #0x1B0F: (9d 00 04)    STA  $0400,X  (#0x0400)
+    #0x1B12: (9d 00 05)    STA  $0500,X  (#0x0500)
+    #0x1B15: (e8)          INX
+    #0x1B16: (d0 f0)       BNE  ±$f0     (#0x1B08)
+    #0x1B08: (1a)          INA
+    #0x1B09: (ed 00 80)    SBC  $8000    (#0x8000)
+    #0x1B0C: (9d 00 03)    STA  $0300,X  (#0x0301)
+
 
