@@ -9,7 +9,13 @@ pub fn tax(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
     registers.set_z_flag(registers.register_x == 0);
     registers.command_pointer += 1 + resolution.operands.len();
 
-    Ok(LogLine::new(&cpu_instruction, resolution, format!("[X=0x{:02x}]", registers.register_x)))
+    Ok(
+        LogLine::new(
+            &cpu_instruction,
+            resolution,
+            format!("[X=0x{:02x}][S={}]", registers.register_x, registers.format_status())
+        )
+    )
 }
 
 #[cfg(test)]

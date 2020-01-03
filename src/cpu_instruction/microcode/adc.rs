@@ -22,7 +22,13 @@ pub fn adc(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
     registers.set_n_flag(registers.accumulator & 0b10000000 != 0);
     registers.command_pointer += 1 + resolution.operands.len();
 
-    Ok(LogLine::new(&cpu_instruction, resolution, format!("[A=0x{:02x}]", registers.accumulator)))
+    Ok(
+        LogLine::new(
+            &cpu_instruction,
+            resolution,
+            format!("[A=0x{:02x}][S={}]", registers.accumulator, registers.format_status())
+        )
+    )
 }
 
 #[cfg(test)]

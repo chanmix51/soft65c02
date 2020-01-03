@@ -20,7 +20,7 @@ pub struct Registers {
     pub accumulator:        u8,
     pub register_x:         u8,
     pub register_y:         u8,
-    pub status_register:    u8,
+    status_register:        u8,
     pub command_pointer:    usize,
     pub stack_pointer:      u8,
 }
@@ -122,25 +122,32 @@ impl Registers {
             self.status_register &= 0b11111110;
         }
     }
+
+    pub fn format_status(&self) -> String {
+        format!(
+            "{}{}-{}{}{}{}{}",
+            if self.n_flag_is_set() { "N" } else { "n" },
+            if self.v_flag_is_set() { "V" } else { "v" },
+            if self.b_flag_is_set() { "B" } else { "b" },
+            if self.d_flag_is_set() { "D" } else { "d" },
+            if self.i_flag_is_set() { "I" } else { "i" },
+            if self.z_flag_is_set() { "Z" } else { "z" },
+            if self.c_flag_is_set() { "C" } else { "c" },
+       )
+    }
 }
 
 impl fmt::Debug for Registers {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
         f,
-        "Registers [A:0x{:02x}, X:0x{:02x}, Y:0x{:02x} | SP:0x{:02x} CP:0x{:04x} | {}{}-{}{}{}{}{}]",
+        "Registers [A:0x{:02x}, X:0x{:02x}, Y:0x{:02x} | SP:0x{:02x} CP:0x{:04x} | {}]",
         self.accumulator,
         self.register_x,
         self.register_y,
         self.stack_pointer,
         self.command_pointer,
-        if self.n_flag_is_set() { "N" } else { "n" },
-        if self.v_flag_is_set() { "V" } else { "v" },
-        if self.b_flag_is_set() { "B" } else { "b" },
-        if self.d_flag_is_set() { "D" } else { "d" },
-        if self.i_flag_is_set() { "I" } else { "i" },
-        if self.z_flag_is_set() { "Z" } else { "z" },
-        if self.c_flag_is_set() { "C" } else { "c" },
+        self.format_status()
         )
     }
 }
