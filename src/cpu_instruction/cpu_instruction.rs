@@ -51,7 +51,6 @@ pub struct LogLine {
     pub opcode:     u8,
     pub mnemonic:   String,
     pub resolution: AddressingModeResolution,
-    pub is_simulated: bool,
 }
 
 impl fmt::Display for LogLine {

@@ -21,7 +21,6 @@ pub fn ina(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
         opcode:     cpu_instruction.opcode,
         mnemonic:   cpu_instruction.mnemonic.clone(),
         resolution: resolution,
-        is_simulated: false,
     })
 }
 
