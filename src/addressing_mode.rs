@@ -62,7 +62,7 @@ impl fmt::Display for AddressingModeResolution {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.target_address {
             Some(addr)  => write!(f, "{: <9}(#0x{:04X})", format!("{}", self.addressing_mode), addr),
-            None        => write!(f, "{}", self.addressing_mode),
+            None        => write!(f, "                  "),
         }
     }
 }
@@ -213,7 +213,7 @@ mod tests {
         let resolution:AddressingModeResolution = am.solve(0x1000, &mut memory, &mut registers).unwrap();
         assert_eq!(0, resolution.operands.len());
         assert_eq!(None, resolution.target_address);
-        assert_eq!("".to_owned(), format!("{}", resolution));
+        assert_eq!("", format!("{}", resolution).as_str().trim());
     }
 
     #[test]

@@ -12,12 +12,7 @@ pub fn bne(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
         registers.command_pointer = target_address;
     }
 
-    Ok(LogLine {
-        address:    cpu_instruction.address,
-        opcode:     cpu_instruction.opcode,
-        mnemonic:   cpu_instruction.mnemonic.clone(),
-        resolution: resolution,
-    })
+    Ok(LogLine::new(&cpu_instruction, resolution, format!("[CP=0x{:04X}]", registers.command_pointer)))
 }
 
 #[cfg(test)]

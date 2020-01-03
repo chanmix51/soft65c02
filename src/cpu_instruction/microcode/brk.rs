@@ -4,12 +4,7 @@ pub fn brk(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
     let resolution = cpu_instruction.addressing_mode
         .solve(registers.command_pointer, memory, registers)?;
 
-    Ok(LogLine {
-        address:    cpu_instruction.address,
-        opcode:     cpu_instruction.opcode,
-        mnemonic:   cpu_instruction.mnemonic.clone(),
-        resolution: resolution,
-    })
+    Ok(LogLine::new(&cpu_instruction, resolution, String::new()))
 }
 
 #[cfg(test)]
