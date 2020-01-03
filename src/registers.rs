@@ -128,13 +128,19 @@ impl fmt::Debug for Registers {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
         f,
-        "Registers {{ A: {:02x}, X: {:02x}, Y: {:02x} | SP: {:02x} CP: {:04x}\nNV-BDIZC\n{:08b} }}",
+        "Registers [A:0x{:02x}, X:0x{:02x}, Y:0x{:02x} | SP:0x{:02x} CP:0x{:04x} | {}{}-{}{}{}{}{}]",
         self.accumulator,
         self.register_x,
         self.register_y,
         self.stack_pointer,
         self.command_pointer,
-        self.status_register
+        if self.n_flag_is_set() { "N" } else { "n" },
+        if self.v_flag_is_set() { "V" } else { "v" },
+        if self.b_flag_is_set() { "B" } else { "b" },
+        if self.d_flag_is_set() { "D" } else { "d" },
+        if self.i_flag_is_set() { "I" } else { "i" },
+        if self.z_flag_is_set() { "Z" } else { "z" },
+        if self.c_flag_is_set() { "C" } else { "c" },
         )
     }
 }
