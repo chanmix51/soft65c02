@@ -1,6 +1,6 @@
 Soft 65C02
 ==========
-
+![travis-CI](https://api.travis-ci.org/chanmix51/soft65c02.svg?branch=master)
 Soft 65C02 is yet another 65C02 processor simulator. If you are interested into real world software regarding this processor, I suggest you have a look [there](https://www.masswerk.at/products.php) and [there](http://www.6502.org/users/andre/).
 
 Why would you write another simulator for the 65C02?
@@ -31,6 +31,7 @@ It is possible to load some programs compiled with `vasm6502 -c02 -Fbin`, load t
 
 The following part of the ASM program:
 
+```asm
     wait:
         NOP
         STZ     SCREEN_START
@@ -39,14 +40,16 @@ The following part of the ASM program:
         STA     ADDR_VAR_KB   ; store the key pressed
         LDA     #KEY_J
         SBC     ADDR_VAR_KB   ; compare it with J
-        BNE     key_l         ; is it J ?
+        BNE     key_l         ; is it not J ?
         LDA     #$0           ; paint black
         STA     ($00),Y       ; at actual video position
         DEY                   ; move left
         BNE     draw
+```
 
 once compiled and loaded through soft65c02:
 
+```rust
     let init_vector:usize = 0x1B00;
     let mut memory = Memory::new_with_ram();
     let mut f = File::open("point.bin").unwrap();
@@ -57,6 +60,7 @@ once compiled and loaded through soft65c02:
     for line in soft65c02::disassemble(init_vector, init_vector + len, &memory).iter() {
         println!("{}", line);
     }
+```
 
 will produce the following output:
 
