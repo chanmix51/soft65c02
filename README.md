@@ -14,70 +14,102 @@ Because the 6502 comes from an age where processors were built by humans for hum
 What this simulator is supposed to do?
 --------------------------------------
 
- * binary file loader
- * code disassembler
- * step by step execution
- * breakpoints & conditional debugger
- * memory & registers explorer
- * REPL
- * aims at being the more modular possible to be able to plug virtual devices like screen (through minifb) I/O devices etc.
+ * binary file loader ✓
+ * code disassembler ✓
+ * step by step execution ✓
+ * breakpoints & conditional debugger ✗
+ * memory & registers explorer ✓
+ * REPL ✗
+ * aims at being the more modular possible to be able to plug virtual devices like screen (through minifb) I/O devices etc. (video ok, kb at some point)
 
 What's the actual state of this development?
 --------------------------------------------
 Experimental work in progress. Do not expect anything from it.
 
 What is working right now?
-It is possible to load this program at by example address 0x0800: `48 a9 01 8d 00 02 6c 00 02 95 20 a1 20 51 21 96 21 7d 01 02 f9 10 12 d0 f6` and the disassember outputs:
+It is possible to load some programs compiled with `vasm6502 -c02 -Fbin`, load them and disassemble them:
 
-        #0x0800: (48)          PHA
-        #0x0801: (a9 01)       LDA  #$01
-        #0x0803: (8d 00 02)    STA  $0200
-        #0x0806: (6c 00 02)    JMP  ($0200)
-        #0x0809: (95 20)       STA  $20,X
-        #0x080B: (a1 20)       LDA  ($20,X)
-        #0x080D: (51 21)       EOR  ($21),Y
-        #0x080F: (96 21)       STX  $21,Y
-        #0x0811: (7d 01 02)    ADC  $0201,X
-        #0x0814: (f9 10 12)    SBC  $1210,Y
-        #0x0817: (d0 f6)       BNE  -10
-        #0x0819: (00)          BRK
+The following part of the ASM program:
 
-Each operation is unit tested, so simple oprtation might work. Arithmetic operation may not work properly and everything that uses the status register does not work correctly.
+    wait:
+        NOP
+        STZ     SCREEN_START
+        LDA     ADDR_KEYBOARD ; read keyboard
+        BEQ     wait          ; nothing?
+        STA     ADDR_VAR_KB   ; store the key pressed
+        LDA     #KEY_J
+        SBC     ADDR_VAR_KB   ; compare it with J
+        BNE     key_l         ; is it J ?
+        LDA     #$0           ; paint black
+        STA     ($00),Y       ; at actual video position
+        DEY                   ; move left
+        BNE     draw
 
-A memory stack mechanism allows to create almost all memory addressing configurations possible. 
+once compiled and loaded through soft65c02:
 
-It is possible to actually execute some code, there are still lot of opcodes / addressing modes associations missing. The MiniFB test is running the following code successfuly:
+    let init_vector:usize = 0x1B00;
+    let mut memory = Memory::new_with_ram();
+    let mut f = File::open("point.bin").unwrap();
+    let mut buffer:Vec<u8> = vec![];
+    f.read_to_end(&mut buffer).unwrap();
+    let len = buffer.len();
+    memory.write(init_vector, buffer).unwrap();
+    for line in soft65c02::disassemble(init_vector, init_vector + len, &memory).iter() {
+        println!("{}", line);
+    }
 
-       .orig $1B00
-       lda #$0f
-       sta $8000
-       lda #$00
-       tax
-    loop:
-       ina
-       sbc $8000
-       sta $0300,X
-       sta $0400,X
-       sta $0500,X
-       inx
-       bne loop
-       brk
+will produce the following output:
 
-It launches a minifb window that shows pixels as they are written in the video memory. The first lines of the execution log are:
+    #0x1B12: (ea)          NOP
+    #0x1B13: (9c 00 03)    STZ  $0300
+    #0x1B16: (ad 30 02)    LDA  $0230
+    #0x1B19: (f0 f7)       BEQ  -9
+    #0x1B1B: (85 03)       STA  $03
+    #0x1B1D: (a9 6a)       LDA  #$6a
+    #0x1B1F: (e5 03)       SBC  $03
+    #0x1B21: (d0 0f)       BNE  +15
+    #0x1B23: (a9 00)       LDA  #$00
+    #0x1B25: (91 00)       STA  ($00),Y
+    #0x1B27: (88)          DEY
+    #0x1B28: (d0 e4)       BNE  -28
 
-    #0x1B00: (a9 0f)       LDA  #$0f     (#0x1B01)
-    #0x1B02: (8d 00 80)    STA  $8000    (#0x8000)
-    #0x1B05: (a9 00)       LDA  #$00     (#0x1B06)
-    #0x1B07: (aa)          TAX
-    #0x1B08: (1a)          INA
-    #0x1B09: (ed 00 80)    SBC  $8000    (#0x8000)
-    #0x1B0C: (9d 00 03)    STA  $0300,X  (#0x0300)
-    #0x1B0F: (9d 00 04)    STA  $0400,X  (#0x0400)
-    #0x1B12: (9d 00 05)    STA  $0500,X  (#0x0500)
-    #0x1B15: (e8)          INX
-    #0x1B16: (d0 f0)       BNE  ±$f0     (#0x1B08)
-    #0x1B08: (1a)          INA
-    #0x1B09: (ed 00 80)    SBC  $8000    (#0x8000)
-    #0x1B0C: (9d 00 03)    STA  $0300,X  (#0x0301)
+It is also possible to run it step by step or not:
 
+    let mut registers = Registers::new(init_vector);
+    let mut cp = 0x0000;
 
+    while cp != registers.command_pointer {
+        cp = registers.command_pointer;
+        println!("{}", soft65c02::execute_step(&mut registers, &mut memory).unwrap());
+        thread::sleep(time::Duration::from_millis(10));
+    }
+
+this will output something like:
+
+    #0x1B12: (ea)          NOP
+    #0x1B13: (9c 00 03)    STZ  $0300    (#0x0300)
+    #0x1B16: (ad 30 02)    LDA  $0230    (#0x0230)  [A=0x00][S=nv-BdiZc]
+    #0x1B19: (f0 f7)       BEQ  -9       (#0x1B12)  [CP=0x1B12]
+    #0x1B12: (ea)          NOP
+    #0x1B13: (9c 00 03)    STZ  $0300    (#0x0300)
+    #0x1B16: (ad 30 02)    LDA  $0230    (#0x0230)  [A=0x00][S=nv-BdiZc]
+    #0x1B19: (f0 f7)       BEQ  -9       (#0x1B12)  [CP=0x1B12]
+    #0x1B12: (ea)          NOP
+    #0x1B13: (9c 00 03)    STZ  $0300    (#0x0300)
+    #0x1B16: (ad 30 02)    LDA  $0230    (#0x0230)  [A=0x6a][S=nv-Bdizc]
+    #0x1B19: (f0 f7)       BEQ  -9       (#0x1B12)  [CP=0x1B1B]
+    #0x1B1B: (85 03)       STA  $03      (#0x0003)
+    #0x1B1D: (a9 6a)       LDA  #$6a     (#0x1B1E)  [A=0x6a][S=nv-Bdizc]
+    #0x1B1F: (e5 03)       SBC  $03      (#0x0003)  [A=0x00][S=nv-BdiZc]
+    #0x1B21: (d0 0f)       BNE  +15      (#0x1B32)  [CP=0x1B23]
+    #0x1B23: (a9 00)       LDA  #$00     (#0x1B24)  [A=0x00][S=nv-BdiZc]
+    #0x1B25: (91 00)       STA  ($00),Y  (#0x0C20)
+    #0x1B27: (88)          DEY                      [Y=0x1f][S=nv-Bdizc]
+    #0x1B28: (d0 e4)       BNE  -28      (#0x1B0E)  [CP=0x1B0E]
+
+It has limited but functional support of [rust minifb](https://github.com/emoon/rust_minifb) which makes this emulator a computer with a graphical (32bits) screen and a keyboard.
+
+Work in progress
+----------------
+
+The soft65C02 CPU lacks a lot of opcodes (stack, subroutines etc.) The interactive step by step does not exist yet.

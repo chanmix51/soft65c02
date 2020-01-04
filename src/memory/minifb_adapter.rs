@@ -29,8 +29,8 @@ impl InputCallback for KeyboardBuffer {
  * Each byte of the video memory is mapped to 2 pixels in the framebuffer
  * memory, 4 bits defining the index in the palette for the RGB values for each
  * pixel.
- * The 48 first bytes are used for the palette and must be set by the program at startup.
- * The key stack is updated by the minifb library.
+ * The 48 first bytes are used for the palette and must be set by the software
+ * at startup. The key stack is updated by the minifb library.
  */
 pub struct MiniFBMemoryAdapter {
     minifb:     Vec<u32>,
@@ -43,6 +43,7 @@ impl MiniFBMemoryAdapter {
     pub fn new(mut window: Window) -> MiniFBMemoryAdapter {
         let (tx, rx) = mpsc::channel::<u32>();
         window.set_input_callback(Box::new(KeyboardBuffer { sender: tx }));
+
         MiniFBMemoryAdapter {
             minifb:     vec![0; MINIFB_WIDTH * MINIFB_HEIGHT],
             memory:     Box::new([0; MINIFB_WIDTH * MINIFB_HEIGHT / 2 + 0xFF]),
@@ -81,25 +82,20 @@ impl AddressableIO for MiniFBMemoryAdapter {
     }
 
     fn read(&self, addr: usize, len: usize) -> Result<Vec<u8>, MemoryError> {
-        if addr + len >= self.get_size() {
-            return Err(MemoryError::ReadOverflow(len, addr, self.get_size()));
-        }
-
-        let mut output = self.memory[addr..addr + len].to_vec();
-
         // reading the keyboard memory
-        if addr <= KEY_STACK_POINTER && addr + len > KEY_STACK_POINTER {
-            let bytes = match self.receiver.try_recv() {
-                Ok(v) => u32::to_ne_bytes(v),
-                Err(_) => [0x00; 4],
+        if addr == KEY_STACK_POINTER && len == 1 {
+            let byte = match self.receiver.try_recv() {
+                Ok(v) => {
+                    u32::to_ne_bytes(v)[0]
+                },
+                Err(e) => {
+                    0x00
+                    },
             };
-
-            for (i, byte) in bytes.iter().enumerate() {
-                output[30 - addr + i] = *byte;
-            }
+            return Ok(vec![byte]);
         }
 
-        Ok(output)
+        Ok(self.memory[addr..addr + len].to_vec())
     }
 
     /*

@@ -148,7 +148,7 @@ impl AddressingMode {
                     if offset_i8 < 0 {
                         opcode_address.checked_sub( (-2 - offset_i8) as usize)
                     } else {
-                        opcode_address.checked_add((offset_i8 + 1) as usize)
+                        opcode_address.checked_add((offset_i8 + 2) as usize)
                     }
                 };
 
@@ -359,8 +359,8 @@ mod tests {
 
         let resolution:AddressingModeResolution = am.solve(0x1000, &mut memory, &mut registers).unwrap();
         assert_eq!(vec![0x04], resolution.operands);
-        assert_eq!(0x1005, resolution.target_address.unwrap());
-        assert_eq!("+4       (#0x1005)".to_owned(), format!("{}", resolution));
+        assert_eq!(0x1006, resolution.target_address.unwrap());
+        assert_eq!("+4       (#0x1006)".to_owned(), format!("{}", resolution));
     }
 
     #[test]

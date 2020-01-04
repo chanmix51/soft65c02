@@ -9,7 +9,7 @@ pub fn stx(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
     memory.write(target_address, vec![registers.register_x])?;
     registers.command_pointer += 1 + resolution.operands.len();
 
-    Ok(LogLine::new(&cpu_instruction, resolution, format!("[X=0x{:02x}]", registers.register_x)))
+    Ok(LogLine::new(&cpu_instruction, resolution, String::new()))
 }
 
 #[cfg(test)]
