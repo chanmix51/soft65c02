@@ -13,6 +13,7 @@ fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> CPUInstruction
     };
     match opcode {
         0x00    => CPUInstruction::new(address, opcode, "BRK", AddressingMode::Implied, microcode::brk),
+        0x08    => CPUInstruction::new(address, opcode, "PLA", AddressingMode::Implied, microcode::pla),
         0x1a    => CPUInstruction::new(address, opcode, "INA", AddressingMode::Implied, microcode::ina),
         0x48    => CPUInstruction::new(address, opcode, "PHA", AddressingMode::Implied, microcode::pha),
         0x51    => CPUInstruction::new(address, opcode, "EOR", AddressingMode::ZeroPageIndirectYIndexed(op1), microcode::eor),
