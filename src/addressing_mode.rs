@@ -70,6 +70,7 @@ impl fmt::Display for AddressingModeResolution {
 #[derive(Debug, Eq, PartialEq, Copy, Clone, Hash)]
 pub enum AddressingMode {
     Implied,
+    Accumulator,
     Immediate([u8; 1]),
     ZeroPage([u8; 1]),
     ZeroPageXIndexed([u8; 1]),
@@ -93,6 +94,7 @@ impl AddressingMode {
     pub fn solve(&self, opcode_address: usize, memory: &Memory, registers: &Registers) -> Result<AddressingModeResolution> {
         match *self {
             AddressingMode::Implied  => Ok(AddressingModeResolution::new(vec![], self.clone(), None)),
+            AddressingMode::Accumulator  => Ok(AddressingModeResolution::new(vec![], self.clone(), None)),
             AddressingMode::Immediate(v) => {
                 Ok(AddressingModeResolution::new(vec![v[0]], self.clone(), Some(opcode_address + 1 as usize)))
             },
@@ -169,6 +171,7 @@ impl AddressingMode {
     pub fn get_operands(&self) -> Vec<u8> {
         match *self {
             AddressingMode::Implied => vec![],
+            AddressingMode::Accumulator => vec![],
             AddressingMode::Immediate(v) => v.to_vec(),
             AddressingMode::ZeroPage(v) => v.to_vec(),
             AddressingMode::ZeroPageXIndexed(v) => v.to_vec(),
@@ -189,6 +192,7 @@ impl fmt::Display for AddressingMode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
             AddressingMode::Implied  => write!(f, ""),
+            AddressingMode::Accumulator  => write!(f, "A"),
             AddressingMode::Immediate(v)  => write!(f, "#${:02x}", v[0]),
             AddressingMode::ZeroPage(v) => write!(f, "${:02x}", v[0]),
             AddressingMode::Absolute(v) => write!(f, "${:02X}{:02X}", v[1], v[0]),
@@ -216,6 +220,20 @@ mod tests {
         let mut registers = Registers::new(0x1000);
         let am = AddressingMode::Implied;
         assert_eq!("".to_owned(), format!("{}", am));
+
+        let resolution:AddressingModeResolution = am.solve(0x1000, &mut memory, &mut registers).unwrap();
+        assert_eq!(0, resolution.operands.len());
+        assert_eq!(None, resolution.target_address);
+        assert_eq!("", format!("{}", resolution).as_str().trim());
+    }
+
+    #[test]
+    fn test_accumulator() {
+        let mut memory = Memory::new_with_ram();
+        memory.write(0x1000, vec![0xe8, 0xff, 0xff]).unwrap();
+        let mut registers = Registers::new(0x1000);
+        let am = AddressingMode::Accumulator;
+        assert_eq!("A".to_owned(), format!("{}", am));
 
         let resolution:AddressingModeResolution = am.solve(0x1000, &mut memory, &mut registers).unwrap();
         assert_eq!(0, resolution.operands.len());
