@@ -30,7 +30,7 @@ mod brk;
 mod tax;
 mod inx;
 mod iny;
-mod ina;
+mod inc;
 mod nop;
 
 pub use dex::dex;
@@ -55,5 +55,5 @@ pub use brk::brk;
 pub use tax::tax;
 pub use inx::inx;
 pub use iny::iny;
-pub use ina::ina;
+pub use inc::inc;
 pub use nop::nop;
