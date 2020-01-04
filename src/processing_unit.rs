@@ -13,8 +13,13 @@ fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> CPUInstruction
     };
     match opcode {
         0x00    => CPUInstruction::new(address, opcode, "BRK", AddressingMode::Implied, microcode::brk),
+        0x06    => CPUInstruction::new(address, opcode, "ASL", AddressingMode::ZeroPage(op1), microcode::asl),
         0x08    => CPUInstruction::new(address, opcode, "PLA", AddressingMode::Implied, microcode::pla),
+        0x0a    => CPUInstruction::new(address, opcode, "ASL", AddressingMode::Accumulator, microcode::asl),
+        0x0e    => CPUInstruction::new(address, opcode, "ASL", AddressingMode::Absolute(op2), microcode::asl),
+        0x16    => CPUInstruction::new(address, opcode, "ASL", AddressingMode::ZeroPageXIndexed(op1), microcode::asl),
         0x1a    => CPUInstruction::new(address, opcode, "INC", AddressingMode::Accumulator, microcode::inc),
+        0x1e    => CPUInstruction::new(address, opcode, "ASL", AddressingMode::AbsoluteXIndexed(op2), microcode::asl),
         0x21    => CPUInstruction::new(address, opcode, "AND", AddressingMode::ZeroPageXIndexedIndirect(op1), microcode::and),
         0x25    => CPUInstruction::new(address, opcode, "AND", AddressingMode::ZeroPage(op1), microcode::and),
         0x29    => CPUInstruction::new(address, opcode, "AND", AddressingMode::Immediate(op1), microcode::and),

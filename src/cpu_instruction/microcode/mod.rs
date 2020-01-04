@@ -8,6 +8,7 @@ pub use crate::memory::AddressableIO;
 pub use crate::addressing_mode::*;
 pub use super::STACK_BASE_ADDR;
 
+mod asl;
 mod dex;
 mod dey;
 mod pha;
@@ -33,6 +34,7 @@ mod iny;
 mod inc;
 mod nop;
 
+pub use asl::asl;
 pub use dex::dex;
 pub use dey::dey;
 pub use pha::pha;
