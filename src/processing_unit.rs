@@ -45,6 +45,7 @@ fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> CPUInstruction
         0x85    => CPUInstruction::new(address, opcode, "STA", AddressingMode::ZeroPage(op1), microcode::sta),
         0x88    => CPUInstruction::new(address, opcode, "DEY", AddressingMode::Implied, microcode::dey),
         0x8d    => CPUInstruction::new(address, opcode, "STA", AddressingMode::Absolute(op2), microcode::sta),
+        0x90    => CPUInstruction::new(address, opcode, "BCC", AddressingMode::Relative(op1), microcode::bcc),
         0x91    => CPUInstruction::new(address, opcode, "STA", AddressingMode::ZeroPageIndirectYIndexed(op1), microcode::sta),
         0x95    => CPUInstruction::new(address, opcode, "STA", AddressingMode::ZeroPageXIndexed(op1), microcode::sta),
         0x96    => CPUInstruction::new(address, opcode, "STX", AddressingMode::ZeroPageYIndexed(op1), microcode::stx),
