@@ -40,6 +40,7 @@ fn minifb() {
     while cp != registers.command_pointer {
         cp = registers.command_pointer;
         writeln!(f, "{}", soft65c02::execute_step(&mut registers, &mut memory).unwrap());
+        memory.refresh();
         thread::sleep(time::Duration::from_millis(1));
     }
 }

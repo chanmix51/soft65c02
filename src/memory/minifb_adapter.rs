@@ -22,15 +22,20 @@ impl InputCallback for KeyboardBuffer {
  * virtual video card.
  *
  * MEMORY ALLOCATION MAP
- * 0x0000 → 0x002F  palette
- * 0x0030 → 0x0033  keyboard memory, the last key pressed.
- * 0x0100 → 0x1900  video memory
+ * 0x0000 → 0x002F  RGB palette (16 colors)
+ * 0x0030           the actual key pressed
+ * 0x0100 → 0x18FF  video memory
+ * 0x1900 → 0x2000  scroll
  *
  * Each byte of the video memory is mapped to 2 pixels in the framebuffer
  * memory, 4 bits defining the index in the palette for the RGB values for each
  * pixel.
  * The 48 first bytes are used for the palette and must be set by the software
- * at startup. The key stack is updated by the minifb library.
+ * at startup. They define 16 colors using 3 bytes each, 1 for each RGB color.
+ * The key byte is updated by the minifb library every time the video memory is
+ * refreshed.
+ * Performances are really low for now, even compared to real world 6502 based
+ * hardware. Who cares?
  */
 pub struct MiniFBMemoryAdapter {
     minifb:     Vec<u32>,
@@ -70,10 +75,6 @@ impl MiniFBMemoryAdapter {
             );
         self.minifb[minifb_addr + 1] = ((r as u32) << 16) | ((g as u32) << 8) | b as u32;
     }
-
-    pub fn window_update(&mut self) -> Result<(), minifb::Error> {
-        self.window.update_with_buffer(&(self.minifb), MINIFB_WIDTH, MINIFB_HEIGHT)
-    }
 }
 
 impl AddressableIO for MiniFBMemoryAdapter {
@@ -98,9 +99,6 @@ impl AddressableIO for MiniFBMemoryAdapter {
         Ok(self.memory[addr..addr + len].to_vec())
     }
 
-    /*
-     * TODO: handle overflows
-     */
     fn write(&mut self, addr: usize, data: Vec<u8>) -> Result<(), MemoryError> {
         let mut offset = 0;
         for byte in data.iter() {
@@ -111,7 +109,10 @@ impl AddressableIO for MiniFBMemoryAdapter {
             }
             offset += 1;
         }
-        self.window_update();
         Ok(())
+    }
+
+    fn refresh(&mut self) {
+        self.window.update_with_buffer(&(self.minifb), MINIFB_WIDTH, MINIFB_HEIGHT).unwrap();
     }
 }

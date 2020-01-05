@@ -32,6 +32,7 @@ pub trait AddressableIO {
     fn read(&self, addr: usize, len: usize) -> Result<Vec<u8>, MemoryError>;
     fn write(&mut self, location: usize, data: Vec<u8>) -> Result<(), MemoryError>;
     fn get_size(&self) -> usize;
+    fn refresh(&mut self) {}
 }
 
 /*

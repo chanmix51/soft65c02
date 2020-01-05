@@ -43,6 +43,10 @@ impl AddressableIO for Subsystem {
     fn get_size(&self) -> usize {
         self.subsystem.get_size()
     }
+
+    fn refresh(&mut self) {
+        self.subsystem.refresh();
+    }
 }
 
 impl fmt::Debug for Subsystem {
@@ -153,6 +157,12 @@ impl AddressableIO for MemoryStack {
 
     fn get_size(&self) -> usize {
         MEMMAX
+    }
+
+    fn refresh(&mut self) {
+        for sub in self.stack.iter_mut() {
+            sub.refresh();
+        }
     }
 }
 

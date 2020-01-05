@@ -44,11 +44,12 @@ fn main(){
     memory.add_subsystem("VIDEO TERMINAL", 0x0200, MiniFBMemoryAdapter::new(window));
     let mut registers = Registers::new(init_vector);
     let mut cp = 0x0000;
-    let mut f = File::create("log.txt").unwrap();
 
     while cp != registers.command_pointer {
         cp = registers.command_pointer;
-        writeln!(f, "{}", soft65c02::execute_step(&mut registers, &mut memory).unwrap());
+        // println!("{}", soft65c02::execute_step(&mut registers, &mut memory).unwrap());
+        soft65c02::execute_step(&mut registers, &mut memory).unwrap();
+        memory.refresh();
         thread::sleep(time::Duration::from_millis(1));
     }
 }
