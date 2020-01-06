@@ -3,7 +3,6 @@ use super::*;
 pub fn inc(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {
     let resolution = cpu_instruction.addressing_mode
         .solve(registers.command_pointer, memory, registers)?;
-
     let mut byte = match resolution.target_address {
         Some(addr) => memory.read(addr, 1)?[0],
         None       => registers.accumulator,

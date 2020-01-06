@@ -105,12 +105,16 @@ fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> CPUInstruction
         0xe0    => CPUInstruction::new(address, opcode, "CPX", AddressingMode::Immediate(op1), microcode::cpx),
         0xe4    => CPUInstruction::new(address, opcode, "CPX", AddressingMode::ZeroPage(op1), microcode::cpx),
         0xe5    => CPUInstruction::new(address, opcode, "SBC", AddressingMode::ZeroPage(op1), microcode::sbc),
+        0xe6    => CPUInstruction::new(address, opcode, "INC", AddressingMode::ZeroPage(op1), microcode::inc),
         0xe8    => CPUInstruction::new(address, opcode, "INX", AddressingMode::Implied, microcode::inx),
         0xea    => CPUInstruction::new(address, opcode, "NOP", AddressingMode::Implied, microcode::nop),
         0xec    => CPUInstruction::new(address, opcode, "CPX", AddressingMode::Absolute(op2), microcode::cpx),
         0xed    => CPUInstruction::new(address, opcode, "SBC", AddressingMode::Absolute(op2), microcode::sbc),
+        0xee    => CPUInstruction::new(address, opcode, "INC", AddressingMode::Absolute(op2), microcode::inc),
         0xf0    => CPUInstruction::new(address, opcode, "BEQ", AddressingMode::Relative(op1), microcode::beq),
+        0xf6    => CPUInstruction::new(address, opcode, "INC", AddressingMode::ZeroPageXIndexed(op1), microcode::inc),
         0xf9    => CPUInstruction::new(address, opcode, "SBC", AddressingMode::AbsoluteYIndexed(op2), microcode::sbc),
+        0xfe    => CPUInstruction::new(address, opcode, "INC", AddressingMode::AbsoluteXIndexed(op2), microcode::inc),
         _       => panic!("Yet unsupported instruction opcode {:02x} at address #{:04X}.", opcode, address),
     }
 }
