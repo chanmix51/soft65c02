@@ -20,7 +20,7 @@ pub struct Registers {
     pub accumulator:        u8,
     pub register_x:         u8,
     pub register_y:         u8,
-    status_register:        u8,
+    pub status_register:    u8,
     pub command_pointer:    usize,
     pub stack_pointer:      u8,
 }

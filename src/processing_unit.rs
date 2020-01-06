@@ -70,6 +70,7 @@ fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> CPUInstruction
         0xc8    => CPUInstruction::new(address, opcode, "INY", AddressingMode::Implied, microcode::iny),
         0xca    => CPUInstruction::new(address, opcode, "DEX", AddressingMode::Implied, microcode::dex),
         0xd0    => CPUInstruction::new(address, opcode, "BNE", AddressingMode::Relative(op1), microcode::bne),
+        0xdb    => CPUInstruction::new(address, opcode, "STP", AddressingMode::Implied, microcode::stp),
         0xe5    => CPUInstruction::new(address, opcode, "SBC", AddressingMode::ZeroPage(op1), microcode::sbc),
         0xe8    => CPUInstruction::new(address, opcode, "INX", AddressingMode::Implied, microcode::inx),
         0xea    => CPUInstruction::new(address, opcode, "NOP", AddressingMode::Implied, microcode::nop),

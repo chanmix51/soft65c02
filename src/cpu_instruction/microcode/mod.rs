@@ -4,9 +4,9 @@ pub use error::{MicrocodeError, Result};
 pub use crate::cpu_instruction::{CPUInstruction, LogLine};
 pub use crate::registers::Registers;
 pub use crate::memory::MemoryStack as Memory;
-pub use crate::memory::AddressableIO;
+pub use crate::memory::{AddressableIO, little_endian, MemoryError};
 pub use crate::addressing_mode::*;
-pub use super::STACK_BASE_ADDR;
+pub use super::{STACK_BASE_ADDR, INTERRUPT_VECTOR_ADDR, INIT_VECTOR_ADDR};
 
 mod adc;
 mod and;
@@ -35,6 +35,7 @@ mod pha;
 mod pla;
 mod sbc;
 mod sta;
+mod stp;
 mod stx;
 mod stz;
 mod tax;
@@ -66,6 +67,21 @@ pub use pha::pha;
 pub use pla::pla;
 pub use sbc::sbc;
 pub use sta::sta;
+pub use stp::stp;
 pub use stx::stx;
 pub use stz::stz;
 pub use tax::tax;
+
+fn stack_push(memory: &mut Memory, registers: &mut Registers, byte: u8) -> std::result::Result<(), MemoryError> {
+    memory.write(STACK_BASE_ADDR + registers.stack_pointer as usize, vec![byte])?;
+    let (sp, _) = registers.stack_pointer.overflowing_sub(1);
+    registers.stack_pointer = sp;
+
+    Ok(())
+}
+
+fn stack_pull(memory: &mut Memory, registers: &mut Registers) -> std::result::Result<u8, MemoryError> {
+    let (sp, _) = registers.stack_pointer.overflowing_add(1);
+    registers.stack_pointer = sp;
+    Ok(memory.read(STACK_BASE_ADDR + registers.stack_pointer as usize, 1)?[0])
+}
