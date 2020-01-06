@@ -36,6 +36,7 @@ fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> CPUInstruction
         0x3c    => CPUInstruction::new(address, opcode, "BIT", AddressingMode::AbsoluteXIndexed(op2), microcode::bit),
         0x3d    => CPUInstruction::new(address, opcode, "AND", AddressingMode::AbsoluteXIndexed(op2), microcode::and),
         0x48    => CPUInstruction::new(address, opcode, "PHA", AddressingMode::Implied, microcode::pha),
+        0x50    => CPUInstruction::new(address, opcode, "BVC", AddressingMode::Relative(op1), microcode::bvc),
         0x51    => CPUInstruction::new(address, opcode, "EOR", AddressingMode::ZeroPageIndirectYIndexed(op1), microcode::eor),
         0x61    => CPUInstruction::new(address, opcode, "ADC", AddressingMode::ZeroPageXIndexedIndirect(op1), microcode::adc),
         0x65    => CPUInstruction::new(address, opcode, "ADC", AddressingMode::ZeroPage(op1), microcode::adc),
