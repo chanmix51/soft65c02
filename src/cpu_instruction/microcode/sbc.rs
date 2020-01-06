@@ -7,23 +7,10 @@ pub fn sbc(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
         .expect("SBC must have operands, crashing the application");
 
     let byte = memory.read(target_address, 1).unwrap()[0];
-    {
-        let a:i16 = i16::from_le_bytes([registers.accumulator.to_le_bytes()[0], 0]);
-        let b:i16 = i16::from_le_bytes([byte.to_le_bytes()[0], 0]);
-        let mut c = a - b;
-        registers.set_z_flag(c == 0);
-        registers.set_n_flag(c < 0);
-        if c < -128 {
-            registers.set_c_flag(true);
-            registers.set_v_flag(true);
-            c = 256 + c;
-        } else {
-            registers.set_c_flag(false);
-            registers.set_v_flag(false);
-        }
-
-        registers.accumulator = c.to_le_bytes()[0];
-    }
+    let (a, carry) = registers.accumulator.overflowing_sub(byte);
+    registers.set_c_flag(carry);
+    registers.set_v_flag(a & 0b01000000 != 0);
+    registers.accumulator = a;
 
     registers.command_pointer += 1 + resolution.operands.len();
 
