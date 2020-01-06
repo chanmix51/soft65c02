@@ -4,13 +4,11 @@ pub fn dex(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
     let resolution = cpu_instruction.addressing_mode
         .solve(registers.command_pointer, memory, registers)?;
 
-    if registers.register_x != 0 {
-        registers.register_x -= 1;
-    } else {
-        registers.register_x = 0xff;
-    }
-    registers.set_z_flag(registers.register_x == 0);
-    registers.set_n_flag(registers.register_x & 0b10000000 != 0);
+    let (res, _) = registers.register_x.overflowing_sub(1);
+
+    registers.set_z_flag(res == 0);
+    registers.set_n_flag(res & 0b10000000 != 0);
+    registers.register_x = res;
 
     registers.command_pointer += 1 + resolution.operands.len();
 

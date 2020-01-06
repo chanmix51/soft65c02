@@ -7,7 +7,7 @@ pub fn dec(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
         Some(addr)  => memory.read(addr, 1)?[0],
         None        => registers.accumulator,
     };
-    let (res, carry) = byte.overflowing_sub(1);
+    let (res, _) = byte.overflowing_sub(1);
 
     registers.set_z_flag(res == 0);
     registers.set_n_flag(res & 0b10000000 != 0);
