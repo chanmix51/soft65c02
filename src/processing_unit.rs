@@ -43,6 +43,7 @@ fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> CPUInstruction
         0x69    => CPUInstruction::new(address, opcode, "ADC", AddressingMode::Immediate(op1), microcode::adc),
         0x6c    => CPUInstruction::new(address, opcode, "JMP", AddressingMode::Indirect(op2), microcode::jmp),
         0x6d    => CPUInstruction::new(address, opcode, "ADC", AddressingMode::Absolute(op2), microcode::adc),
+        0x70    => CPUInstruction::new(address, opcode, "BVS", AddressingMode::Relative(op1), microcode::bvs),
         0x71    => CPUInstruction::new(address, opcode, "ADC", AddressingMode::ZeroPageIndirectYIndexed(op1), microcode::adc),
         0x72    => CPUInstruction::new(address, opcode, "ADC", AddressingMode::ZeroPageIndirect(op1), microcode::adc),
         0x75    => CPUInstruction::new(address, opcode, "ADC", AddressingMode::ZeroPageXIndexed(op1), microcode::adc),
