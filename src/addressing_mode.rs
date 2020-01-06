@@ -80,6 +80,7 @@ pub enum AddressingMode {
     ZeroPageIndirect([u8; 1]),
     Absolute([u8; 2]),
     AbsoluteXIndexed([u8; 2]),
+    AbsoluteXIndexedIndirect([u8; 2]),
     AbsoluteYIndexed([u8; 2]),
     Indirect([u8; 2]),
     Relative([u8; 1]),
@@ -138,6 +139,12 @@ impl AddressingMode {
                 let dest_addr = little_endian(bytes.clone()) + registers.register_x as usize;
                 Ok(AddressingModeResolution::new(bytes, self.clone(), Some(dest_addr)))
             },
+            AddressingMode::AbsoluteXIndexedIndirect(v) => {
+                let bytes = vec![v[0], v[1]];
+                let tmp_addr = little_endian(bytes.clone()) + registers.register_x as usize;
+                let dest_addr = little_endian(memory.read(tmp_addr, 2)?);
+                Ok(AddressingModeResolution::new(bytes, self.clone(), Some(dest_addr)))
+            },
             AddressingMode::AbsoluteYIndexed(v) => {
                 let bytes = vec![v[0], v[1]];
                 let dest_addr = little_endian(bytes.clone()) + registers.register_y as usize;
@@ -181,6 +188,7 @@ impl AddressingMode {
             AddressingMode::ZeroPageIndirect(v) => v.to_vec(),
             AddressingMode::Absolute(v) => v.to_vec(),
             AddressingMode::AbsoluteXIndexed(v) => v.to_vec(),
+            AddressingMode::AbsoluteXIndexedIndirect(v) => v.to_vec(),
             AddressingMode::AbsoluteYIndexed(v) => v.to_vec(),
             AddressingMode::Indirect(v) => v.to_vec(),
             AddressingMode::Relative(v) => v.to_vec(),
@@ -197,6 +205,7 @@ impl fmt::Display for AddressingMode {
             AddressingMode::ZeroPage(v) => write!(f, "${:02x}", v[0]),
             AddressingMode::Absolute(v) => write!(f, "${:02X}{:02X}", v[1], v[0]),
             AddressingMode::AbsoluteXIndexed(v) => write!(f, "${:02X}{:02X},X", v[1], v[0]),
+            AddressingMode::AbsoluteXIndexedIndirect(v) => write!(f, "(${:02X}{:02X},X)", v[1], v[0]),
             AddressingMode::AbsoluteYIndexed(v) => write!(f, "${:02X}{:02X},Y", v[1], v[0]),
             AddressingMode::Indirect(v) => write!(f, "(${:02X}{:02X})", v[1], v[0]),
             AddressingMode::ZeroPageXIndexed(v) => write!(f, "${:02x},X", v[0]),
@@ -417,4 +426,19 @@ mod tests {
         assert_eq!("($21)    (#0x8005)".to_owned(), format!("{}", resolution));
     }
 
+    #[test]
+    fn test_absolute_x_indexed_indirect() {
+        let mut memory = Memory::new_with_ram();
+        memory.write(0x1000, vec![0xa5, 0x21, 0x20]).unwrap();
+        memory.write(0x2025, vec![0x05, 0x80]).unwrap();
+        let mut registers = Registers::new(0x1000);
+        let am = AddressingMode::AbsoluteXIndexedIndirect([0x21, 0x20]);
+        assert_eq!("($2021,X)".to_owned(), format!("{}", am));
+
+        registers.register_x = 0x04;
+        let resolution:AddressingModeResolution = am.solve(0x1000, &mut memory, &mut registers).unwrap();
+        assert_eq!(vec![0x21, 0x20], resolution.operands);
+        assert_eq!(0x8005, resolution.target_address.unwrap());
+        assert_eq!("($2021,X)(#0x8005)".to_owned(), format!("{}", resolution));
+    }
 }
