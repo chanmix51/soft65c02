@@ -64,6 +64,7 @@ fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> CPUInstruction
         0xa9    => CPUInstruction::new(address, opcode, "LDA", AddressingMode::Immediate(op1), microcode::lda),
         0xaa    => CPUInstruction::new(address, opcode, "TAX", AddressingMode::Implied, microcode::tax),
         0xad    => CPUInstruction::new(address, opcode, "LDA", AddressingMode::Absolute(op2), microcode::lda),
+        0xb0    => CPUInstruction::new(address, opcode, "BCS", AddressingMode::Relative(op1), microcode::bcs),
         0xc8    => CPUInstruction::new(address, opcode, "INY", AddressingMode::Implied, microcode::iny),
         0xca    => CPUInstruction::new(address, opcode, "DEX", AddressingMode::Implied, microcode::dex),
         0xd0    => CPUInstruction::new(address, opcode, "BNE", AddressingMode::Relative(op1), microcode::bne),
