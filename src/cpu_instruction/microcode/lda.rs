@@ -6,7 +6,7 @@ pub fn lda(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
     let target_address = resolution.target_address
         .expect("LDA instruction must have operands, crashing the application");
 
-    registers.accumulator = memory.read(target_address, 1).unwrap()[0];
+    registers.accumulator = memory.read(target_address, 1)?[0];
     registers.set_n_flag(registers.accumulator & 0b10000000 != 0);
     registers.set_z_flag(registers.accumulator == 0);
     registers.command_pointer += 1 + resolution.operands.len();
