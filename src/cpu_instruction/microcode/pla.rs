@@ -10,7 +10,7 @@ pub fn pla(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
         registers.stack_pointer += 1;
     }
 
-    registers.accumulator = memory.read(STACK_BASE_ADDR + (registers.stack_pointer as usize), 1)?[0];
+    registers.accumulator = registers.stack_pull(memory)?;
     registers.set_z_flag(registers.accumulator == 0);
     registers.set_n_flag(registers.accumulator & 0x80 != 0);
 

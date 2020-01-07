@@ -1,5 +1,6 @@
 use std::fmt;
-
+use super::memory::{MemoryError, IOaddressable};
+use super::memory::MemoryStack as Memory;
 /*
  * 65C02 registers
  * accumulator, X & Y registers are 8 bits general purpose registers.
@@ -16,6 +17,8 @@ use std::fmt;
  * command pointer: 16 bit address register
  * stack pointer: 8 bits at page 0x0100, set at 0xff at start.
  */
+pub const STACK_BASE_ADDR:usize = 0x0100;
+
 pub struct Registers {
     pub accumulator:        u8,
     pub register_x:         u8,
@@ -36,9 +39,21 @@ impl Registers {
             stack_pointer:      0xff,
         }
     }
-}
 
-impl Registers {
+    pub fn stack_push(&mut self, memory: &mut Memory, byte: u8) -> std::result::Result<(), MemoryError> {
+        memory.write(STACK_BASE_ADDR + self.stack_pointer as usize, vec![byte])?;
+        let (sp, _) = self.stack_pointer.overflowing_sub(1);
+        self.stack_pointer = sp;
+
+        Ok(())
+    }
+
+    pub fn stack_pull(&mut self, memory: &Memory) -> std::result::Result<u8, MemoryError> {
+        let (sp, _) = self.stack_pointer.overflowing_add(1);
+        self.stack_pointer = sp;
+        Ok(memory.read(STACK_BASE_ADDR + self.stack_pointer as usize, 1)?[0])
+    }
+
     pub fn n_flag_is_set(&self) -> bool {
         self.status_register & 0b10000000 == 0b10000000
     }

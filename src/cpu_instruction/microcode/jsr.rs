@@ -7,8 +7,8 @@ pub fn jsr(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
         .expect("JSR must have an operand, crashing the application");
 
     let bytes = usize::to_le_bytes(registers.command_pointer + resolution.operands.len());
-    stack_push(memory, registers, bytes[1]);
-    stack_push(memory, registers, bytes[0]);
+    registers.stack_push(memory, bytes[1]);
+    registers.stack_push(memory, bytes[0]);
     registers.command_pointer = target_address;
 
     Ok(LogLine::new(&cpu_instruction, resolution, format!("[CP=0x{:04x}][S={}]", registers.command_pointer, registers.format_status())))
