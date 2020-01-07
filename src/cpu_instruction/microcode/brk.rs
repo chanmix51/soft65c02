@@ -6,9 +6,9 @@ pub fn brk(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
 
     registers.set_b_flag(true);
     let bytes = usize::to_le_bytes(registers.command_pointer);
-    registers.stack_push(memory, bytes[0]);
-    registers.stack_push(memory, bytes[1]);
-    registers.stack_push(memory, registers.status_register);
+    registers.stack_push(memory, bytes[0])?;
+    registers.stack_push(memory, bytes[1])?;
+    registers.stack_push(memory, registers.status_register)?;
     registers.command_pointer = little_endian(memory.read(INTERRUPT_VECTOR_ADDR, 2)?);
 
     Ok(
