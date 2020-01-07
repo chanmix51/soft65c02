@@ -22,6 +22,7 @@ fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> CPUInstruction
         0x18    => CPUInstruction::new(address, opcode, "CLC", AddressingMode::Implied, microcode::clc),
         0x1a    => CPUInstruction::new(address, opcode, "INC", AddressingMode::Accumulator, microcode::inc),
         0x1e    => CPUInstruction::new(address, opcode, "ASL", AddressingMode::AbsoluteXIndexed(op2), microcode::asl),
+        0x20    => CPUInstruction::new(address, opcode, "JSR", AddressingMode::Absolute(op2), microcode::jsr),
         0x21    => CPUInstruction::new(address, opcode, "AND", AddressingMode::ZeroPageXIndexedIndirect(op1), microcode::and),
         0x24    => CPUInstruction::new(address, opcode, "BIT", AddressingMode::ZeroPage(op1), microcode::bit),
         0x25    => CPUInstruction::new(address, opcode, "AND", AddressingMode::ZeroPage(op1), microcode::and),

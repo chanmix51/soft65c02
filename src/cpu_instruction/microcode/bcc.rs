@@ -4,7 +4,7 @@ pub fn bcc(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
     let resolution = cpu_instruction.addressing_mode
         .solve(registers.command_pointer, memory, registers)?;
     let target_address = resolution.target_address
-        .expect("BEQ must have operands, crashing the application");
+        .expect("BCC must have operands, crashing the application");
 
     if registers.c_flag_is_set() {
         registers.command_pointer += 1 + resolution.operands.len();
