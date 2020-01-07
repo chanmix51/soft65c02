@@ -6,7 +6,7 @@ pub fn ldx(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
     let target_address = resolution.target_address
         .expect("LDX instruction must have operands, crashing the application");
 
-    registers.register_x = memory.read(target_address, 1).unwrap()[0];
+    registers.register_x = memory.read(target_address, 1)?[0];
     registers.set_n_flag(registers.register_x & 0b10000000 != 0);
     registers.set_z_flag(registers.register_x == 0);
     registers.command_pointer += 1 + resolution.operands.len();
