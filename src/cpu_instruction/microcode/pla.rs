@@ -4,16 +4,9 @@ pub fn pla(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
     let resolution = cpu_instruction.addressing_mode
         .solve(registers.command_pointer, memory, registers)?;
 
-    if registers.stack_pointer == 0xff {
-        registers.stack_pointer = 0x00;
-    } else {
-        registers.stack_pointer += 1;
-    }
-
     registers.accumulator = registers.stack_pull(memory)?;
     registers.set_z_flag(registers.accumulator == 0);
     registers.set_n_flag(registers.accumulator & 0x80 != 0);
-
     registers.command_pointer += 1 + resolution.operands.len();
 
     Ok(

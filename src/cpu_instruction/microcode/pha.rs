@@ -4,7 +4,7 @@ pub fn pha(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
     let resolution = cpu_instruction.addressing_mode
         .solve(registers.command_pointer, memory, registers)?;
 
-    registers.stack_push(&memory, registers.accumulator)?;
+    registers.stack_push(memory, registers.accumulator)?;
     registers.command_pointer += 1 + resolution.operands.len();
 
     Ok(LogLine::new(&cpu_instruction, resolution, format!("[SP={:02x}]", registers.stack_pointer)))

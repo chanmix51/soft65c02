@@ -1,5 +1,5 @@
 use std::fmt;
-use super::memory::{MemoryError, IOaddressable};
+use super::memory::{MemoryError, AddressableIO};
 use super::memory::MemoryStack as Memory;
 /*
  * 65C02 registers
