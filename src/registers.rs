@@ -5,14 +5,14 @@ use super::memory::MemoryStack as Memory;
  * 65C02 registers
  * accumulator, X & Y registers are 8 bits general purpose registers.
  * status flags register :
- * bit 8: Negative flag
- * bit 7: oVerflow flag
- * bit 6: not used
- * bit 5: Break interrupt mode
- * bit 4: Decimal mode
- * bit 3: Interrupt disable
- * bit 2: Zero flag
- * bit 1: Carry flag
+ *   bit 7: Negative flag
+ *   bit 6: oVerflow flag
+ *   bit 5: not used
+ *   bit 4: Break interrupt mode
+ *   bit 3: Decimal mode
+ *   bit 2: Interrupt disable
+ *   bit 1: Zero flag
+ *   bit 0: Carry flag
  *
  * command pointer: 16 bit address register
  * stack pointer: 8 bits at page 0x0100, set at 0xff at start.

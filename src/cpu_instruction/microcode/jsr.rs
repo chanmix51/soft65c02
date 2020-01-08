@@ -11,7 +11,17 @@ pub fn jsr(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
     registers.stack_push(memory, bytes[0]);
     registers.command_pointer = target_address;
 
-    Ok(LogLine::new(&cpu_instruction, resolution, format!("[CP=0x{:04x}][S={}]", registers.command_pointer, registers.format_status())))
+    Ok(
+        LogLine::new(
+            &cpu_instruction,
+            resolution,
+            format!(
+                "[CP=0x{:04x}][SP=0x{:02x}]",
+                registers.command_pointer,
+                registers.status_register
+                )
+            )
+        )
 }
 
 #[cfg(test)]
