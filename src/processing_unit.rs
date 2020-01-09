@@ -18,11 +18,13 @@ fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> CPUInstruction
     match opcode {
         0x00    => instr::new(address, opcode, "BRK", AM::Implied, mc::brk),
         0x01    => instr::new(address, opcode, "ORA", AM::ZeroPageXIndexedIndirect(op1), mc::ora),
+        0x04    => instr::new(address, opcode, "TSB", AM::ZeroPage(op1), mc::tsb),
         0x05    => instr::new(address, opcode, "ORA", AM::ZeroPage(op1), mc::ora),
         0x06    => instr::new(address, opcode, "ASL", AM::ZeroPage(op1), mc::asl),
         0x08    => instr::new(address, opcode, "PHP", AM::Implied, mc::php),
         0x09    => instr::new(address, opcode, "ORA", AM::Immediate(op1), mc::ora),
         0x0a    => instr::new(address, opcode, "ASL", AM::Accumulator, mc::asl),
+        0x0c    => instr::new(address, opcode, "TSB", AM::Absolute(op2), mc::tsb),
         0x0d    => instr::new(address, opcode, "ORA", AM::Absolute(op2), mc::ora),
         0x0e    => instr::new(address, opcode, "ASL", AM::Absolute(op2), mc::asl),
         0x10    => instr::new(address, opcode, "BPL", AM::Relative(op1), mc::bpl),
