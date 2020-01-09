@@ -69,6 +69,8 @@ mod tax;
 mod tay;
 mod trb;
 mod tsb;
+mod tsx;
+mod txa;
 
 pub use adc::adc;
 pub use and::and;
@@ -131,3 +133,5 @@ pub use tax::tax;
 pub use tay::tay;
 pub use trb::trb;
 pub use tsb::tsb;
+pub use tsx::tsx;
+pub use txa::txa;
