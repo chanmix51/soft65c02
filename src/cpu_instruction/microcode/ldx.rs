@@ -15,7 +15,7 @@ pub fn ldx(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
         LogLine::new(
             &cpu_instruction,
             resolution,
-            format!("[Y=0x{:02x}][S={}]", registers.register_x, registers.format_status())
+            format!("[X=0x{:02x}][S={}]", registers.register_x, registers.format_status())
         )
     )
 }
