@@ -6,7 +6,7 @@ pub fn sta(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
     let target_address = resolution.target_address
         .expect("STA must have operands, crashing the application");
 
-    memory.write(target_address, vec![registers.accumulator]).unwrap();
+    memory.write(target_address, vec![registers.accumulator])?;
     registers.command_pointer += 1 + resolution.operands.len();
 
     Ok(LogLine::new(&cpu_instruction, resolution, String::new()))
