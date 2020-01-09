@@ -63,6 +63,7 @@ mod sei;
 mod sta;
 mod stp;
 mod stx;
+mod sty;
 mod stz;
 mod tax;
 
@@ -121,5 +122,6 @@ pub use sei::sei;
 pub use sta::sta;
 pub use stp::stp;
 pub use stx::stx;
+pub use sty::sty;
 pub use stz::stz;
 pub use tax::tax;
