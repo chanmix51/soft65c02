@@ -127,6 +127,7 @@ fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> CPUInstruction
         0xa4    => instr::new(address, opcode, "LDY", AM::ZeroPage(op1), mc::ldy),
         0xa5    => instr::new(address, opcode, "LDA", AM::ZeroPage(op1), mc::lda),
         0xa6    => instr::new(address, opcode, "LDX", AM::ZeroPage(op1), mc::ldx),
+        0xa8    => instr::new(address, opcode, "TAY", AM::Implied, mc::tay),
         0xa9    => instr::new(address, opcode, "LDA", AM::Immediate(op1), mc::lda),
         0xaa    => instr::new(address, opcode, "TAX", AM::Implied, mc::tax),
         0xac    => instr::new(address, opcode, "LDY", AM::Absolute(op2), mc::ldy),

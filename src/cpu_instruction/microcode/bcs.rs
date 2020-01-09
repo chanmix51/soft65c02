@@ -4,9 +4,9 @@ pub fn bcs(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
     let resolution = cpu_instruction.addressing_mode
         .solve(registers.command_pointer, memory, registers)?;
     let target_address = resolution.target_address
-        .expect("BEQ must have operands, crashing the application");
+        .expect("BCS must have operands, crashing the application");
 
-    if (registers.c_flag_is_set()) {
+    if registers.c_flag_is_set() {
         registers.command_pointer = target_address;
     } else {
         registers.command_pointer += 1 + resolution.operands.len();
