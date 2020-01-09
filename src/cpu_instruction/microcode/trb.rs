@@ -9,7 +9,7 @@ pub fn trb(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
     let byte = memory.read(target_address, 1)?[0];
     let res = if byte & registers.accumulator != 0 {
         registers.set_z_flag(true);
-        let neg = (registers.accumulator ^ 0xff) + 1; // negates all bits
+        let neg = (registers.accumulator ^ 0xff); // negates all bits
         let res = byte & neg;
         memory.write(target_address, vec![res])?;
         res
@@ -41,9 +41,9 @@ mod tests {
         registers.accumulator = 0x81;
         let log_line = cpu_instruction.execute(&mut memory, &mut registers).unwrap();
         assert_eq!("TRB".to_owned(), log_line.mnemonic);
-        assert_eq!(0x7e, memory.read(0x0a, 1).unwrap()[0]);
+        assert_eq!(0b01111110, memory.read(0x0a, 1).unwrap()[0]);
         assert!(registers.z_flag_is_set());
-        assert_eq!(0x1001, registers.command_pointer);
+        assert_eq!(0x1002, registers.command_pointer);
     }
 
     #[test]
@@ -55,6 +55,6 @@ mod tests {
         let log_line = cpu_instruction.execute(&mut memory, &mut registers).unwrap();
         assert_eq!(0x0f, memory.read(0x0a, 1).unwrap()[0]);
         assert!(!registers.z_flag_is_set());
-        assert_eq!(0x1001, registers.command_pointer);
+        assert_eq!(0x1002, registers.command_pointer);
     }
 }
