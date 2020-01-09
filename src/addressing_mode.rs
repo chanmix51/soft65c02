@@ -162,7 +162,7 @@ impl AddressingMode {
                     if offset_i8 < 0 {
                         opcode_address.checked_sub( (-2 - offset_i8) as usize)
                     } else {
-                        opcode_address.checked_add((offset_i8 + 2) as usize)
+                        opcode_address.checked_add((offset_i8  as usize) + 2)
                     }
                 };
 
@@ -409,6 +409,34 @@ mod tests {
         assert_eq!(vec![0xfb], resolution.operands);
         assert_eq!(0x0ffd, resolution.target_address.unwrap());
         assert_eq!("-5       (#0x0FFD)".to_owned(), format!("{}", resolution));
+    }
+
+    #[test]
+    fn test_relative_negative_edge() {
+        let mut memory = Memory::new_with_ram();
+        memory.write(0x0ffa, vec![0xfa, 0xfb, 0xfc, 0xfd, 0xfe, 0xff, 0xd0, 0x80, 0x22, 0x00, 0x12, 0x0a]).unwrap();
+        let mut registers = Registers::new(0x1000);
+        let am = AddressingMode::Relative([0x80]);
+        assert_eq!("-128".to_owned(), format!("{}", am));
+
+        let resolution:AddressingModeResolution = am.solve(0x1000, &mut memory, &mut registers).unwrap();
+        assert_eq!(vec![0x80], resolution.operands);
+        assert_eq!(0x0F82, resolution.target_address.unwrap());
+        assert_eq!("-128     (#0x0F82)".to_owned(), format!("{}", resolution));
+    }
+
+    #[test]
+    fn test_relative_positive_edge() {
+        let mut memory = Memory::new_with_ram();
+        memory.write(0x0ffa, vec![0xfa, 0xfb, 0xfc, 0xfd, 0xfe, 0xff, 0xd0, 0x7f, 0x22, 0x00, 0x12, 0x0a]).unwrap();
+        let mut registers = Registers::new(0x1000);
+        let am = AddressingMode::Relative([0x7f]);
+        assert_eq!("+127".to_owned(), format!("{}", am));
+
+        let resolution:AddressingModeResolution = am.solve(0x1000, &mut memory, &mut registers).unwrap();
+        assert_eq!(vec![0x7f], resolution.operands);
+        assert_eq!(0x1081, resolution.target_address.unwrap());
+        assert_eq!("+127     (#0x1081)".to_owned(), format!("{}", resolution));
     }
 
     #[test]
