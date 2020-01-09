@@ -122,6 +122,7 @@ fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> CPUInstruction
         0x94    => instr::new(address, opcode, "STY", AM::ZeroPageXIndexed(op1), mc::sty),
         0x95    => instr::new(address, opcode, "STA", AM::ZeroPageXIndexed(op1), mc::sta),
         0x96    => instr::new(address, opcode, "STX", AM::ZeroPageYIndexed(op1), mc::stx),
+        0x98    => instr::new(address, opcode, "TYA", AM::Implied, mc::tya),
         0x99    => instr::new(address, opcode, "STA", AM::AbsoluteYIndexed(op2), mc::sta),
         0x9a    => instr::new(address, opcode, "TXS", AM::Implied, mc::txs),
         0x9c    => instr::new(address, opcode, "STZ", AM::Absolute(op2), mc::stz),

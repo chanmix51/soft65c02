@@ -4,7 +4,7 @@ pub fn bpl(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
     let resolution = cpu_instruction.addressing_mode
         .solve(registers.command_pointer, memory, registers)?;
     let target_address = resolution.target_address
-        .expect("bpl must have operands, crashing the application");
+        .expect("BPL must have operands, crashing the application");
 
     if registers.n_flag_is_set() {
         registers.command_pointer += 2;

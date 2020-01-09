@@ -4,7 +4,7 @@ pub fn cpy(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
     let resolution = cpu_instruction.addressing_mode
         .solve(registers.command_pointer, memory, registers)?;
     let target_address = resolution.target_address
-        .expect("cpy must have operands, crashing the application");
+        .expect("CPY must have operands, crashing the application");
 
     let byte = memory.read(target_address, 1)?[0];
 

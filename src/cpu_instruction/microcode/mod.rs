@@ -72,6 +72,7 @@ mod tsb;
 mod tsx;
 mod txa;
 mod txs;
+mod tya;
 
 pub use adc::adc;
 pub use and::and;
@@ -137,3 +138,4 @@ pub use tsb::tsb;
 pub use tsx::tsx;
 pub use txa::txa;
 pub use txs::txs;
+pub use tya::tya;
