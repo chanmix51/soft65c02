@@ -18,7 +18,7 @@ pub fn jsr(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
             format!(
                 "[CP=0x{:04x}][SP=0x{:02x}]",
                 registers.command_pointer,
-                registers.status_register
+                registers.stack_pointer
                 )
             )
         )

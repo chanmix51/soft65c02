@@ -4,11 +4,10 @@ pub fn brk(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
     let resolution = cpu_instruction.addressing_mode
         .solve(registers.command_pointer, memory, registers)?;
 
-    registers.set_b_flag(true);
     let bytes = usize::to_le_bytes(registers.command_pointer);
     registers.stack_push(memory, bytes[1])?;
     registers.stack_push(memory, bytes[0])?;
-    registers.stack_push(memory, registers.status_register)?;
+    registers.stack_push(memory, registers.get_status_register())?;
     registers.command_pointer = little_endian(memory.read(INTERRUPT_VECTOR_ADDR, 2)?);
 
     Ok(
@@ -36,6 +35,5 @@ mod tests {
         assert_eq!(0xf000, registers.command_pointer);
         assert_eq!(0xfc, registers.stack_pointer);
         assert_eq!(vec![0b00110000, 0x00, 0x10], memory.read(STACK_BASE_ADDR + 0xfd, 3).unwrap());
-        assert!(registers.b_flag_is_set());
     }
 }

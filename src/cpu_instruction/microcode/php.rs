@@ -4,7 +4,7 @@ pub fn php(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
     let resolution = cpu_instruction.addressing_mode
         .solve(registers.command_pointer, memory, registers)?;
 
-    registers.stack_push(memory, registers.status_register)?;
+    registers.stack_push(memory, registers.get_status_register())?;
     registers.command_pointer += 1 + resolution.operands.len();
 
     Ok(LogLine::new(&cpu_instruction, resolution, format!("[SP=0x{:02x}]", registers.stack_pointer)))

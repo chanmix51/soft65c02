@@ -7,8 +7,8 @@ use super::memory::MemoryStack as Memory;
  * status flags register :
  *   bit 7: Negative flag
  *   bit 6: oVerflow flag
- *   bit 5: not used
- *   bit 4: Break interrupt mode
+ *   bit 5: not used             (open circuit, always 1)
+ *   bit 4: Break interrupt mode (open circuit, always 1)
  *   bit 3: Decimal mode
  *   bit 2: Interrupt disable
  *   bit 1: Zero flag
@@ -16,6 +16,11 @@ use super::memory::MemoryStack as Memory;
  *
  * command pointer: 16 bit address register
  * stack pointer: 8 bits at page 0x0100, set at 0xff at start.
+ * The way the BREAK bit works is a bit puzzling but a quick read at
+ * http://forum.6502.org/viewtopic.php?f=8&t=3111 explains this bit is only
+ * aimed at being saved in the stack to determine if it is a hard or soft
+ * interrupt in the interrupt service routine (see
+ * http://6502.org/tutorials/interrupts.html).
  */
 pub const STACK_BASE_ADDR:usize = 0x0100;
 
@@ -23,7 +28,7 @@ pub struct Registers {
     pub accumulator:        u8,
     pub register_x:         u8,
     pub register_y:         u8,
-    pub status_register:    u8,
+    status_register:        u8,
     pub command_pointer:    usize,
     pub stack_pointer:      u8,
 }
@@ -38,6 +43,14 @@ impl Registers {
             command_pointer:    init_address,
             stack_pointer:      0xff,
         }
+    }
+
+    pub fn get_status_register(&self) -> u8 {
+        self.status_register | 0x30  // auto set bits 5 & 6.
+    }
+
+    pub fn set_status_register(&mut self, status: u8) {
+        self.status_register = status;
     }
 
     pub fn stack_push(&mut self, memory: &mut Memory, byte: u8) -> std::result::Result<(), MemoryError> {
@@ -60,10 +73,6 @@ impl Registers {
 
     pub fn v_flag_is_set(&self) -> bool {
         self.status_register & 0b01000000 == 0b01000000
-    }
-
-    pub fn b_flag_is_set(&self) -> bool {
-        self.status_register & 0b00010000 == 0b00010000
     }
 
     pub fn d_flag_is_set(&self) -> bool {
@@ -95,14 +104,6 @@ impl Registers {
             self.status_register |= 0b01000000;
         } else {
             self.status_register &= 0b10111111;
-        }
-    }
-
-    pub fn set_b_flag(&mut self, flag: bool) {
-        if flag {
-            self.status_register |= 0b00010000;
-        } else {
-            self.status_register &= 0b11101111;
         }
     }
 
@@ -140,10 +141,9 @@ impl Registers {
 
     pub fn format_status(&self) -> String {
         format!(
-            "{}{}-{}{}{}{}{}",
+            "{}{}-B{}{}{}{}",
             if self.n_flag_is_set() { "N" } else { "n" },
             if self.v_flag_is_set() { "V" } else { "v" },
-            if self.b_flag_is_set() { "B" } else { "b" },
             if self.d_flag_is_set() { "D" } else { "d" },
             if self.i_flag_is_set() { "I" } else { "i" },
             if self.z_flag_is_set() { "Z" } else { "z" },
@@ -176,7 +176,6 @@ mod tests {
         let registers = Registers::new(0x1000);
         assert!(!registers.z_flag_is_set());
         assert!(!registers.n_flag_is_set());
-        assert!(registers.b_flag_is_set());
         assert!(!registers.i_flag_is_set());
         assert!(!registers.d_flag_is_set());
         assert!(!registers.c_flag_is_set());

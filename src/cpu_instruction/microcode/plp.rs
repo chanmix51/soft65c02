@@ -4,7 +4,8 @@ pub fn plp(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
     let resolution = cpu_instruction.addressing_mode
         .solve(registers.command_pointer, memory, registers)?;
 
-    registers.status_register = registers.stack_pull(memory)?;
+    let status = registers.stack_pull(memory)?;
+    registers.set_status_register(status);
     registers.command_pointer += 1 + resolution.operands.len();
 
     Ok(
@@ -33,7 +34,7 @@ mod tests {
         registers.set_d_flag(true);
         registers.set_c_flag(false);
         registers.set_n_flag(false);
-        memory.write(STACK_BASE_ADDR + 0xff, vec![registers.status_register]);
+        memory.write(STACK_BASE_ADDR + 0xff, vec![registers.get_status_register()]);
         registers.stack_pointer = 0xfe;
         registers.set_z_flag(false);
         registers.set_d_flag(false);

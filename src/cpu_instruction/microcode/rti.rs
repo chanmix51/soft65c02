@@ -4,7 +4,8 @@ pub fn rti(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
     let resolution = cpu_instruction.addressing_mode
         .solve(registers.command_pointer, memory, registers)?;
 
-    registers.status_register = registers.stack_pull(memory)?;
+    let status = registers.stack_pull(memory)?;
+    registers.set_status_register(status);
     let cp_lo = registers.stack_pull(memory)?;
     let cp_hi = registers.stack_pull(memory)?;
     registers.command_pointer = (cp_hi as usize) << 8 | cp_lo as usize;
