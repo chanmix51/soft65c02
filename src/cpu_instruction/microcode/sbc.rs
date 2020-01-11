@@ -1,10 +1,21 @@
 use super::*;
 
+/*
+ * SBC
+ * Seems not to work correctly according to the A65 functional test.
+ * The decimal mode is not implemented yet.
+ *
+ * @see https://github.com/Klaus2m5/6502_65C02_functional_tests
+ */
 pub fn sbc(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {
     let resolution = cpu_instruction.addressing_mode
         .solve(registers.command_pointer, memory, registers)?;
     let target_address = resolution.target_address
         .expect("SBC must have operands, crashing the application");
+
+    if registers.d_flag_is_set() {
+        panic!("Decimal mode is not implemented in SBC yet.");
+    }
 
     let byte = memory.read(target_address, 1)?[0];
     let sub = if ! registers.c_flag_is_set() {
@@ -26,7 +37,7 @@ pub fn sbc(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
         LogLine::new(
             &cpu_instruction,
             resolution,
-            format!("[A=0x{:02x}][S={}]", registers.accumulator, registers.format_status())
+            format!("(0x{:02x})[A=0x{:02x}][S={}]", byte, registers.accumulator, registers.format_status())
         )
     )
 }
@@ -124,6 +135,35 @@ mod tests {
         assert!(registers.c_flag_is_set());
         assert!(!registers.z_flag_is_set());
         assert!(registers.v_flag_is_set());
+        assert!(!registers.n_flag_is_set());
+    }
+
+    #[test]
+    fn test_sbc_zero_without_carry() {
+        let cpu_instruction = CPUInstruction::new(0x1000, 0xca, "SBC", AddressingMode::Immediate([0xff]), sbc);
+        let (mut memory, mut registers) = get_stuff(0x1000, vec![0x4c, 0xff, 0x02]);
+        registers.accumulator = 0x00;
+        let log_line = cpu_instruction.execute(&mut memory, &mut registers).unwrap();
+        assert_eq!(0x00, registers.accumulator);
+        assert_eq!(0x1002, registers.command_pointer);
+        assert!(registers.c_flag_is_set());
+        assert!(registers.z_flag_is_set());
+        assert!(!registers.v_flag_is_set());
+        assert!(!registers.n_flag_is_set());
+    }
+
+    #[test]
+    fn test_sbc_zero_with_carry() {
+        let cpu_instruction = CPUInstruction::new(0x1000, 0xca, "SBC", AddressingMode::Immediate([0xff]), sbc);
+        let (mut memory, mut registers) = get_stuff(0x1000, vec![0x4c, 0xff, 0x02]);
+        registers.accumulator = 0xff;
+        registers.set_c_flag(true);
+        let log_line = cpu_instruction.execute(&mut memory, &mut registers).unwrap();
+        assert_eq!(0x00, registers.accumulator);
+        assert_eq!(0x1002, registers.command_pointer);
+        assert!(registers.c_flag_is_set());
+        assert!(registers.z_flag_is_set());
+        assert!(!registers.v_flag_is_set());
         assert!(!registers.n_flag_is_set());
     }
 }

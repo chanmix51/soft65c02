@@ -15,10 +15,14 @@ pub fn adc(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
     let target_address = resolution.target_address
         .expect("ADC must have operands, crashing the application");
 
+    if registers.d_flag_is_set() {
+        panic!("Decimal mode is not implemented in SBC yet.");
+    }
+
     let byte = memory.read(target_address, 1)?[0];
     let a = registers.accumulator;
     {
-        let (res, has_carry) = byte.overflowing_add(
+        let (res, _) = byte.overflowing_add(
             if registers.c_flag_is_set() { 1 } else { 0 }
         );
         let (res, has_carry) = a.overflowing_add(res);
@@ -34,7 +38,7 @@ pub fn adc(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
         LogLine::new(
             &cpu_instruction,
             resolution,
-            format!("[A=0x{:02x}][S={}]", registers.accumulator, registers.format_status())
+            format!("(0x{:02x})[A=0x{:02x}][S={}]", byte, registers.accumulator, registers.format_status())
         )
     )
 }
