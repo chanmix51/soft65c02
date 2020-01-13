@@ -14,7 +14,12 @@ pub fn rti(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
         LogLine::new(
             &cpu_instruction,
             resolution,
-            format!("[CP=0x{:04X}][SP=0x{:02x}]", registers.command_pointer, registers.stack_pointer)
+            format!(
+                "[CP=0x{:04X}][SP=0x{:02x}][S={}]",
+                registers.command_pointer,
+                registers.stack_pointer,
+                registers.format_status()
+            )
         )
     )
 }

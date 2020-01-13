@@ -195,7 +195,7 @@ fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> CPUInstruction
         0xfa    => instr::new(address, opcode, "PLX", AM::Implied, mc::plx),
         0xfd    => instr::new(address, opcode, "SBC", AM::AbsoluteXIndexed(op2), mc::sbc),
         0xfe    => instr::new(address, opcode, "INC", AM::AbsoluteXIndexed(op2), mc::inc),
-        _       => panic!("Yet unsupported instruction opcode {:02x} at address #{:04X}.", opcode, address),
+        _       => panic!("Yet unsupported instruction opcode 0x{:02x} at address #0x{:04X}.", opcode, address),
     }
 }
 

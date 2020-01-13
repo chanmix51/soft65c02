@@ -9,7 +9,7 @@ pub fn sta(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
     memory.write(target_address, vec![registers.accumulator])?;
     registers.command_pointer += 1 + resolution.operands.len();
 
-    Ok(LogLine::new(&cpu_instruction, resolution, String::new()))
+    Ok(LogLine::new(&cpu_instruction, resolution, format!("(0x{:02x})", registers.accumulator)))
 }
 
 #[cfg(test)]

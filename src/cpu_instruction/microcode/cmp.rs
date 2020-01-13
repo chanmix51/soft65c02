@@ -17,7 +17,7 @@ pub fn cmp(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
         LogLine::new(
             &cpu_instruction,
             resolution,
-            format!("(0x{:02x})[S={}]", byte, registers.format_status())
+            format!("(0x{:02x})[A=0x{:02x}][S={}]", byte, registers.accumulator, registers.format_status())
         )
     )
 }
