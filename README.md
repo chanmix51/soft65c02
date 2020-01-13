@@ -116,4 +116,4 @@ It has limited but functional support of [rust minifb](https://github.com/emoon/
 Work in progress
 ----------------
 
-The soft65C02 CPU lacks a lot of opcodes (stack, subroutines etc.) The interactive step by step does not exist yet.
+Soft65C02 now recognizes all 65C02 opcodes but BBRx & RMBx and decimal mode operation. It passes part of the [6502 functional testing](https://github.com/Klaus2m5/6502_65C02_functional_tests), it sounds there is still a bug in the SBC instruction. Investigation will take place later. Now I am working on the user interface, a CLI using Rustyline for readline support and [Pest](https://github.com/pest-parser/pest) for grammar parsing. If I do it, it should make a decent interactive parser & debugger.
