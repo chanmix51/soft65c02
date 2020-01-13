@@ -12,7 +12,7 @@ fn execute_program() {
         "#0x0800: (a9 c0)       LDA  #$c0     (#0x0801)  [A=0xc0][S=Nv-Bdizc]",
         "#0x0802: (aa)          TAX                      [X=0xc0][S=Nv-Bdizc]",
         "#0x0803: (e8)          INX                      [X=0xc1][S=Nv-Bdizc]",
-        "#0x0804: (69 14)       ADC  #$14     (#0x0805)  [A=0xd4][S=Nv-Bdizc]",
+        "#0x0804: (69 14)       ADC  #$14     (#0x0805)  (0x14)[A=0xd4][S=Nv-Bdizc]",
         "#0x0806: (00)          BRK                      [CP=0x8000][SP=0xfc]",
         "#0x8000: (db)          STP"
             ];
