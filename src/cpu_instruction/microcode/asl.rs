@@ -4,12 +4,12 @@ pub fn asl(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
     let resolution = cpu_instruction.addressing_mode
         .solve(registers.command_pointer, memory, registers)?;
 
-    let mut byte = match resolution.target_address {
+    let byte = match resolution.target_address {
         Some(addr) => memory.read(addr, 1)?[0],
         None       => registers.accumulator,
     };
 
-    let (res, has_carry) = byte.overflowing_shl(1);
+    let (res, _carry) = byte.overflowing_shl(1);
     registers.set_c_flag(res < byte); // maybe not ideal but has_carry stays false.
     registers.set_z_flag(res == 0);
     registers.set_n_flag(res & 0x80 != 0);
@@ -17,7 +17,7 @@ pub fn asl(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
 
     let outcome = match resolution.target_address {
         Some(addr)  => {
-            memory.write(addr, vec![res]);
+            memory.write(addr, vec![res])?;
             format!("0x{:02x}[S={}]", res, registers.format_status())
         },
         None        => {

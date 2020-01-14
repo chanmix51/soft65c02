@@ -4,7 +4,7 @@ pub fn rol(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
     let resolution = cpu_instruction.addressing_mode
         .solve(registers.command_pointer, memory, registers)?;
 
-    let mut byte = match resolution.target_address {
+    let byte = match resolution.target_address {
         Some(addr) => memory.read(addr, 1)?[0],
         None       => registers.accumulator,
     };
@@ -20,7 +20,7 @@ pub fn rol(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
 
     let outcome = match resolution.target_address {
         Some(addr)  => {
-            memory.write(addr, vec![res]);
+            memory.write(addr, vec![res])?;
             format!("0x{:02x}[S={}]", res, registers.format_status())
         },
         None        => {

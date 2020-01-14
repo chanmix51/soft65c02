@@ -6,7 +6,7 @@ pub fn bvs(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
     let target_address = resolution.target_address
         .expect("BVS must have operands, crashing the application");
 
-    if (registers.v_flag_is_set()) {
+    if registers.v_flag_is_set() {
         registers.command_pointer = target_address;
     } else {
         registers.command_pointer += 1 + resolution.operands.len();

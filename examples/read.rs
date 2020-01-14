@@ -24,7 +24,7 @@ fn main(){
         cp = registers.command_pointer;
         let logline = soft65c02::execute_step(&mut registers, &mut memory).unwrap();
         let line = format!("{}\n", logline);
-        buffer.write(line.as_bytes());
+        buffer.write(line.as_bytes()).unwrap();
     }
 }
 

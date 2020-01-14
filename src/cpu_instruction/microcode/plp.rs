@@ -34,7 +34,7 @@ mod tests {
         registers.set_d_flag(true);
         registers.set_c_flag(false);
         registers.set_n_flag(false);
-        memory.write(STACK_BASE_ADDR + 0xff, vec![registers.get_status_register()]);
+        memory.write(STACK_BASE_ADDR + 0xff, vec![registers.get_status_register()]).unwrap();
         registers.stack_pointer = 0xfe;
         registers.set_z_flag(false);
         registers.set_d_flag(false);

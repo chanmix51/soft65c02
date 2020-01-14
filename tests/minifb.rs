@@ -11,7 +11,7 @@ fn minifb() {
 
     let init_vector:usize = 0x1B00;
     let mut memory = Memory::new_with_ram();
-    let mut window = init_window();
+    let window = init_window();
     memory.add_subsystem("VIDEO TERMINAL", 0x0200, MiniFBMemoryAdapter::new(window));
     // ↓ init the video palette
     memory.write(0x0200, vec![
@@ -32,7 +32,7 @@ fn minifb() {
         0x00, 0xff, 0xff, // intense cyan
         0xff, 0xff, 0xff, // intense white
     ]).unwrap();
-    memory.write(init_vector, dump_program());
+    memory.write(init_vector, dump_program()).unwrap();
     let mut registers = Registers::new(init_vector);
     let mut cp = 0x0000;
     let mut f = fs::File::create("log.txt").unwrap();

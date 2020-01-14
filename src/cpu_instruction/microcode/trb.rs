@@ -9,7 +9,7 @@ pub fn trb(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
     let byte = memory.read(target_address, 1)?[0];
     let res = if byte & registers.accumulator != 0 {
         registers.set_z_flag(true);
-        let neg = (registers.accumulator ^ 0xff); // negates all bits
+        let neg = registers.accumulator ^ 0xff; // negates all bits
         let res = byte & neg;
         memory.write(target_address, vec![res])?;
         res

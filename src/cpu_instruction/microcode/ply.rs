@@ -32,7 +32,7 @@ mod tests {
     fn test_ply() {
         let cpu_instruction = CPUInstruction::new(0x1000, 0x08, "PLY", AddressingMode::Implied, ply);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x08, 0x0a]);
-        memory.write(0x01ff, vec![0x10]);
+        memory.write(0x01ff, vec![0x10]).unwrap();
         registers.register_y = 0x00;
         registers.stack_pointer = 0xfe;
         let log_line = cpu_instruction.execute(&mut memory, &mut registers).unwrap();
@@ -49,7 +49,7 @@ mod tests {
     fn test_ply_zero() {
         let cpu_instruction = CPUInstruction::new(0x1000, 0xca, "PLY", AddressingMode::Implied, ply);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x48, 0x0a]);
-        memory.write(0x01ff, vec![0x00]);
+        memory.write(0x01ff, vec![0x00]).unwrap();
         registers.register_y = 0x10;
         registers.stack_pointer = 0xfe;
         let log_line = cpu_instruction.execute(&mut memory, &mut registers).unwrap();
@@ -63,7 +63,7 @@ mod tests {
     fn test_ply_neg() {
         let cpu_instruction = CPUInstruction::new(0x1000, 0xca, "PLY", AddressingMode::Implied, ply);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x48, 0x0a]);
-        memory.write(0x01ff, vec![0x81]);
+        memory.write(0x01ff, vec![0x81]).unwrap();
         registers.register_y = 0x10;
         registers.stack_pointer = 0xfe;
         let log_line = cpu_instruction.execute(&mut memory, &mut registers).unwrap();

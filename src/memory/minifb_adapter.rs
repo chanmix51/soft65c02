@@ -135,7 +135,7 @@ impl AddressableIO for MiniFBMemoryAdapter {
                 panic!("writing more than 1 byte at the time is not yet supported by the video driver");
             }
             if addr == 0x31 {
-                for i in 0..data[0] {
+                for _ in 0..data[0] {
                     self.memory.remove(0);
                 }
                 self.memory.resize(MINIFB_HEIGHT * MINIFB_WIDTH / 2, 0x00);
@@ -154,7 +154,7 @@ impl AddressableIO for MiniFBMemoryAdapter {
             Ok(v) => {
                 u32::to_ne_bytes(v)[0]
             },
-            Err(e) => {
+            Err(_) => {
                 0x00
             },
         };
