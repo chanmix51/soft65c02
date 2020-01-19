@@ -21,7 +21,10 @@ impl AddressableIO for ROM {
     }
 
     fn write(&mut self, location: usize, _data: Vec<u8>) -> Result<(), MemoryError> {
-        Err(MemoryError::Other(location, "trying to write in a read-only memory"))
+        Err(MemoryError::Other(
+            location,
+            "trying to write in a read-only memory",
+        ))
     }
 
     fn get_size(&self) -> usize {
@@ -29,5 +32,4 @@ impl AddressableIO for ROM {
     }
 }
 
-impl DebugIO for ROM {
-}
+impl DebugIO for ROM {}

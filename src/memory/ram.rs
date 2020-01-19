@@ -6,7 +6,9 @@ pub struct RAM {
 
 impl RAM {
     pub fn new() -> RAM {
-        RAM { ram: Box::new([0x00; MEMMAX + 1]) }
+        RAM {
+            ram: Box::new([0x00; MEMMAX + 1]),
+        }
     }
 }
 
@@ -21,7 +23,11 @@ impl AddressableIO for RAM {
 
     fn write(&mut self, location: usize, data: Vec<u8>) -> Result<(), MemoryError> {
         if location + data.len() > self.ram.len() {
-            Err(MemoryError::WriteOverflow(data.len(), location, self.ram.len()))
+            Err(MemoryError::WriteOverflow(
+                data.len(),
+                location,
+                self.ram.len(),
+            ))
         } else {
             for offset in 0..data.len() {
                 self.ram[usize::from(location) + offset] = data[offset];
@@ -36,5 +42,4 @@ impl AddressableIO for RAM {
     }
 }
 
-impl DebugIO for RAM {
-}
+impl DebugIO for RAM {}

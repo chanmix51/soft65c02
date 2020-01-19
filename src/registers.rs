@@ -1,6 +1,6 @@
-use std::fmt;
-use super::memory::{MemoryError, AddressableIO};
 use super::memory::MemoryStack as Memory;
+use super::memory::{AddressableIO, MemoryError};
+use std::fmt;
 /*
  * 65C02 registers
  * accumulator, X & Y registers are 8 bits general purpose registers.
@@ -22,38 +22,42 @@ use super::memory::MemoryStack as Memory;
  * interrupt in the interrupt service routine (see
  * http://6502.org/tutorials/interrupts.html).
  */
-pub const STACK_BASE_ADDR:usize = 0x0100;
+pub const STACK_BASE_ADDR: usize = 0x0100;
 
 pub struct Registers {
-    pub accumulator:        u8,
-    pub register_x:         u8,
-    pub register_y:         u8,
-    status_register:        u8,
-    pub command_pointer:    usize,
-    pub stack_pointer:      u8,
+    pub accumulator: u8,
+    pub register_x: u8,
+    pub register_y: u8,
+    status_register: u8,
+    pub command_pointer: usize,
+    pub stack_pointer: u8,
 }
 
 impl Registers {
     pub fn new(init_address: usize) -> Registers {
         Registers {
-            accumulator:        0x00,
-            register_x:         0x00,
-            register_y:         0x00,
-            status_register:    0b00110000,
-            command_pointer:    init_address,
-            stack_pointer:      0xff,
+            accumulator: 0x00,
+            register_x: 0x00,
+            register_y: 0x00,
+            status_register: 0b00110000,
+            command_pointer: init_address,
+            stack_pointer: 0xff,
         }
     }
 
     pub fn get_status_register(&self) -> u8 {
-        self.status_register | 0x30  // auto set bits 5 & 6.
+        self.status_register | 0x30 // auto set bits 5 & 6.
     }
 
     pub fn set_status_register(&mut self, status: u8) {
         self.status_register = status;
     }
 
-    pub fn stack_push(&mut self, memory: &mut Memory, byte: u8) -> std::result::Result<(), MemoryError> {
+    pub fn stack_push(
+        &mut self,
+        memory: &mut Memory,
+        byte: u8,
+    ) -> std::result::Result<(), MemoryError> {
         memory.write(STACK_BASE_ADDR + self.stack_pointer as usize, vec![byte])?;
         let (sp, _) = self.stack_pointer.overflowing_sub(1);
         self.stack_pointer = sp;
@@ -148,21 +152,21 @@ impl Registers {
             if self.i_flag_is_set() { "I" } else { "i" },
             if self.z_flag_is_set() { "Z" } else { "z" },
             if self.c_flag_is_set() { "C" } else { "c" },
-       )
+        )
     }
 }
 
 impl fmt::Debug for Registers {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
-        f,
-        "Registers [A:0x{:02x}, X:0x{:02x}, Y:0x{:02x} | SP:0x{:02x} CP:0x{:04x} | {}]",
-        self.accumulator,
-        self.register_x,
-        self.register_y,
-        self.stack_pointer,
-        self.command_pointer,
-        self.format_status()
+            f,
+            "Registers [A:0x{:02x}, X:0x{:02x}, Y:0x{:02x} | SP:0x{:02x} CP:0x{:04x} | {}]",
+            self.accumulator,
+            self.register_x,
+            self.register_y,
+            self.stack_pointer,
+            self.command_pointer,
+            self.format_status()
         )
     }
 }

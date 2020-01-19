@@ -1,20 +1,20 @@
 extern crate minifb;
 
-pub mod memory;
-mod registers;
 mod addressing_mode;
 mod cpu_instruction;
+pub mod memory;
 mod processing_unit;
+mod registers;
 
-pub const VERSION:&'static str = "0.1.0";
-const INIT_VECTOR:usize = 0xFFFC;
-const INTERRUPT_VECTOR:usize = 0xFFFE;
+pub const VERSION: &'static str = "0.1.0";
+const INIT_VECTOR: usize = 0xFFFC;
+const INTERRUPT_VECTOR: usize = 0xFFFE;
 
-pub use memory::MemoryStack as Memory;
+pub use cpu_instruction::{CPUInstruction, LogLine, MicrocodeError};
 pub use memory::AddressableIO;
-pub use registers::Registers;
+pub use memory::MemoryStack as Memory;
 pub use processing_unit::*;
-pub use cpu_instruction::{LogLine, CPUInstruction, MicrocodeError};
+pub use registers::Registers;
 
 fn mem_dump(start: usize, end: usize, memory: &Memory) {
     let mut line = String::new();
@@ -35,13 +35,16 @@ fn mem_dump(start: usize, end: usize, memory: &Memory) {
     println!("{}", line);
 }
 
-pub fn execute(memory: &mut Memory, registers: &mut Registers) -> Result<Vec<LogLine>, MicrocodeError> {
-    let mut logs:Vec<LogLine> = vec![];
+pub fn execute(
+    memory: &mut Memory,
+    registers: &mut Registers,
+) -> Result<Vec<LogLine>, MicrocodeError> {
+    let mut logs: Vec<LogLine> = vec![];
 
     loop {
         let cp = registers.command_pointer;
         match processing_unit::execute_step(registers, memory) {
-            Ok(v)  => logs.push(v),
+            Ok(v) => logs.push(v),
             Err(v) => break Err(v),
         }
 

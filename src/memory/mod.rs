@@ -1,21 +1,21 @@
 use std::fmt;
 
-mod memory_stack;
 mod error;
+mod memory_stack;
+mod minifb_adapter;
 mod ram;
 mod rom;
-mod minifb_adapter;
 
-pub use memory_stack::MemoryStack;
 pub use error::MemoryError;
+pub use memory_stack::MemoryStack;
+pub use minifb_adapter::{MiniFBMemoryAdapter, MINIFB_HEIGHT, MINIFB_WIDTH};
 pub use ram::RAM;
 pub use rom::ROM;
-pub use minifb_adapter::{MiniFBMemoryAdapter, MINIFB_HEIGHT, MINIFB_WIDTH};
 
-pub const MEMMAX:usize = 65535;
+pub const MEMMAX: usize = 65535;
 
 pub fn little_endian(bytes: Vec<u8>) -> usize {
-    let mut addr:usize = 0;
+    let mut addr: usize = 0;
 
     for byte in bytes.iter().rev() {
         addr = addr << 8 | (*byte as usize);

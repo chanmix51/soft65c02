@@ -32,9 +32,9 @@
  * hardware. Who cares?
  */
 
-use std::sync::mpsc;
-use minifb::{Window, InputCallback};
 use super::*;
+use minifb::{InputCallback, Window};
+use std::sync::mpsc;
 
 pub const MINIFB_WIDTH: usize = 128;
 pub const MINIFB_HEIGHT: usize = 96;
@@ -51,12 +51,12 @@ impl InputCallback for KeyboardBuffer {
 }
 
 pub struct MiniFBMemoryAdapter {
-    palette:    [u8; 48],
-    minifb:     Vec<u32>,
-    memory:     Vec<u8>,
-    window:     Window,
-    receiver:   mpsc::Receiver<u32>,
-    last_key:   u8,
+    palette: [u8; 48],
+    minifb: Vec<u32>,
+    memory: Vec<u8>,
+    window: Window,
+    receiver: mpsc::Receiver<u32>,
+    last_key: u8,
 }
 
 impl MiniFBMemoryAdapter {
@@ -65,12 +65,12 @@ impl MiniFBMemoryAdapter {
         window.set_input_callback(Box::new(KeyboardBuffer { sender: tx }));
 
         MiniFBMemoryAdapter {
-            palette:    [0x00; 48],
-            minifb:     vec![0; MINIFB_WIDTH * MINIFB_HEIGHT],
-            memory:     vec![0; MINIFB_WIDTH * MINIFB_HEIGHT / 2],
-            window:     window,
-            receiver:   rx,
-            last_key:   0x00,
+            palette: [0x00; 48],
+            minifb: vec![0; MINIFB_WIDTH * MINIFB_HEIGHT],
+            memory: vec![0; MINIFB_WIDTH * MINIFB_HEIGHT / 2],
+            window: window,
+            receiver: rx,
+            last_key: 0x00,
         }
     }
 
@@ -80,16 +80,16 @@ impl MiniFBMemoryAdapter {
         let lo_byte = byte & 0b00001111;
         let hi_byte = byte >> 4;
         let (r, g, b) = (
-                self.palette[lo_byte as usize * 3],
-                self.palette[lo_byte as usize * 3 + 1],
-                self.palette[lo_byte as usize * 3 + 2]
-                );
+            self.palette[lo_byte as usize * 3],
+            self.palette[lo_byte as usize * 3 + 1],
+            self.palette[lo_byte as usize * 3 + 2],
+        );
         self.minifb[minifb_addr] = ((r as u32) << 16) | ((g as u32) << 8) | b as u32;
         let (r, g, b) = (
-                self.palette[hi_byte as usize * 3],
-                self.palette[hi_byte as usize * 3 + 1],
-                self.palette[hi_byte as usize * 3 + 2]
-                );
+            self.palette[hi_byte as usize * 3],
+            self.palette[hi_byte as usize * 3 + 1],
+            self.palette[hi_byte as usize * 3 + 2],
+        );
         self.minifb[minifb_addr + 1] = ((r as u32) << 16) | ((g as u32) << 8) | b as u32;
     }
 
@@ -125,14 +125,15 @@ impl AddressableIO for MiniFBMemoryAdapter {
     }
 
     fn write(&mut self, addr: usize, data: Vec<u8>) -> Result<(), MemoryError> {
-
         if addr < 0x30 {
             for (offset, val) in data.iter().enumerate() {
                 self.palette[addr + offset] = *val;
             }
         } else {
             if data.len() > 1 {
-                panic!("writing more than 1 byte at the time is not yet supported by the video driver");
+                panic!(
+                    "writing more than 1 byte at the time is not yet supported by the video driver"
+                );
             }
             if addr == 0x31 {
                 for _ in 0..data[0] {
@@ -149,14 +150,12 @@ impl AddressableIO for MiniFBMemoryAdapter {
     }
 
     fn refresh(&mut self) {
-        self.window.update_with_buffer(&(self.minifb), MINIFB_WIDTH, MINIFB_HEIGHT).unwrap();
+        self.window
+            .update_with_buffer(&(self.minifb), MINIFB_WIDTH, MINIFB_HEIGHT)
+            .unwrap();
         self.last_key = match self.receiver.try_recv() {
-            Ok(v) => {
-                u32::to_ne_bytes(v)[0]
-            },
-            Err(_) => {
-                0x00
-            },
+            Ok(v) => u32::to_ne_bytes(v)[0],
+            Err(_) => 0x00,
         };
     }
 }

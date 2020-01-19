@@ -2,7 +2,7 @@ extern crate rustyline;
 
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
-use soft65c02::{VERSION, Memory, Registers, AddressableIO, LogLine};
+use soft65c02::{AddressableIO, LogLine, Memory, Registers, VERSION};
 
 fn main() {
     // `()` can be used when no completer is required
@@ -21,17 +21,17 @@ fn main() {
                 rl.add_history_entry(line.as_str());
                 println!("{}", line);
                 println!("{}", parse(line).unwrap());
-            },
+            }
             Err(ReadlineError::Interrupted) => {
                 println!("Interrupt sent to the CPU.");
-            },
+            }
             Err(ReadlineError::Eof) => {
                 println!("Quit!");
-                break
-            },
+                break;
+            }
             Err(err) => {
                 println!("Error: {:?}", err);
-                break
+                break;
             }
         }
     }
