@@ -1,12 +1,12 @@
 mod error;
 pub use error::{MicrocodeError, Result};
 
-pub use crate::cpu_instruction::{CPUInstruction, LogLine};
-pub use crate::registers::{Registers, STACK_BASE_ADDR};
-pub use crate::memory::MemoryStack as Memory;
-pub use crate::memory::{AddressableIO, little_endian, MemoryError};
+pub use super::{INIT_VECTOR_ADDR, INTERRUPT_VECTOR_ADDR};
 pub use crate::addressing_mode::*;
-pub use super::{INTERRUPT_VECTOR_ADDR, INIT_VECTOR_ADDR};
+pub use crate::cpu_instruction::{CPUInstruction, LogLine};
+pub use crate::memory::MemoryStack as Memory;
+pub use crate::memory::{little_endian, AddressableIO, MemoryError};
+pub use crate::registers::{Registers, STACK_BASE_ADDR};
 
 mod adc;
 mod and;

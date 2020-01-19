@@ -16,12 +16,15 @@ pub type Result<T> = std::result::Result<T, MicrocodeError>;
 impl fmt::Display for MicrocodeError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            MicrocodeError::MemoryOverflow(e) =>
-                write!(f, "memory overflow during microcode operation: {}", e),
-            MicrocodeError::Resolution(e) =>
-                write!(f, "resolution error caught in microcode operation: {}", e),
-            MicrocodeError::Runtime =>
-                write!(f, "runtime error while executing microcode operation"),
+            MicrocodeError::MemoryOverflow(e) => {
+                write!(f, "memory overflow during microcode operation: {}", e)
+            }
+            MicrocodeError::Resolution(e) => {
+                write!(f, "resolution error caught in microcode operation: {}", e)
+            }
+            MicrocodeError::Runtime => {
+                write!(f, "runtime error while executing microcode operation")
+            }
         }
     }
 }

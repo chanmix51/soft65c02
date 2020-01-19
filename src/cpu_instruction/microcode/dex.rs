@@ -1,8 +1,14 @@
 use super::*;
 
-pub fn dex(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {
-    let resolution = cpu_instruction.addressing_mode
-        .solve(registers.command_pointer, memory, registers)?;
+pub fn dex(
+    memory: &mut Memory,
+    registers: &mut Registers,
+    cpu_instruction: &CPUInstruction,
+) -> Result<LogLine> {
+    let resolution =
+        cpu_instruction
+            .addressing_mode
+            .solve(registers.command_pointer, memory, registers)?;
 
     let (res, _) = registers.register_x.overflowing_sub(1);
 
@@ -12,13 +18,15 @@ pub fn dex(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPU
 
     registers.command_pointer += 1 + resolution.operands.len();
 
-    Ok(
-        LogLine::new(
-            &cpu_instruction,
-            resolution,
-            format!("[X=0x{:02x}][S={}]", registers.register_x, registers.format_status())
-        )
-    )
+    Ok(LogLine::new(
+        &cpu_instruction,
+        resolution,
+        format!(
+            "[X=0x{:02x}][S={}]",
+            registers.register_x,
+            registers.format_status()
+        ),
+    ))
 }
 
 #[cfg(test)]
@@ -28,10 +36,13 @@ mod tests {
 
     #[test]
     fn test_dex() {
-        let cpu_instruction = CPUInstruction::new(0x1000, 0xca, "DEX", AddressingMode::Implied, dex);
+        let cpu_instruction =
+            CPUInstruction::new(0x1000, 0xca, "DEX", AddressingMode::Implied, dex);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xca, 0x0a]);
         registers.register_x = 0x10;
-        let log_line = cpu_instruction.execute(&mut memory, &mut registers).unwrap();
+        let log_line = cpu_instruction
+            .execute(&mut memory, &mut registers)
+            .unwrap();
         assert_eq!("DEX".to_owned(), log_line.mnemonic);
         assert_eq!(0x0f, registers.register_x);
         assert!(!registers.z_flag_is_set());
@@ -41,9 +52,12 @@ mod tests {
 
     #[test]
     fn test_dex_when_zero() {
-        let cpu_instruction = CPUInstruction::new(0x1000, 0xca, "DEX", AddressingMode::Implied, dex);
+        let cpu_instruction =
+            CPUInstruction::new(0x1000, 0xca, "DEX", AddressingMode::Implied, dex);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xca, 0x0a]);
-        let _log_line = cpu_instruction.execute(&mut memory, &mut registers).unwrap();
+        let _log_line = cpu_instruction
+            .execute(&mut memory, &mut registers)
+            .unwrap();
         assert_eq!(0xff, registers.register_x);
         assert!(!registers.z_flag_is_set());
         assert!(registers.n_flag_is_set());
@@ -51,10 +65,13 @@ mod tests {
 
     #[test]
     fn test_dex_when_one() {
-        let cpu_instruction = CPUInstruction::new(0x1000, 0xca, "DEX", AddressingMode::Implied, dex);
+        let cpu_instruction =
+            CPUInstruction::new(0x1000, 0xca, "DEX", AddressingMode::Implied, dex);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xca, 0x0a]);
         registers.register_x = 0x01;
-        let _log_line = cpu_instruction.execute(&mut memory, &mut registers).unwrap();
+        let _log_line = cpu_instruction
+            .execute(&mut memory, &mut registers)
+            .unwrap();
         assert_eq!(0x00, registers.register_x);
         assert!(registers.z_flag_is_set());
         assert!(!registers.n_flag_is_set());

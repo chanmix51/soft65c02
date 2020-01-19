@@ -1,13 +1,23 @@
 use super::*;
 
-pub fn phx(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {
-    let resolution = cpu_instruction.addressing_mode
-        .solve(registers.command_pointer, memory, registers)?;
+pub fn phx(
+    memory: &mut Memory,
+    registers: &mut Registers,
+    cpu_instruction: &CPUInstruction,
+) -> Result<LogLine> {
+    let resolution =
+        cpu_instruction
+            .addressing_mode
+            .solve(registers.command_pointer, memory, registers)?;
 
     registers.stack_push(memory, registers.register_x)?;
     registers.command_pointer += 1 + resolution.operands.len();
 
-    Ok(LogLine::new(&cpu_instruction, resolution, format!("[SP=0x{:02x}]", registers.stack_pointer)))
+    Ok(LogLine::new(
+        &cpu_instruction,
+        resolution,
+        format!("[SP=0x{:02x}]", registers.stack_pointer),
+    ))
 }
 
 #[cfg(test)]
@@ -17,10 +27,13 @@ mod tests {
 
     #[test]
     fn test_php() {
-        let cpu_instruction = CPUInstruction::new(0x1000, 0xca, "PHX", AddressingMode::Implied, phx);
+        let cpu_instruction =
+            CPUInstruction::new(0x1000, 0xca, "PHX", AddressingMode::Implied, phx);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x48, 0x0a]);
         registers.register_x = 0xa1;
-        let log_line = cpu_instruction.execute(&mut memory, &mut registers).unwrap();
+        let log_line = cpu_instruction
+            .execute(&mut memory, &mut registers)
+            .unwrap();
         assert_eq!("[SP=0xfe]", format!("{}", log_line.outcome));
         assert_eq!("PHX".to_owned(), log_line.mnemonic);
         assert_eq!(0xa1, memory.read(STACK_BASE_ADDR + 0x00ff, 1).unwrap()[0]);
@@ -28,6 +41,3 @@ mod tests {
         assert_eq!(0x1001, registers.command_pointer);
     }
 }
-
-
-
