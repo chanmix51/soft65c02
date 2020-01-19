@@ -327,6 +327,28 @@ pub fn disassemble(start: usize, end: usize, memory: &Memory) -> Vec<CPUInstruct
     output
 }
 
+pub struct MemoryParserIterator<'a> {
+    memory: &'a Memory,
+    cp: usize,
+}
+
+impl<'a> MemoryParserIterator<'a> {
+    pub fn new(start_address: usize, memory: &'a Memory) -> MemoryParserIterator {
+        MemoryParserIterator { cp: start_address, memory: memory }
+    }
+}
+
+impl Iterator for MemoryParserIterator<'_> {
+    type Item = CPUInstruction;
+
+    fn next(&mut self) -> Option<CPUInstruction> {
+        let cpu_instruction = read_step(self.cp, self.memory);
+        self.cp = self.cp + 1 + cpu_instruction.addressing_mode.get_operands().len();
+
+        Some(cpu_instruction)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

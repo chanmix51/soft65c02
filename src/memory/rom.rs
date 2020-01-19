@@ -1,13 +1,14 @@
 use super::*;
-const ROM_SIZE:usize = 16*1024;
 
 pub struct ROM {
-    rom: Box<[u8; ROM_SIZE]>,
+    rom: Box<Vec<u8>>,
 }
 
 impl ROM {
-    pub fn new(data: [u8; ROM_SIZE]) -> ROM {
-        ROM { rom: Box::new(data) }
+    pub fn new(data: Vec<u8>) -> ROM {
+        ROM {
+            rom: Box::new(data),
+        }
     }
 }
 
