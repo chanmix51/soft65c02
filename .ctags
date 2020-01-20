@@ -1,115 +1,864 @@
 !_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
 !_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
-!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
-!_TAG_PROGRAM_NAME	Exuberant Ctags	//
-!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
-!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+AddressableIO	/home/greg/rust/soft65c02/src/memory/mod.rs	/^pub trait AddressableIO {$/;"	t
 AddressingMode	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^pub enum AddressingMode {$/;"	g
 AddressingModeResolution	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^pub struct AddressingModeResolution {$/;"	s
+BitmapInfo	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^struct BitmapInfo {$/;"	s
+Button6	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^const Button6: c_uint = xlib::Button5 + 1;$/;"	c
+Button7	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^const Button7: c_uint = xlib::Button5 + 2;$/;"	c
 CPUInstruction	/home/greg/rust/soft65c02/src/cpu_instruction/cpu_instruction.rs	/^pub struct CPUInstruction {$/;"	s
-INIT_VECTOR	/home/greg/rust/soft65c02/src/lib.rs	/^const INIT_VECTOR:usize = 0xFFFC;$/;"	c
-INTERRUPT_VECTOR	/home/greg/rust/soft65c02/src/lib.rs	/^const INTERRUPT_VECTOR:usize = 0xFFFE;$/;"	c
+CodePair	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/key_mapping.rs	/^type CodePair = (u32 \/* keysym *\/, u32 \/* ucs *\/);$/;"	T
+CursorStyle	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^pub enum CursorStyle {$/;"	g
+DISPLAY_LIMIT	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^const DISPLAY_LIMIT: usize = 10;$/;"	c
+DebugIO	/home/greg/rust/soft65c02/src/memory/mod.rs	/^pub trait DebugIO: AddressableIO {$/;"	t
+DisplayInfo	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^struct DisplayInfo {$/;"	s
+DrawParameters	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^struct DrawParameters {$/;"	s
+EltIter	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^pub struct EltIter<'a, T: 'a + PrimInt> {$/;"	s
+Error	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/error.rs	/^pub enum Error {$/;"	g
+INIT_VECTOR	/home/greg/rust/soft65c02/src/lib.rs	/^const INIT_VECTOR: usize = 0xFFFC;$/;"	c
+INIT_VECTOR_ADDR	/home/greg/rust/soft65c02/src/cpu_instruction/mod.rs	/^pub const INIT_VECTOR_ADDR:usize = 0xfffc;$/;"	c
+INTERRUPT_VECTOR	/home/greg/rust/soft65c02/src/lib.rs	/^const INTERRUPT_VECTOR: usize = 0xFFFE;$/;"	c
+INTERRUPT_VECTOR_ADDR	/home/greg/rust/soft65c02/src/cpu_instruction/mod.rs	/^pub const INTERRUPT_VECTOR_ADDR:usize = 0xfffe;$/;"	c
+INVALID_ACCEL	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^const INVALID_ACCEL: usize = 0xffffffff;$/;"	c
+Image_center	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    fn Image_center($/;"	f
+Image_resize_linear_aspect_fill_c	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    fn Image_resize_linear_aspect_fill_c($/;"	f
+Image_resize_linear_c	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    fn Image_resize_linear_c($/;"	f
+Image_upper_left	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    fn Image_upper_left($/;"	f
+InputCallback	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^pub trait InputCallback {$/;"	t
+Item	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    type Item = (T, &'a V);$/;"	T
+Item	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    type Item = Range<T>;$/;"	T
+Item	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    type Item = T;$/;"	T
+KEY_MAPPINGS	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^static KEY_MAPPINGS: [Key; 128] = [$/;"	c
+KEY_STACK_POINTER	/home/greg/rust/soft65c02/src/memory/minifb_adapter.rs	/^const KEY_STACK_POINTER: usize = 0x0030;$/;"	c
+Key	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/key.rs	/^pub enum Key {$/;"	g
+KeyHandler	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/key_handler.rs	/^pub struct KeyHandler {$/;"	s
+KeyRepeat	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^pub enum KeyRepeat {$/;"	g
+KeyboardBuffer	/home/greg/rust/soft65c02/src/memory/minifb_adapter.rs	/^struct KeyboardBuffer {$/;"	s
+LENGTH	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/key_mapping.rs	/^const LENGTH: usize = 776;$/;"	c
 LogLine	/home/greg/rust/soft65c02/src/cpu_instruction/cpu_instruction.rs	/^pub struct LogLine {$/;"	s
-MEMMAX	/home/greg/rust/soft65c02/src/memory.rs	/^pub const MEMMAX:usize = 65535;$/;"	c
-MemoryError	/home/greg/rust/soft65c02/src/memory.rs	/^pub enum MemoryError {$/;"	g
+MEMMAX	/home/greg/rust/soft65c02/src/memory/mod.rs	/^pub const MEMMAX:usize = 65535;$/;"	c
+MENU_ID_SEPARATOR	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^const MENU_ID_SEPARATOR: usize = 0xffffffff;$/;"	c
+MENU_ID_SEPARATOR	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/menu.rs	/^const MENU_ID_SEPARATOR:usize = 0xffffffff;$/;"	c
+MENU_KEY_ALT	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^pub const MENU_KEY_ALT: usize = 16;$/;"	c
+MENU_KEY_ALT	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/menu.rs	/^pub const MENU_KEY_ALT: usize = 16;$/;"	c
+MENU_KEY_COMMAND	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^pub const MENU_KEY_COMMAND: usize = 1;$/;"	c
+MENU_KEY_COMMAND	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/menu.rs	/^pub const MENU_KEY_COMMAND: usize = 1;$/;"	c
+MENU_KEY_CTRL	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^pub const MENU_KEY_CTRL: usize = 8;$/;"	c
+MENU_KEY_CTRL	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/menu.rs	/^pub const MENU_KEY_CTRL: usize = 8;$/;"	c
+MENU_KEY_SHIFT	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^pub const MENU_KEY_SHIFT: usize = 4;$/;"	c
+MENU_KEY_SHIFT	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/menu.rs	/^pub const MENU_KEY_SHIFT: usize = 4;$/;"	c
+MENU_KEY_WIN	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^pub const MENU_KEY_WIN: usize = 2;$/;"	c
+MENU_KEY_WIN	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/menu.rs	/^pub const MENU_KEY_WIN: usize = 2;$/;"	c
+MINIFB_HEIGHT	/home/greg/rust/soft65c02/src/memory/minifb_adapter.rs	/^pub const MINIFB_HEIGHT: usize = 96;$/;"	c
+MINIFB_WIDTH	/home/greg/rust/soft65c02/src/memory/minifb_adapter.rs	/^pub const MINIFB_WIDTH: usize = 128;$/;"	c
+MemoryError	/home/greg/rust/soft65c02/src/memory/error.rs	/^pub enum MemoryError {$/;"	g
+MemoryStack	/home/greg/rust/soft65c02/src/memory/memory_stack.rs	/^pub struct MemoryStack {$/;"	s
+Menu	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^pub struct Menu(imp::Menu);$/;"	s
+Menu	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/menu.rs	/^pub struct Menu(imp::Menu);$/;"	s
+Menu	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^pub struct Menu {$/;"	s
+Menu	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/redox/mod.rs	/^pub struct Menu {$/;"	s
+Menu	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^pub struct Menu {$/;"	s
+Menu	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^pub struct Menu {$/;"	s
+MenuHandle	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^pub struct MenuHandle(pub u64);$/;"	s
+MenuItem	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^pub struct MenuItem<'a> {$/;"	s
+MenuItemHandle	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^pub struct MenuItemHandle(pub u64);$/;"	s
 MicrocodeError	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/error.rs	/^pub enum MicrocodeError {$/;"	g
-RAM	/home/greg/rust/soft65c02/src/memory.rs	/^pub struct RAM {$/;"	s
+MiniFBMemoryAdapter	/home/greg/rust/soft65c02/src/memory/minifb_adapter.rs	/^pub struct MiniFBMemoryAdapter {$/;"	s
+MouseButton	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^pub enum MouseButton {$/;"	g
+MouseData	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^struct MouseData {$/;"	s
+MouseMode	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^pub enum MouseMode {$/;"	g
+PairIter	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^pub struct PairIter<'a, T: 'a, V: 'a> {$/;"	s
+ProcessEventResult	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^enum ProcessEventResult {$/;"	g
+RAM	/home/greg/rust/soft65c02/src/memory/ram.rs	/^pub struct RAM {$/;"	s
+ROM	/home/greg/rust/soft65c02/src/memory/rom.rs	/^pub struct ROM {$/;"	s
+ROM_SIZE	/home/greg/rust/soft65c02/src/memory/rom.rs	/^const ROM_SIZE:usize = 16*1024;$/;"	c
+Range	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^pub struct Range<T> {$/;"	s
+RangeIter	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^pub struct RangeIter<'a, T: PrimInt + 'a> {$/;"	s
+RangeMap	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^pub struct RangeMap<T, V> {$/;"	s
+RangeMultiMap	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^pub struct RangeMultiMap<T, V> {$/;"	s
+RangeSet	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^pub struct RangeSet<T> {$/;"	s
 Registers	/home/greg/rust/soft65c02/src/registers.rs	/^pub struct Registers {$/;"	s
 ResolutionError	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^pub enum ResolutionError {$/;"	g
+Result	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^pub type Result<T> = std::result::Result<T, Error>;$/;"	T
 Result	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^pub type Result<T> = std::result::Result<T, ResolutionError>;$/;"	T
 Result	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/error.rs	/^pub type Result<T> = std::result::Result<T, MicrocodeError>;$/;"	T
-STACK_BASE_ADDR	/home/greg/rust/soft65c02/src/cpu_instruction/mod.rs	/^pub const STACK_BASE_ADDR:usize = 0x0100;$/;"	c
+STACK_BASE_ADDR	/home/greg/rust/soft65c02/src/registers.rs	/^pub const STACK_BASE_ADDR:usize = 0x0100;$/;"	c
+Scale	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^pub enum Scale {$/;"	g
+ScaleMode	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^pub enum ScaleMode {$/;"	g
+SharedData	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^pub struct SharedData {$/;"	s
+Subsystem	/home/greg/rust/soft65c02/src/memory/memory_stack.rs	/^struct Subsystem {$/;"	s
+UnixMenu	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^pub struct UnixMenu {$/;"	s
+UnixMenuItem	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^pub struct UnixMenuItem {$/;"	s
+UpdateRate	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/rate.rs	/^pub struct UpdateRate {$/;"	s
+VERSION	/home/greg/rust/soft65c02/src/lib.rs	/^pub const VERSION: &'static str = "0.1.0";$/;"	c
+WINDOW_BORDERLESS	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/window_flags.rs	/^const WINDOW_BORDERLESS: u32 = 1 << 1;$/;"	c
+WINDOW_RESIZE	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/window_flags.rs	/^const WINDOW_RESIZE: u32 = 1 << 2;$/;"	c
+WINDOW_TITLE	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/window_flags.rs	/^const WINDOW_TITLE: u32 = 1 << 3;$/;"	c
+Window	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^pub struct Window(imp::Window);$/;"	s
+Window	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^pub struct Window {$/;"	s
+Window	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/redox/mod.rs	/^pub struct Window {$/;"	s
+Window	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^pub struct Window {$/;"	s
+Window	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^pub struct Window {$/;"	s
+WindowOptions	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^pub struct WindowOptions {$/;"	s
 adc	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/adc.rs	/^pub fn adc(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
-b_flag_is_set	/home/greg/rust/soft65c02/src/registers.rs	/^    pub fn b_flag_is_set(&self) -> bool {$/;"	f
+add_accel	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    fn add_accel(&mut self, vk: raw::c_int, menu_item: &MenuItem) {$/;"	f
+add_char	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    fn add_char(&mut self, uni_char: u32);$/;"	f
+add_char	/home/greg/rust/soft65c02/src/memory/minifb_adapter.rs	/^    fn add_char(&mut self, uni_char: u32) {$/;"	f
+add_item	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    pub fn add_item(&mut self, name: &str, id: usize) -> MenuItem {$/;"	f
+add_item	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/menu.rs	/^    pub fn add_item(&mut self, item: &mut MenuItem) {$/;"	f
+add_menu	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    pub fn add_menu(&mut self, menu: &Menu) -> MenuHandle {$/;"	f
+add_menu	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    pub fn add_menu(&mut self, menu: &Menu) -> MenuHandle {$/;"	f
+add_menu	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/redox/mod.rs	/^    pub fn add_menu(&mut self, menu: &Menu) -> MenuHandle {$/;"	f
+add_menu	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    pub fn add_menu(&mut self, menu: &Menu) -> MenuHandle {$/;"	f
+add_menu	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    pub fn add_menu(&mut self, menu: &Menu) -> MenuHandle {$/;"	f
+add_menu_item	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    pub fn add_menu_item(&mut self, item: &MenuItem) -> MenuItemHandle {$/;"	f
+add_menu_item	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    pub fn add_menu_item(&mut self, item: &MenuItem) -> MenuItemHandle {$/;"	f
+add_menu_item	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/redox/mod.rs	/^    pub fn add_menu_item(&mut self, item: &MenuItem) -> MenuItemHandle {$/;"	f
+add_menu_item	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    pub fn add_menu_item(&mut self, item: &MenuItem) -> MenuItemHandle {$/;"	f
+add_menu_item	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    pub fn add_menu_item(&mut self, menu_item: &MenuItem) -> MenuItemHandle {$/;"	f
+add_separator	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    pub fn add_separator(&mut self) {$/;"	f
+add_sub_menu	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    pub fn add_sub_menu(&mut self, name: &str, menu: &Menu) {$/;"	f
+add_sub_menu	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/menu.rs	/^    pub fn add_sub_menu(&mut self, menu: &Menu) {$/;"	f
+add_sub_menu	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    pub fn add_sub_menu(&mut self, name: &str, sub_menu: &Menu) {$/;"	f
+add_sub_menu	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/redox/mod.rs	/^    pub fn add_sub_menu(&mut self, name: &str, sub_menu: &Menu) {$/;"	f
+add_sub_menu	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    pub fn add_sub_menu(&mut self, name: &str, sub_menu: &Menu) {$/;"	f
+add_sub_menu	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    pub fn add_sub_menu(&mut self, name: &str, menu: &Menu) {$/;"	f
+add_subsystem	/home/greg/rust/soft65c02/src/memory/memory_stack.rs	/^    pub fn add_subsystem(&mut self, name: &str, start_address: usize, memory: impl AddressableIO + 'static) {$/;"	f
+adjust_window_size_for_menu	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    unsafe fn adjust_window_size_for_menu(handle: windef::HWND) {$/;"	f
+alloc_image	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    unsafe fn alloc_image($/;"	f
+and	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/and.rs	/^pub fn and(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+arbitrary	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^        fn arbitrary<G: Gen>(g: &mut G) -> Self {$/;"	f
+as_mut_slice	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    pub fn as_mut_slice(&mut self) -> &mut [(Range<T>, V)] {$/;"	f
+asl	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/asl.rs	/^pub fn asl(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+bcc	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bcc.rs	/^pub fn bcc(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+bcs	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bcs.rs	/^pub fn bcs(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+beq	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/beq.rs	/^pub fn beq(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+binary_search	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/key_mapping.rs	/^fn binary_search(value: u32, min: isize, max: isize) -> Option<u32> {$/;"	f
+bit	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bit.rs	/^pub fn bit(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+bmi	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bmi.rs	/^pub fn bmi(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
 bne	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bne.rs	/^pub fn bne(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+bpl	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bpl.rs	/^pub fn bpl(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+bra	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bra.rs	/^pub fn bra(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
 brk	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/brk.rs	/^pub fn brk(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+build	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    pub fn build(&mut self) -> MenuItemHandle {$/;"	f
+bvc	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bvc.rs	/^pub fn bvc(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+bvs	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bvs.rs	/^pub fn bvs(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
 c_flag_is_set	/home/greg/rust/soft65c02/src/registers.rs	/^    pub fn c_flag_is_set(&self) -> bool {$/;"	f
+cause	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/error.rs	/^    fn cause(&self) -> Option<&dyn StdError> {$/;"	f
+char_down	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^fn char_down(window: &mut Window, code_point: u32) {$/;"	f
+check_buffer_size	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/buffer_helper.rs	/^pub fn check_buffer_size($/;"	f
+check_extensions	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    fn check_extensions(&mut self) -> Result<()> {$/;"	f
+check_formats	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    fn check_formats(&mut self) -> Result<()> {$/;"	f
+clamp	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^pub fn clamp<T: PartialOrd>(low: T, value: T, high: T) -> T {$/;"	f
+clamp	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/mouse_handler.rs	/^fn clamp(v: f32, lb: f32, ub: f32) -> f32 {$/;"	f
+clc	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/clc.rs	/^pub fn clc(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+cld	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/cld.rs	/^pub fn cld(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+cli	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/cli.rs	/^pub fn cli(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+clone	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    fn clone(&self) -> Self {$/;"	f
+clv	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/clv.rs	/^pub fn clv(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+cmp	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/cmp.rs	/^pub fn cmp(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+contains	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    pub fn contains(&self, val: T) -> bool {$/;"	f
+contains	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    pub fn contains(&self, x: T) -> bool {$/;"	f
+contains	/home/greg/rust/soft65c02/src/memory/memory_stack.rs	/^    pub fn contains(&self, addr: usize) -> bool {$/;"	f
+cover	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    pub fn cover(&self, other: &Self) -> Self {$/;"	f
+cpx	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/cpx.rs	/^pub fn cpx(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+cpy	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/cpy.rs	/^pub fn cpy(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
 d_flag_is_set	/home/greg/rust/soft65c02/src/registers.rs	/^    pub fn d_flag_is_set(&self) -> bool {$/;"	f
+dec	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/dec.rs	/^pub fn dec(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+default	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    fn default() -> Self {$/;"	f
+default	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    fn default() -> WindowOptions {$/;"	f
+default	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    fn default() -> Self {$/;"	f
+description	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/error.rs	/^    fn description(&self) -> &str {$/;"	f
+destroy_menu	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    pub fn destroy_menu(&mut self) {$/;"	f
+destroy_menu	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/menu.rs	/^    pub fn destroy_menu(&mut self) {$/;"	f
 dex	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/dex.rs	/^pub fn dex(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
-disassemble	/home/greg/rust/soft65c02/src/processing_unit.rs	/^pub fn disassemble(start: usize, end: usize, registers: &Registers, memory: &Memory) -> Vec<LogLine> {$/;"	f
+dey	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/dey.rs	/^pub fn dey(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+disassemble	/home/greg/rust/soft65c02/src/processing_unit.rs	/^pub fn disassemble(start: usize, end: usize, memory: &Memory) -> Vec<CPUInstruction> {$/;"	f
+drop	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    fn drop(&mut self) {$/;"	f
+drop	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    fn drop(&mut self) {$/;"	f
+drop	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    fn drop(&mut self) {$/;"	f
+elements	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    pub fn elements<'a>(&'a self) -> EltIter<'a, T> {$/;"	f
+enabled	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    pub fn enabled(self, enabled: bool) -> Self {$/;"	f
 eor	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/eor.rs	/^pub fn eor(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+eq	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    fn eq(&self, x: &T) -> bool {$/;"	f
+except	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    pub fn except<I: Iterator<Item=T>>(it: I) -> RangeSet<T> {$/;"	f
 execute	/home/greg/rust/soft65c02/src/cpu_instruction/cpu_instruction.rs	/^    pub fn execute(&self, memory: &mut Memory, registers: &mut Registers) -> MicrocodeResult<LogLine> {$/;"	f
-execute_step	/home/greg/rust/soft65c02/src/processing_unit.rs	/^fn execute_step(registers: &mut Registers, memory: &mut Memory) -> MicrocodeResult<LogLine> {$/;"	f
+execute	/home/greg/rust/soft65c02/src/lib.rs	/^pub fn execute($/;"	f
+execute_step	/home/greg/rust/soft65c02/src/processing_unit.rs	/^pub fn execute_step(registers: &mut Registers, memory: &mut Memory) -> MicrocodeResult<LogLine> {$/;"	f
+fmt	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/error.rs	/^    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {$/;"	f
+fmt	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {$/;"	f
+fmt	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    fn fmt(&self, f: &mut Formatter) -> Result<(), std::fmt::Error> {$/;"	f
 fmt	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {$/;"	f
 fmt	/home/greg/rust/soft65c02/src/cpu_instruction/cpu_instruction.rs	/^    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {$/;"	f
 fmt	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/error.rs	/^    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {$/;"	f
-fmt	/home/greg/rust/soft65c02/src/memory.rs	/^    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {$/;"	f
+fmt	/home/greg/rust/soft65c02/src/memory/error.rs	/^    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {$/;"	f
+fmt	/home/greg/rust/soft65c02/src/memory/memory_stack.rs	/^    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {$/;"	f
+fmt	/home/greg/rust/soft65c02/src/memory/mod.rs	/^    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {$/;"	f
 fmt	/home/greg/rust/soft65c02/src/registers.rs	/^    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {$/;"	f
+format_name	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    fn format_name(menu_item: &MenuItem, key_name: &'static str) -> String {$/;"	f
+format_status	/home/greg/rust/soft65c02/src/registers.rs	/^    pub fn format_status(&self) -> String {$/;"	f
+free_image	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    unsafe fn free_image(&mut self) {$/;"	f
 from	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^    fn from(err: memory::MemoryError) -> ResolutionError {$/;"	f
+from	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/error.rs	/^    fn from(err: addressing_mode::ResolutionError) -> MicrocodeError {$/;"	f
 from	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/error.rs	/^    fn from(err: memory::MemoryError) -> MicrocodeError {$/;"	f
+from_iter	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    fn from_iter<I: IntoIterator<Item=(Range<T>, V)>>(iter: I) -> Self {$/;"	f
+from_iter	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    fn from_iter<I: IntoIterator<Item=Range<T>>>(iter: I) -> Self {$/;"	f
+from_norm_vec	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    fn from_norm_vec(vec: Vec<(Range<T>, ())>) -> RangeSet<T> {$/;"	f
+from_norm_vec	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    fn from_norm_vec(vec: Vec<(Range<T>, V)>) -> RangeMap<T, V> {$/;"	f
+from_sorted_vec	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    fn from_sorted_vec(vec: Vec<(Range<T>, ())>) -> RangeSet<T> {$/;"	f
+from_sorted_vec	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    pub fn from_sorted_vec(vec: Vec<(Range<T>, V)>) -> RangeMap<T, V> {$/;"	f
+from_vec	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    pub fn from_vec(vec: Vec<(Range<T>, V)>) -> RangeMultiMap<T, V> {$/;"	f
+full	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    pub fn full() -> Range<T> {$/;"	f
+full	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    pub fn full() -> RangeSet<T> {$/;"	f
+generic_update	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    fn generic_update(&mut self, window: windef::HWND) {$/;"	f
+get	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    pub fn get(&self, x: T) -> Option<&V> {$/;"	f
+get_flags	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/window_flags.rs	/^pub fn get_flags(opts: WindowOptions) -> u32 {$/;"	f
+get_keys	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/key_handler.rs	/^    pub fn get_keys(&self) -> Option<Vec<Key>> {$/;"	f
+get_keys	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    pub fn get_keys(&self) -> Option<Vec<Key>> {$/;"	f
+get_keys	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    pub fn get_keys(&self) -> Option<Vec<Key>> {$/;"	f
+get_keys	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/redox/mod.rs	/^    pub fn get_keys(&self) -> Option<Vec<Key>> {$/;"	f
+get_keys	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    pub fn get_keys(&self) -> Option<Vec<Key>> {$/;"	f
+get_keys	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    pub fn get_keys(&self) -> Option<Vec<Key>> {$/;"	f
+get_keys_pressed	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/key_handler.rs	/^    pub fn get_keys_pressed(&self, repeat: KeyRepeat) -> Option<Vec<Key>> {$/;"	f
+get_keys_pressed	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    pub fn get_keys_pressed(&self, repeat: KeyRepeat) -> Option<Vec<Key>> {$/;"	f
+get_keys_pressed	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    pub fn get_keys_pressed(&self, repeat: KeyRepeat) -> Option<Vec<Key>> {$/;"	f
+get_keys_pressed	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/redox/mod.rs	/^    pub fn get_keys_pressed(&self, repeat: KeyRepeat) -> Option<Vec<Key>> {$/;"	f
+get_keys_pressed	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    pub fn get_keys_pressed(&self, repeat: KeyRepeat) -> Option<Vec<Key>> {$/;"	f
+get_keys_pressed	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    pub fn get_keys_pressed(&self, repeat: KeyRepeat) -> Option<Vec<Key>> {$/;"	f
+get_mouse_down	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    pub fn get_mouse_down(&self, button: MouseButton) -> bool {$/;"	f
+get_mouse_down	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    pub fn get_mouse_down(&self, button: MouseButton) -> bool {$/;"	f
+get_mouse_down	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/redox/mod.rs	/^    pub fn get_mouse_down(&self, button: MouseButton) -> bool {$/;"	f
+get_mouse_down	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    pub fn get_mouse_down(&self, button: MouseButton) -> bool {$/;"	f
+get_mouse_down	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    pub fn get_mouse_down(&self, button: MouseButton) -> bool {$/;"	f
+get_mouse_pos	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    pub fn get_mouse_pos(&self, mode: MouseMode) -> Option<(f32, f32)> {$/;"	f
+get_mouse_pos	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    pub fn get_mouse_pos(&self, mode: MouseMode) -> Option<(f32, f32)> {$/;"	f
+get_mouse_pos	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/redox/mod.rs	/^    pub fn get_mouse_pos(&self, mode: MouseMode) -> Option<(f32, f32)> {$/;"	f
+get_mouse_pos	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    pub fn get_mouse_pos(&self, mode: MouseMode) -> Option<(f32, f32)> {$/;"	f
+get_mouse_pos	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    pub fn get_mouse_pos(&self, mode: MouseMode) -> Option<(f32, f32)> {$/;"	f
+get_operands	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^    pub fn get_operands(&self) -> Vec<u8> {$/;"	f
+get_pos	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/mouse_handler.rs	/^pub fn get_pos($/;"	f
+get_scale_factor	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    unsafe fn get_scale_factor(width: usize, height: usize, scale: Scale) -> i32 {$/;"	f
+get_scale_factor	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    fn get_scale_factor($/;"	f
+get_scale_factor	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    unsafe fn get_scale_factor(width: usize, height: usize, scale: Scale) -> i32 {$/;"	f
+get_scroll_wheel	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    pub fn get_scroll_wheel(&self) -> Option<(f32, f32)> {$/;"	f
+get_scroll_wheel	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    pub fn get_scroll_wheel(&self) -> Option<(f32, f32)> {$/;"	f
+get_scroll_wheel	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/redox/mod.rs	/^    pub fn get_scroll_wheel(&self) -> Option<(f32, f32)> {$/;"	f
+get_scroll_wheel	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    pub fn get_scroll_wheel(&self) -> Option<(f32, f32)> {$/;"	f
+get_scroll_wheel	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    pub fn get_scroll_wheel(&self) -> Option<(f32, f32)> {$/;"	f
+get_size	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    pub fn get_size(&self) -> (usize, usize) {$/;"	f
+get_size	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    pub fn get_size(&self) -> (usize, usize) {$/;"	f
+get_size	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/redox/mod.rs	/^    pub fn get_size(&self) -> (usize, usize) {$/;"	f
+get_size	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    pub fn get_size(&self) -> (usize, usize) {$/;"	f
+get_size	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    pub fn get_size(&self) -> (usize, usize) {$/;"	f
+get_size	/home/greg/rust/soft65c02/src/memory/memory_stack.rs	/^    fn get_size(&self) -> usize {$/;"	f
+get_size	/home/greg/rust/soft65c02/src/memory/minifb_adapter.rs	/^    fn get_size(&self) -> usize {$/;"	f
+get_size	/home/greg/rust/soft65c02/src/memory/mod.rs	/^    fn get_size(&self) -> usize;$/;"	f
+get_size	/home/greg/rust/soft65c02/src/memory/ram.rs	/^    fn get_size(&self) -> usize {$/;"	f
+get_size	/home/greg/rust/soft65c02/src/memory/rom.rs	/^    fn get_size(&self) -> usize {$/;"	f
+get_status_register	/home/greg/rust/soft65c02/src/registers.rs	/^    pub fn get_status_register(&self) -> u8 {$/;"	f
 get_stuff	/home/greg/rust/soft65c02/src/cpu_instruction/cpu_instruction.rs	/^    pub fn get_stuff(addr: usize, program: Vec<u8>) -> (Memory, Registers) {$/;"	f
+get_subsystems_info	/home/greg/rust/soft65c02/src/memory/memory_stack.rs	/^    pub fn get_subsystems_info(&self) -> Vec<String> {$/;"	f
+get_unix_menus	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    pub fn get_unix_menus(&self) -> Option<&Vec<UnixMenu>> {$/;"	f
+get_unix_menus	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/redox/mod.rs	/^    pub fn get_unix_menus(&self) -> Option<&Vec<UnixMenu>> {$/;"	f
+get_unix_menus	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    pub fn get_unix_menus(&self) -> Option<&Vec<UnixMenu>> {$/;"	f
+get_unscaled_mouse_pos	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    pub fn get_unscaled_mouse_pos(&self, mode: MouseMode) -> Option<(f32, f32)> {$/;"	f
+get_unscaled_mouse_pos	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    pub fn get_unscaled_mouse_pos(&self, mode: MouseMode) -> Option<(f32, f32)> {$/;"	f
+get_unscaled_mouse_pos	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/redox/mod.rs	/^    pub fn get_unscaled_mouse_pos(&self, mode: MouseMode) -> Option<(f32, f32)> {$/;"	f
+get_unscaled_mouse_pos	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    pub fn get_unscaled_mouse_pos(&self, mode: MouseMode) -> Option<(f32, f32)> {$/;"	f
+get_unscaled_mouse_pos	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    pub fn get_unscaled_mouse_pos(&self, mode: MouseMode) -> Option<(f32, f32)> {$/;"	f
+get_virt_key	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    fn get_virt_key(menu_item: &MenuItem, key: raw::c_int) -> u32 {$/;"	f
+get_window_handle	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    pub fn get_window_handle(&self) -> *mut raw::c_void {$/;"	f
+get_window_handle	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    pub fn get_window_handle(&self) -> *mut raw::c_void {$/;"	f
+get_window_handle	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/redox/mod.rs	/^    pub fn get_window_handle(&self) -> *mut raw::c_void {$/;"	f
+get_window_handle	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    pub fn get_window_handle(&self) -> *mut raw::c_void {$/;"	f
+get_window_handle	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    pub fn get_window_handle(&self) -> *mut raw::c_void {$/;"	f
+get_window_long	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^unsafe fn get_window_long(window: windef::HWND) -> basetsd::LONG_PTR {$/;"	f
+get_window_long	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^unsafe fn get_window_long(window: windef::HWND) -> ntdef::LONG {$/;"	f
+group	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    pub fn group(&self) -> RangeMap<T, Vec<V>> {$/;"	f
+help	/home/greg/rust/soft65c02/src/main.rs	/^fn help() -> String {$/;"	f
 i_flag_is_set	/home/greg/rust/soft65c02/src/registers.rs	/^    pub fn i_flag_is_set(&self) -> bool {$/;"	f
-it_works	/home/greg/rust/soft65c02/src/lib.rs	/^    fn it_works() {$/;"	f
-jmp	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/jmp.rs	/^pub fn jmp(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> LogLine {$/;"	f
-lda	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/lda.rs	/^pub fn lda(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> LogLine {$/;"	f
-little_endian	/home/greg/rust/soft65c02/src/memory.rs	/^pub fn little_endian(bytes: Vec<u8>) -> usize {$/;"	f
+inc	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/inc.rs	/^pub fn inc(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+init_atoms	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    fn init_atoms(&mut self) {$/;"	f
+init_cursors	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    fn init_cursors(&mut self) {$/;"	f
+init_memory	/home/greg/rust/soft65c02/src/memory/memory_stack.rs	/^    fn init_memory() -> MemoryStack {$/;"	f
+insert	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    pub fn insert(&mut self, range: Range<T>, value: V) {$/;"	f
+intern_atom	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    fn intern_atom(&mut self, name: &'static str, only_if_exists: bool) -> xlib::Atom {$/;"	f
+intersection	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    pub fn intersection(&self, other: &RangeSet<T>) -> RangeMap<T, V> {$/;"	f
+intersection	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    pub fn intersection(&self, other: &RangeSet<T>) -> RangeMultiMap<T, V> {$/;"	f
+intersection	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    pub fn intersection(&self, other: &RangeSet<T>) -> RangeSet<T> {$/;"	f
+intersection	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    pub fn intersection(&self, other: &Self) -> Option<Self> {$/;"	f
+intersects	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    pub fn intersects(&self, other: &Self) -> bool {$/;"	f
+into_vec	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    pub fn into_vec(self) -> Vec<(Range<T>, V)> {$/;"	f
+inx	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/inx.rs	/^pub fn inx(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+iny	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/iny.rs	/^pub fn iny(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+is_active	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    pub fn is_active(&mut self) -> bool {$/;"	f
+is_active	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    pub fn is_active(&mut self) -> bool {$/;"	f
+is_active	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/redox/mod.rs	/^    pub fn is_active(&mut self) -> bool {$/;"	f
+is_active	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    pub fn is_active(&mut self) -> bool {$/;"	f
+is_active	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    pub fn is_active(&mut self) -> bool {$/;"	f
+is_empty	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    pub fn is_empty(&self) -> bool {$/;"	f
+is_full	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    pub fn is_full(&self) -> bool {$/;"	f
+is_key_down	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/key_handler.rs	/^    pub fn is_key_down(&self, key: Key) -> bool {$/;"	f
+is_key_down	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    pub fn is_key_down(&self, key: Key) -> bool {$/;"	f
+is_key_down	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    pub fn is_key_down(&self, key: Key) -> bool {$/;"	f
+is_key_down	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/redox/mod.rs	/^    pub fn is_key_down(&self, key: Key) -> bool {$/;"	f
+is_key_down	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    pub fn is_key_down(&self, key: Key) -> bool {$/;"	f
+is_key_down	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    pub fn is_key_down(&self, key: Key) -> bool {$/;"	f
+is_key_pressed	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/key_handler.rs	/^    pub fn is_key_pressed(&self, key: Key, repeat: KeyRepeat) -> bool {$/;"	f
+is_key_pressed	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    pub fn is_key_pressed(&self, key: Key, repeat: KeyRepeat) -> bool {$/;"	f
+is_key_pressed	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    pub fn is_key_pressed(&self, key: Key, repeat: KeyRepeat) -> bool {$/;"	f
+is_key_pressed	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/redox/mod.rs	/^    pub fn is_key_pressed(&self, key: Key, repeat: KeyRepeat) -> bool {$/;"	f
+is_key_pressed	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    pub fn is_key_pressed(&self, key: Key, repeat: KeyRepeat) -> bool {$/;"	f
+is_key_pressed	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    pub fn is_key_pressed(&self, key: Key, repeat: KeyRepeat) -> bool {$/;"	f
+is_key_released	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/key_handler.rs	/^    pub fn is_key_released(&self, key: Key) -> bool {$/;"	f
+is_key_released	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    pub fn is_key_released(&self, key: Key) -> bool {$/;"	f
+is_key_released	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    pub fn is_key_released(&self, key: Key) -> bool {$/;"	f
+is_key_released	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/redox/mod.rs	/^    pub fn is_key_released(&self, key: Key) -> bool {$/;"	f
+is_key_released	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    pub fn is_key_released(&self, key: Key) -> bool {$/;"	f
+is_key_released	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    pub fn is_key_released(&self, key: Key) -> bool {$/;"	f
+is_key_virtual_range	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    fn is_key_virtual_range(_key: raw::c_int) -> u32 {$/;"	f
+is_menu_pressed	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    pub fn is_menu_pressed(&mut self) -> Option<usize> {$/;"	f
+is_menu_pressed	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    pub fn is_menu_pressed(&mut self) -> Option<usize> {$/;"	f
+is_menu_pressed	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/redox/mod.rs	/^    pub fn is_menu_pressed(&mut self) -> Option<usize> {$/;"	f
+is_menu_pressed	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    pub fn is_menu_pressed(&mut self) -> Option<usize> {$/;"	f
+is_menu_pressed	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    pub fn is_menu_pressed(&mut self) -> Option<usize> {$/;"	f
+is_open	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    pub fn is_open(&self) -> bool {$/;"	f
+is_open	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    pub fn is_open(&self) -> bool {$/;"	f
+is_open	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/redox/mod.rs	/^    pub fn is_open(&self) -> bool {$/;"	f
+is_open	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    pub fn is_open(&self) -> bool {$/;"	f
+is_open	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    pub fn is_open(&self) -> bool {$/;"	f
+jmp	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/jmp.rs	/^pub fn jmp(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+jsr	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/jsr.rs	/^pub fn jsr(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+key_pressed	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/key_handler.rs	/^    pub fn key_pressed(&self, index: usize, repeat: KeyRepeat) -> bool {$/;"	f
+keys_values	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    pub fn keys_values<'a> (&'a self) -> PairIter<'a, T, V> {$/;"	f
+keysym_to_unicode	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/key_mapping.rs	/^pub fn keysym_to_unicode(keysym: u32) -> Option<u32> {$/;"	f
+keysymtab	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/key_mapping.rs	/^const keysymtab: [CodePair; LENGTH] = [$/;"	c
+lda	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/lda.rs	/^pub fn lda(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+ldx	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/ldx.rs	/^pub fn ldx(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+ldy	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/ldy.rs	/^pub fn ldy(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+limit_update_rate	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    pub fn limit_update_rate(&mut self, time: Option<std::time::Duration>) {$/;"	f
+little_endian	/home/greg/rust/soft65c02/src/memory/mod.rs	/^pub fn little_endian(bytes: Vec<u8>) -> usize {$/;"	f
+load_cursor	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    fn load_cursor(&mut self, name: &'static str) -> xlib::Cursor {$/;"	f
+lsr	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/lsr.rs	/^pub fn lsr(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+main	/home/greg/rust/soft65c02/src/main.rs	/^fn main() {$/;"	f
+map	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    fn map(vec: Vec<(i32, i32, i32)>) -> RangeMap<i32, i32> {$/;"	f
+map_key_to_menu_key	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    unsafe fn map_key_to_menu_key(key: Key) -> u32 {$/;"	f
+map_key_to_minifb	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/redox/mod.rs	/^    fn map_key_to_minifb(&self, scancode: u8) -> Option<Key> {$/;"	f
+map_key_to_vk_accel	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    fn map_key_to_vk_accel(key: Key) -> (raw::c_int, &'static str) {$/;"	f
+map_values	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    pub fn map_values<F>(&mut self, mut f: F) where F: FnMut(&V) -> V {$/;"	f
 mem_dump	/home/greg/rust/soft65c02/src/lib.rs	/^fn mem_dump(start: usize, end: usize, memory: &Memory) {$/;"	f
+message_loop	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    fn message_loop(&self, window: windef::HWND) {$/;"	f
+mfb_active_menu	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    fn mfb_active_menu(window: *mut c_void) -> i32;$/;"	f
+mfb_add_menu	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    fn mfb_add_menu(window: *mut c_void, menu: *mut c_void) -> u64;$/;"	f
+mfb_add_menu_item	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    fn mfb_add_menu_item($/;"	f
+mfb_add_sub_menu	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    fn mfb_add_sub_menu(parent_menu: *mut c_void, name: *const c_char, menu: *mut c_void);$/;"	f
+mfb_close	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    fn mfb_close(window: *mut c_void);$/;"	f
+mfb_create_menu	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    fn mfb_create_menu(name: *const c_char) -> *mut c_void;$/;"	f
+mfb_get_screen_size	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    fn mfb_get_screen_size() -> u32;$/;"	f
+mfb_is_active	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    fn mfb_is_active(window: *mut c_void) -> u32;$/;"	f
+mfb_open	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    fn mfb_open($/;"	f
+mfb_remove_menu_at	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    fn mfb_remove_menu_at(window: *mut c_void, index: i32);$/;"	f
+mfb_remove_menu_item	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    fn mfb_remove_menu_item(menu: *mut c_void, item_handle: u64);$/;"	f
+mfb_set_cursor_style	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    fn mfb_set_cursor_style(window: *mut c_void, cursor: u32);$/;"	f
+mfb_set_key_callback	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    fn mfb_set_key_callback($/;"	f
+mfb_set_mouse_data	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    fn mfb_set_mouse_data(window_handle: *mut c_void, shared_data: *mut SharedData);$/;"	f
+mfb_set_position	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    fn mfb_set_position(window: *mut c_void, x: i32, y: i32);$/;"	f
+mfb_set_title	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    fn mfb_set_title(window: *mut c_void, title: *const c_char);$/;"	f
+mfb_should_close	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    fn mfb_should_close(window: *mut c_void) -> i32;$/;"	f
+mfb_update	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    fn mfb_update(window: *mut c_void);$/;"	f
+mfb_update_with_buffer	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    fn mfb_update_with_buffer($/;"	f
 n_flag_is_set	/home/greg/rust/soft65c02/src/registers.rs	/^    pub fn n_flag_is_set(&self) -> bool {$/;"	f
+negated	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    pub fn negated(&self) -> RangeSet<T> {$/;"	f
+new	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/key_handler.rs	/^    pub fn new() -> KeyHandler {$/;"	f
+new	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    pub fn new(name: &str) -> Result<Menu> {$/;"	f
+new	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    pub fn new(name: &str, id: usize) -> MenuItem {$/;"	f
+new	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    pub fn new(name: &str, width: usize, height: usize, opts: WindowOptions) -> Result<Window> {$/;"	f
+new	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/menu.rs	/^    pub fn new(name: &name) -> Result<Menu> {$/;"	f
+new	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    pub fn new(name: &str) -> Result<Menu> {$/;"	f
+new	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    pub fn new(name: &str, width: usize, height: usize, opts: WindowOptions) -> Result<Window> {$/;"	f
+new	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/redox/mod.rs	/^    pub fn new(name: &str) -> Result<Menu> {$/;"	f
+new	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/redox/mod.rs	/^    pub fn new(name: &str, width: usize, height: usize, opts: WindowOptions) -> Result<Window> {$/;"	f
+new	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    fn new() -> Result<DisplayInfo> {$/;"	f
+new	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    pub fn new(name: &str) -> Result<Menu> {$/;"	f
+new	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    pub fn new(name: &str, width: usize, height: usize, opts: WindowOptions) -> Result<Window> {$/;"	f
+new	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    pub fn new(name: &str) -> Result<Menu> {$/;"	f
+new	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    pub fn new(name: &str, width: usize, height: usize, opts: WindowOptions) -> Result<Window> {$/;"	f
+new	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/rate.rs	/^    pub fn new() -> UpdateRate {$/;"	f
+new	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    pub fn new() -> RangeMap<T, V> {$/;"	f
+new	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    pub fn new() -> RangeMultiMap<T, V> {$/;"	f
+new	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    pub fn new() -> RangeSet<T> {$/;"	f
+new	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    pub fn new(start: T, end: T) -> Range<T> {$/;"	f
 new	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^    fn new(operands: Vec<u8>, addressing_mode: AddressingMode, target_address: Option<usize>) -> Self {$/;"	f
 new	/home/greg/rust/soft65c02/src/cpu_instruction/cpu_instruction.rs	/^    pub fn new($/;"	f
-new	/home/greg/rust/soft65c02/src/memory.rs	/^    pub fn new() -> RAM {$/;"	f
+new	/home/greg/rust/soft65c02/src/cpu_instruction/cpu_instruction.rs	/^    pub fn new(cpu_instruction: &CPUInstruction, resolution: AddressingModeResolution, outcome: String) -> LogLine {$/;"	f
+new	/home/greg/rust/soft65c02/src/memory/memory_stack.rs	/^    pub fn new($/;"	f
+new	/home/greg/rust/soft65c02/src/memory/memory_stack.rs	/^    pub fn new() -> MemoryStack {$/;"	f
+new	/home/greg/rust/soft65c02/src/memory/minifb_adapter.rs	/^    pub fn new(mut window: Window) -> MiniFBMemoryAdapter {$/;"	f
+new	/home/greg/rust/soft65c02/src/memory/ram.rs	/^    pub fn new() -> RAM {$/;"	f
+new	/home/greg/rust/soft65c02/src/memory/rom.rs	/^    pub fn new(data: [u8; ROM_SIZE]) -> ROM {$/;"	f
 new	/home/greg/rust/soft65c02/src/registers.rs	/^    pub fn new(init_address: usize) -> Registers {$/;"	f
+new_with_ram	/home/greg/rust/soft65c02/src/memory/memory_stack.rs	/^    pub fn new_with_ram() -> MemoryStack {$/;"	f
+next	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    fn next(&mut self) -> Option<Range<T>> {$/;"	f
+next	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    fn next(&mut self) -> Option<Self::Item> {$/;"	f
+next	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    fn next(&mut self) -> Option<T> {$/;"	f
+next_item_handle	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/redox/mod.rs	/^    fn next_item_handle(&mut self) -> MenuItemHandle {$/;"	f
+next_item_handle	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    fn next_item_handle(&mut self) -> MenuItemHandle {$/;"	f
+next_menu_handle	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/redox/mod.rs	/^    fn next_menu_handle(&mut self) -> MenuHandle {$/;"	f
+next_menu_handle	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    fn next_menu_handle(&mut self) -> MenuHandle {$/;"	f
+nop	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/nop.rs	/^pub fn nop(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+normalize	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    fn normalize(&mut self) {$/;"	f
+num_elements	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    pub fn num_elements(&self) -> usize {$/;"	f
+num_keys	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    pub fn num_keys(&self) -> usize {$/;"	f
+num_ranges	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    pub fn num_ranges(&self) -> usize {$/;"	f
+open_window	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    fn open_window($/;"	f
+ora	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/ora.rs	/^pub fn ora(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+parse	/home/greg/rust/soft65c02/src/main.rs	/^fn parse(command: String) -> Result<String, String> {$/;"	f
+partial_cmp	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    fn partial_cmp(&self, x: &T) -> Option<Ordering> {$/;"	f
 pha	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/pha.rs	/^pub fn pha(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
-read	/home/greg/rust/soft65c02/src/memory.rs	/^    pub fn read(&self, addr: usize, len: usize) -> Result<Vec<u8>, MemoryError> {$/;"	f
-read_step	/home/greg/rust/soft65c02/src/processing_unit.rs	/^fn read_step(address: usize, registers: &Registers, memory: &Memory) -> LogLine {$/;"	f
-resolve_opcode	/home/greg/rust/soft65c02/src/processing_unit.rs	/^fn resolve_opcode(address: usize, opcode: u8) -> CPUInstruction {$/;"	f
-sbc	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/sbc.rs	/^pub fn sbc(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> LogLine {$/;"	f
-set_b_flag	/home/greg/rust/soft65c02/src/registers.rs	/^    pub fn set_b_flag(&mut self, flag: bool) {$/;"	f
+php	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/php.rs	/^pub fn php(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+phx	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/phx.rs	/^pub fn phx(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+phy	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/phy.rs	/^pub fn phy(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+pla	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/pla.rs	/^pub fn pla(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+plp	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/plp.rs	/^pub fn plp(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+plx	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/plx.rs	/^pub fn plx(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+ply	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/ply.rs	/^pub fn ply(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+process_button	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    unsafe fn process_button(&mut self, ev: xlib::XEvent, is_down: bool) {$/;"	f
+process_events	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/redox/mod.rs	/^    fn process_events(&mut self) {$/;"	f
+process_key	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    fn process_key(&mut self, mut ev: xlib::XEvent, is_down: bool) {$/;"	f
+prop	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^        fn prop(map: RangeMap<i32, i32>) -> bool {$/;"	f
+prop	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^        fn prop(map: RangeMap<i32, i32>, r: Range<i32>) -> bool {$/;"	f
+prop	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^        fn prop(map: RangeMap<i32, i32>, set: RangeSet<i32>) -> bool {$/;"	f
+prop	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^        fn prop(map: RangeMap<i32, i32>, x: i32) -> bool {$/;"	f
+prop	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^        fn prop(mm_vec: Vec<(Range<i32>, i32)>) -> bool {$/;"	f
+prop	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^        fn prop(mut except: Vec<i8>) -> bool {$/;"	f
+prop	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^        fn prop(r1: Range<i32>, r2: Range<i32>) -> bool {$/;"	f
+prop	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^        fn prop(r1: Range<i32>, r2: Range<i32>, x: i32) -> TestResult {$/;"	f
+prop	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^        fn prop(s1: RangeSet<i32>, s2: RangeSet<i32>) -> bool {$/;"	f
+prop	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^        fn prop(set: RangeSet<i32>) -> bool {$/;"	f
+prop	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^        fn prop(set: RangeSet<i8>) -> bool {$/;"	f
+range_backwards	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    fn range_backwards() {$/;"	f
+range_intersection_contains	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    fn range_intersection_contains() {$/;"	f
+range_intersection_cover	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    fn range_intersection_cover() {$/;"	f
+range_intersects_intersection	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    fn range_intersects_intersection() {$/;"	f
+rangemap_intersection	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    fn rangemap_intersection() {$/;"	f
+rangemap_map_values	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    fn rangemap_map_values() {$/;"	f
+rangemap_num_keys	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    fn rangemap_num_keys() {$/;"	f
+rangemap_num_ranges	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    fn rangemap_num_ranges() {$/;"	f
+rangemap_overlapping	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    fn rangemap_overlapping() {$/;"	f
+rangemap_overlapping_nonequal	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    fn rangemap_overlapping_nonequal() {$/;"	f
+rangemap_retain_values	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    fn rangemap_retain_values() {$/;"	f
+rangemultimap_boundaries	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    fn rangemultimap_boundaries() {$/;"	f
+rangemultimap_group	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    fn rangemultimap_group() {$/;"	f
+ranges	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    pub fn ranges<'a>(&'a self) -> RangeIter<'a, T> {$/;"	f
+ranges_values	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    pub fn ranges_values<'a>(&'a self) -> std::slice::Iter<'a, (Range<T>, V)> {$/;"	f
+rangeset_contains	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    fn rangeset_contains() {$/;"	f
+rangeset_except	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    fn rangeset_except() {$/;"	f
+rangeset_except_unsorted	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    fn rangeset_except_unsorted() {$/;"	f
+rangeset_intersection	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    fn rangeset_intersection() {$/;"	f
+rangeset_negate	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    fn rangeset_negate() {$/;"	f
+rangeset_num_elements	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    fn rangeset_num_elements() {$/;"	f
+rangeset_num_ranges	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    fn rangeset_num_ranges() {$/;"	f
+rangeset_union	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    fn rangeset_union() {$/;"	f
+raw_blit_buffer	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    unsafe fn raw_blit_buffer($/;"	f
+raw_get_mouse_pos	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    unsafe fn raw_get_mouse_pos(&mut self) {$/;"	f
+raw_process_events	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    unsafe fn raw_process_events(&mut self) {$/;"	f
+raw_process_one_event	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    unsafe fn raw_process_one_event(&mut self, ev: xlib::XEvent) -> ProcessEventResult {$/;"	f
+raw_window_handle	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    fn raw_window_handle(&self) -> raw_window_handle::RawWindowHandle {$/;"	f
+raw_window_handle	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    fn raw_window_handle(&self) -> raw_window_handle::RawWindowHandle {$/;"	f
+raw_window_handle	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    fn raw_window_handle(&self) -> raw_window_handle::RawWindowHandle {$/;"	f
+raw_window_handle	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    fn raw_window_handle(&self) -> raw_window_handle::RawWindowHandle {$/;"	f
+read	/home/greg/rust/soft65c02/src/memory/memory_stack.rs	/^    fn read(&self, addr: usize, len: usize) -> Result<Vec<u8>, MemoryError> {$/;"	f
+read	/home/greg/rust/soft65c02/src/memory/minifb_adapter.rs	/^    fn read(&self, addr: usize, len: usize) -> Result<Vec<u8>, MemoryError> {$/;"	f
+read	/home/greg/rust/soft65c02/src/memory/mod.rs	/^    fn read(&self, addr: usize, len: usize) -> Result<Vec<u8>, MemoryError>;$/;"	f
+read	/home/greg/rust/soft65c02/src/memory/ram.rs	/^    fn read(&self, addr: usize, len: usize) -> Result<Vec<u8>, MemoryError> {$/;"	f
+read	/home/greg/rust/soft65c02/src/memory/rom.rs	/^    fn read(&self, addr: usize, len: usize) -> Result<Vec<u8>, MemoryError> {$/;"	f
+read_step	/home/greg/rust/soft65c02/src/processing_unit.rs	/^pub fn read_step(address: usize, memory: &Memory) -> CPUInstruction {$/;"	f
+refresh	/home/greg/rust/soft65c02/src/memory/memory_stack.rs	/^    fn refresh(&mut self) {$/;"	f
+refresh	/home/greg/rust/soft65c02/src/memory/minifb_adapter.rs	/^    fn refresh(&mut self) {$/;"	f
+refresh	/home/greg/rust/soft65c02/src/memory/mod.rs	/^    fn refresh(&mut self) {}$/;"	f
+remove_item	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    pub fn remove_item(&mut self, item: &MenuItemHandle) {$/;"	f
+remove_item	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/menu.rs	/^    pub fn remove_item(&mut self, item: &mut MenuItem) {$/;"	f
+remove_item	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    pub fn remove_item(&mut self, handle: &MenuItemHandle) {$/;"	f
+remove_item	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/redox/mod.rs	/^    pub fn remove_item(&mut self, handle: &MenuItemHandle) {$/;"	f
+remove_item	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    pub fn remove_item(&mut self, handle: &MenuItemHandle) {$/;"	f
+remove_item	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    pub fn remove_item(&mut self, _item: &MenuItemHandle) {$/;"	f
+remove_menu	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    pub fn remove_menu(&mut self, handle: MenuHandle) {$/;"	f
+remove_menu	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    pub fn remove_menu(&mut self, handle: MenuHandle) {$/;"	f
+remove_menu	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/redox/mod.rs	/^    pub fn remove_menu(&mut self, handle: MenuHandle) {$/;"	f
+remove_menu	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    pub fn remove_menu(&mut self, handle: MenuHandle) {$/;"	f
+remove_menu	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    pub fn remove_menu(&mut self, handle: MenuHandle) {$/;"	f
+render_buffer	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/redox/mod.rs	/^    fn render_buffer(&mut self, buffer: &[u32]) {$/;"	f
+resolve_opcode	/home/greg/rust/soft65c02/src/processing_unit.rs	/^fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> CPUInstruction {$/;"	f
+retain_values	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    pub fn retain_values<F>(&mut self, mut f: F) where F: FnMut(&V) -> bool {$/;"	f
+rol	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/rol.rs	/^pub fn rol(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+ror	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/ror.rs	/^pub fn ror(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+rti	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/rti.rs	/^pub fn rti(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+rts	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/rts.rs	/^pub fn rts(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+sbc	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/sbc.rs	/^pub fn sbc(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+sec	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/sec.rs	/^pub fn sec(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+sed	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/sed.rs	/^pub fn sed(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+sei	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/sei.rs	/^pub fn sei(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+separator	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    pub fn separator(self) -> Self {$/;"	f
+set_accel_table	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    unsafe fn set_accel_table(&mut self) {$/;"	f
+set_background_color	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    pub fn set_background_color(&mut self, red: usize, green: usize, blue: usize) {$/;"	f
+set_background_color	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    pub fn set_background_color(&mut self, color: u32) {$/;"	f
+set_background_color	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    pub fn set_background_color(&mut self, bg_color: u32) {$/;"	f
+set_background_color	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    pub fn set_background_color(&mut self, color: u32) {$/;"	f
 set_c_flag	/home/greg/rust/soft65c02/src/registers.rs	/^    pub fn set_c_flag(&mut self, flag: bool) {$/;"	f
+set_cursor_style	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    pub fn set_cursor_style(&mut self, cursor: CursorStyle) {$/;"	f
+set_cursor_style	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    pub fn set_cursor_style(&mut self, cursor: CursorStyle) {$/;"	f
+set_cursor_style	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/redox/mod.rs	/^    pub fn set_cursor_style(&mut self, _cursor: CursorStyle) {$/;"	f
+set_cursor_style	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    pub fn set_cursor_style(&mut self, cursor: CursorStyle) {$/;"	f
+set_cursor_style	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    pub fn set_cursor_style(&mut self, cursor: CursorStyle) {$/;"	f
 set_d_flag	/home/greg/rust/soft65c02/src/registers.rs	/^    pub fn set_d_flag(&mut self, flag: bool) {$/;"	f
 set_i_flag	/home/greg/rust/soft65c02/src/registers.rs	/^    pub fn set_i_flag(&mut self, flag: bool) {$/;"	f
+set_input_callback	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/key_handler.rs	/^    pub fn set_input_callback(&mut self, callback: Box<dyn InputCallback>) {$/;"	f
+set_input_callback	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    pub fn set_input_callback(&mut self, callback: Box<dyn InputCallback>) {$/;"	f
+set_input_callback	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    pub fn set_input_callback(&mut self, callback: Box<dyn InputCallback>) {$/;"	f
+set_input_callback	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/redox/mod.rs	/^    pub fn set_input_callback(&mut self, callback: Box<InputCallback>) {$/;"	f
+set_input_callback	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    pub fn set_input_callback(&mut self, callback: Box<dyn InputCallback>) {$/;"	f
+set_input_callback	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    pub fn set_input_callback(&mut self, callback: Box<dyn InputCallback>) {$/;"	f
+set_key_repeat_delay	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/key_handler.rs	/^    pub fn set_key_repeat_delay(&mut self, delay: f32) {$/;"	f
+set_key_repeat_delay	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    pub fn set_key_repeat_delay(&mut self, delay: f32) {$/;"	f
+set_key_repeat_delay	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    pub fn set_key_repeat_delay(&mut self, delay: f32) {$/;"	f
+set_key_repeat_delay	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/redox/mod.rs	/^    pub fn set_key_repeat_delay(&mut self, delay: f32) {$/;"	f
+set_key_repeat_delay	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    pub fn set_key_repeat_delay(&mut self, delay: f32) {$/;"	f
+set_key_repeat_delay	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    pub fn set_key_repeat_delay(&mut self, delay: f32) {$/;"	f
+set_key_repeat_rate	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/key_handler.rs	/^    pub fn set_key_repeat_rate(&mut self, rate: f32) {$/;"	f
+set_key_repeat_rate	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    pub fn set_key_repeat_rate(&mut self, rate: f32) {$/;"	f
+set_key_repeat_rate	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    pub fn set_key_repeat_rate(&mut self, rate: f32) {$/;"	f
+set_key_repeat_rate	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/redox/mod.rs	/^    pub fn set_key_repeat_rate(&mut self, rate: f32) {$/;"	f
+set_key_repeat_rate	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    pub fn set_key_repeat_rate(&mut self, rate: f32) {$/;"	f
+set_key_repeat_rate	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    pub fn set_key_repeat_rate(&mut self, rate: f32) {$/;"	f
+set_key_state	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/key_handler.rs	/^    pub fn set_key_state(&mut self, key: Key, state: bool) {$/;"	f
+set_mouse_data	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    unsafe fn set_mouse_data(&mut self) {$/;"	f
 set_n_flag	/home/greg/rust/soft65c02/src/registers.rs	/^    pub fn set_n_flag(&mut self, flag: bool) {$/;"	f
+set_position	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    pub fn set_position(&mut self, x: isize, y: isize) {$/;"	f
+set_position	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    pub fn set_position(&mut self, x: isize, y: isize) {$/;"	f
+set_position	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/redox/mod.rs	/^    pub fn set_position(&mut self, x: isize, y: isize) {$/;"	f
+set_position	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    pub fn set_position(&mut self, x: isize, y: isize) {$/;"	f
+set_position	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    pub fn set_position(&mut self, x: isize, y: isize) {$/;"	f
+set_rate	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    pub fn set_rate(&mut self, rate: Option<std::time::Duration>) {$/;"	f
+set_rate	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    pub fn set_rate(&mut self, rate: Option<std::time::Duration>) {$/;"	f
+set_rate	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    pub fn set_rate(&mut self, rate: Option<std::time::Duration>) {$/;"	f
+set_rate	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/rate.rs	/^    pub fn set_rate(&mut self, rate: Option<Duration>) {$/;"	f
+set_status_register	/home/greg/rust/soft65c02/src/registers.rs	/^    pub fn set_status_register(&mut self, status: u8) {$/;"	f
+set_title	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    pub fn set_title(&mut self, title: &str) {$/;"	f
+set_title	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    pub fn set_title(&mut self, title: &str) {$/;"	f
+set_title	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/redox/mod.rs	/^    pub fn set_title(&mut self, title: &str) {$/;"	f
+set_title	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    pub fn set_title(&mut self, title: &str) {$/;"	f
+set_title	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    pub fn set_title(&mut self, title: &str) {$/;"	f
 set_v_flag	/home/greg/rust/soft65c02/src/registers.rs	/^    pub fn set_v_flag(&mut self, flag: bool) {$/;"	f
+set_window_long	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^unsafe fn set_window_long(window: windef::HWND, data: basetsd::LONG_PTR) -> basetsd::LONG_PTR {$/;"	f
+set_window_long	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^unsafe fn set_window_long(window: windef::HWND, data: ntdef::LONG) -> ntdef::LONG {$/;"	f
 set_z_flag	/home/greg/rust/soft65c02/src/registers.rs	/^    pub fn set_z_flag(&mut self, flag: bool) {$/;"	f
-simulate	/home/greg/rust/soft65c02/src/cpu_instruction/cpu_instruction.rs	/^    pub fn simulate(&self, memory: &Memory, registers: &Registers) -> LogLine {$/;"	f
+setup	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    fn setup() -> Result<DisplayInfo> {$/;"	f
+shortcut	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    pub fn shortcut(self, key: Key, modifier: usize) -> Self {$/;"	f
+shrink	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^        fn shrink(&self) -> Box<Iterator<Item=Self>> {$/;"	f
 simulate_step_dex	/home/greg/rust/soft65c02/src/processing_unit.rs	/^    fn simulate_step_dex() {$/;"	f
+single	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    pub fn single(x: T) -> Range<T> {$/;"	f
+single	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    pub fn single(x: T) -> RangeSet<T> {$/;"	f
 solve	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^    pub fn solve(&self, opcode_address: usize, memory: &Memory, registers: &Registers) -> Result<AddressingModeResolution> {$/;"	f
 source	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^    fn source(&self) -> Option<&(dyn error::Error + 'static)> {$/;"	f
 source	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/error.rs	/^    fn source(&self) -> Option<&(dyn error::Error + 'static)> {$/;"	f
-source	/home/greg/rust/soft65c02/src/memory.rs	/^    fn source(&self) -> Option<&(dyn error::Error + 'static)> {$/;"	f
-sta	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/sta.rs	/^pub fn sta(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> LogLine {$/;"	f
-stx	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/stx.rs	/^pub fn stx(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> LogLine {$/;"	f
+source	/home/greg/rust/soft65c02/src/memory/error.rs	/^    fn source(&self) -> Option<&(dyn error::Error + 'static)> {$/;"	f
+sta	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/sta.rs	/^pub fn sta(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+stack_pull	/home/greg/rust/soft65c02/src/registers.rs	/^    pub fn stack_pull(&mut self, memory: &Memory) -> std::result::Result<u8, MemoryError> {$/;"	f
+stack_push	/home/greg/rust/soft65c02/src/registers.rs	/^    pub fn stack_push(&mut self, memory: &mut Memory, byte: u8) -> std::result::Result<(), MemoryError> {$/;"	f
+stp	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/stp.rs	/^pub fn stp(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+stx	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/stx.rs	/^pub fn stx(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+sty	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/sty.rs	/^pub fn sty(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+stz	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/stz.rs	/^pub fn stz(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+tax	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/tax.rs	/^pub fn tax(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+tay	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/tay.rs	/^pub fn tay(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
 test_absolute	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^    fn test_absolute() {$/;"	f
 test_absolute_x_indexed	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^    fn test_absolute_x_indexed() {$/;"	f
+test_absolute_x_indexed_indirect	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^    fn test_absolute_x_indexed_indirect() {$/;"	f
 test_absolute_y_indexed	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^    fn test_absolute_y_indexed() {$/;"	f
+test_accumulator	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^    fn test_accumulator() {$/;"	f
 test_adc	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/adc.rs	/^    fn test_adc() {$/;"	f
-test_bne	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bne.rs	/^    fn test_bne() {$/;"	f
+test_adc_set_carry	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/adc.rs	/^    fn test_adc_set_carry() {$/;"	f
+test_adc_set_negative	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/adc.rs	/^    fn test_adc_set_negative() {$/;"	f
+test_adc_set_overflow	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/adc.rs	/^    fn test_adc_set_overflow() {$/;"	f
+test_adc_set_zero	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/adc.rs	/^    fn test_adc_set_zero() {$/;"	f
+test_adc_with_carry	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/adc.rs	/^    fn test_adc_with_carry() {$/;"	f
+test_add_subsystem	/home/greg/rust/soft65c02/src/memory/memory_stack.rs	/^    fn test_add_subsystem() {$/;"	f
+test_and	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/and.rs	/^    fn test_and() {$/;"	f
+test_and_set_negative	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/and.rs	/^    fn test_and_set_negative() {$/;"	f
+test_and_set_zero	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/and.rs	/^    fn test_and_set_zero() {$/;"	f
+test_asl	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/asl.rs	/^    fn test_asl() {$/;"	f
+test_asl_acc	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/asl.rs	/^    fn test_asl_acc() {$/;"	f
+test_asl_with_c_flag	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/asl.rs	/^    fn test_asl_with_c_flag() {$/;"	f
+test_asl_with_n_flag	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/asl.rs	/^    fn test_asl_with_n_flag() {$/;"	f
+test_asl_with_z_flag	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/asl.rs	/^    fn test_asl_with_z_flag() {$/;"	f
+test_bcc	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bcc.rs	/^    fn test_bcc() {$/;"	f
+test_bcc_with_c_clear	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bcc.rs	/^    fn test_bcc_with_c_clear() {$/;"	f
+test_bcs	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bcs.rs	/^    fn test_bcs() {$/;"	f
+test_bcs_with_c_clear	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bcs.rs	/^    fn test_bcs_with_c_clear() {$/;"	f
+test_beq_branch	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/beq.rs	/^    fn test_beq_branch() {$/;"	f
+test_beq_no_branch	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/beq.rs	/^    fn test_beq_no_branch() {$/;"	f
+test_bit	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bit.rs	/^    fn test_bit() {$/;"	f
+test_bit_negative	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bit.rs	/^    fn test_bit_negative() {$/;"	f
+test_bit_overflow	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bit.rs	/^    fn test_bit_overflow() {$/;"	f
+test_bit_zero	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bit.rs	/^    fn test_bit_zero() {$/;"	f
+test_bmi_branch	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bmi.rs	/^    fn test_bmi_branch() {$/;"	f
+test_bmi_no_branch	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bmi.rs	/^    fn test_bmi_no_branch() {$/;"	f
+test_bne_branch	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bne.rs	/^    fn test_bne_branch() {$/;"	f
+test_bne_branch	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bra.rs	/^    fn test_bne_branch() {$/;"	f
+test_bne_no_branch	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bne.rs	/^    fn test_bne_no_branch() {$/;"	f
+test_bpl_branch	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bpl.rs	/^    fn test_bpl_branch() {$/;"	f
+test_bpl_no_branch	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bpl.rs	/^    fn test_bpl_no_branch() {$/;"	f
 test_brk	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/brk.rs	/^    fn test_brk() {$/;"	f
+test_bvc	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bvc.rs	/^    fn test_bvc() {$/;"	f
+test_bvc_with_v_clear	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bvc.rs	/^    fn test_bvc_with_v_clear() {$/;"	f
+test_bvs	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bvs.rs	/^    fn test_bvs() {$/;"	f
+test_bvs_with_v_clear	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bvs.rs	/^    fn test_bvs_with_v_clear() {$/;"	f
+test_clc	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/clc.rs	/^    fn test_clc() {$/;"	f
+test_cld	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/cld.rs	/^    fn test_cld() {$/;"	f
+test_cli	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/cli.rs	/^    fn test_cli() {$/;"	f
+test_clv	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/clv.rs	/^    fn test_clv() {$/;"	f
+test_cmp_be	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/cmp.rs	/^    fn test_cmp_be() {$/;"	f
+test_cmp_equ	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/cmp.rs	/^    fn test_cmp_equ() {$/;"	f
+test_cmp_lt	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/cmp.rs	/^    fn test_cmp_lt() {$/;"	f
+test_cpx_be	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/cpx.rs	/^    fn test_cpx_be() {$/;"	f
+test_cpx_equ	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/cpx.rs	/^    fn test_cpx_equ() {$/;"	f
+test_cpx_lt	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/cpx.rs	/^    fn test_cpx_lt() {$/;"	f
+test_cpy_be	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/cpy.rs	/^    fn test_cpy_be() {$/;"	f
+test_cpy_equ	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/cpy.rs	/^    fn test_cpy_equ() {$/;"	f
+test_cpy_lt	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/cpy.rs	/^    fn test_cpy_lt() {$/;"	f
+test_dec	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/dec.rs	/^    fn test_dec() {$/;"	f
+test_dec_memory	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/dec.rs	/^    fn test_dec_memory() {$/;"	f
+test_dec_when_one	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/dec.rs	/^    fn test_dec_when_one() {$/;"	f
+test_dec_when_zero	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/dec.rs	/^    fn test_dec_when_zero() {$/;"	f
 test_dex	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/dex.rs	/^    fn test_dex() {$/;"	f
+test_dex	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/dey.rs	/^    fn test_dex() {$/;"	f
 test_dex	/home/greg/rust/soft65c02/src/processing_unit.rs	/^    fn test_dex() {$/;"	f
-test_dex_zero	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/dex.rs	/^    fn test_dex_zero() {$/;"	f
+test_dex_when_one	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/dex.rs	/^    fn test_dex_when_one() {$/;"	f
+test_dex_when_one	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/dey.rs	/^    fn test_dex_when_one() {$/;"	f
+test_dex_when_zero	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/dex.rs	/^    fn test_dex_when_zero() {$/;"	f
+test_dex_when_zero	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/dey.rs	/^    fn test_dex_when_zero() {$/;"	f
 test_eor	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/eor.rs	/^    fn test_eor() {$/;"	f
+test_eor_with_n	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/eor.rs	/^    fn test_eor_with_n() {$/;"	f
+test_eor_with_z	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/eor.rs	/^    fn test_eor_with_z() {$/;"	f
 test_execute_step_dex	/home/greg/rust/soft65c02/src/processing_unit.rs	/^    fn test_execute_step_dex() {$/;"	f
 test_immediate	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^    fn test_immediate() {$/;"	f
 test_implied	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^    fn test_implied() {$/;"	f
+test_inc	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/inc.rs	/^    fn test_inc() {$/;"	f
+test_inc_acc	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/inc.rs	/^    fn test_inc_acc() {$/;"	f
+test_inc_with_n_flag	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/inc.rs	/^    fn test_inc_with_n_flag() {$/;"	f
+test_inc_with_z_flag	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/inc.rs	/^    fn test_inc_with_z_flag() {$/;"	f
 test_indirect	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^    fn test_indirect() {$/;"	f
+test_init_flags	/home/greg/rust/soft65c02/src/registers.rs	/^    fn test_init_flags() {$/;"	f
+test_inx	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/inx.rs	/^    fn test_inx() {$/;"	f
+test_inx_with_n_flag	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/inx.rs	/^    fn test_inx_with_n_flag() {$/;"	f
+test_inx_with_z_flag	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/inx.rs	/^    fn test_inx_with_z_flag() {$/;"	f
+test_iny	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/iny.rs	/^    fn test_iny() {$/;"	f
+test_iny_with_n_flag	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/iny.rs	/^    fn test_iny_with_n_flag() {$/;"	f
+test_iny_with_z_flag	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/iny.rs	/^    fn test_iny_with_z_flag() {$/;"	f
+test_it	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/key_mapping.rs	/^pub fn test_it() {$/;"	f
 test_jmp	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/jmp.rs	/^    fn test_jmp() {$/;"	f
+test_jsr	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/jsr.rs	/^    fn test_jsr() {$/;"	f
 test_lda	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/lda.rs	/^    fn test_lda() {$/;"	f
-test_little_endian	/home/greg/rust/soft65c02/src/memory.rs	/^    fn test_little_endian() {$/;"	f
+test_lda_negative	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/lda.rs	/^    fn test_lda_negative() {$/;"	f
+test_lda_zero	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/lda.rs	/^    fn test_lda_zero() {$/;"	f
+test_ldx	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/ldx.rs	/^    fn test_ldx() {$/;"	f
+test_ldx_negative	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/ldx.rs	/^    fn test_ldx_negative() {$/;"	f
+test_ldx_zero	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/ldx.rs	/^    fn test_ldx_zero() {$/;"	f
+test_ldy	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/ldy.rs	/^    fn test_ldy() {$/;"	f
+test_ldy_negative	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/ldy.rs	/^    fn test_ldy_negative() {$/;"	f
+test_ldy_zero	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/ldy.rs	/^    fn test_ldy_zero() {$/;"	f
+test_little_endian	/home/greg/rust/soft65c02/src/memory/mod.rs	/^    fn test_little_endian() {$/;"	f
+test_lsr	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/lsr.rs	/^    fn test_lsr() {$/;"	f
+test_lsr_acc	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/lsr.rs	/^    fn test_lsr_acc() {$/;"	f
+test_lsr_with_c_flag	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/lsr.rs	/^    fn test_lsr_with_c_flag() {$/;"	f
+test_lsr_with_n_flag	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/lsr.rs	/^    fn test_lsr_with_n_flag() {$/;"	f
+test_lsr_with_z_flag	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/lsr.rs	/^    fn test_lsr_with_z_flag() {$/;"	f
+test_ora	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/ora.rs	/^    fn test_ora() {$/;"	f
+test_ora_set_negative	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/ora.rs	/^    fn test_ora_set_negative() {$/;"	f
+test_ora_set_zero	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/ora.rs	/^    fn test_ora_set_zero() {$/;"	f
 test_pha	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/pha.rs	/^    fn test_pha() {$/;"	f
+test_php	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/php.rs	/^    fn test_php() {$/;"	f
+test_php	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/phx.rs	/^    fn test_php() {$/;"	f
+test_phy	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/phy.rs	/^    fn test_phy() {$/;"	f
+test_pla	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/pla.rs	/^    fn test_pla() {$/;"	f
+test_pla_neg	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/pla.rs	/^    fn test_pla_neg() {$/;"	f
+test_pla_zero	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/pla.rs	/^    fn test_pla_zero() {$/;"	f
+test_plp	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/plp.rs	/^    fn test_plp() {$/;"	f
+test_plx	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/plx.rs	/^    fn test_plx() {$/;"	f
+test_plx_neg	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/plx.rs	/^    fn test_plx_neg() {$/;"	f
+test_plx_zero	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/plx.rs	/^    fn test_plx_zero() {$/;"	f
+test_ply	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/ply.rs	/^    fn test_ply() {$/;"	f
+test_ply_neg	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/ply.rs	/^    fn test_ply_neg() {$/;"	f
+test_ply_zero	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/ply.rs	/^    fn test_ply_zero() {$/;"	f
+test_read_one_subsystem	/home/greg/rust/soft65c02/src/memory/memory_stack.rs	/^    fn test_read_one_subsystem() {$/;"	f
+test_read_overlaping_subsystems	/home/greg/rust/soft65c02/src/memory/memory_stack.rs	/^    fn test_read_overlaping_subsystems() {$/;"	f
+test_relative_negative	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^    fn test_relative_negative() {$/;"	f
+test_relative_negative_edge	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^    fn test_relative_negative_edge() {$/;"	f
+test_relative_positive	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^    fn test_relative_positive() {$/;"	f
+test_relative_positive_edge	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^    fn test_relative_positive_edge() {$/;"	f
+test_rol	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/rol.rs	/^    fn test_rol() {$/;"	f
+test_rol_acc	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/rol.rs	/^    fn test_rol_acc() {$/;"	f
+test_rol_with_c_flag	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/rol.rs	/^    fn test_rol_with_c_flag() {$/;"	f
+test_rol_with_n_flag	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/rol.rs	/^    fn test_rol_with_n_flag() {$/;"	f
+test_rol_with_previous_c_flag	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/rol.rs	/^    fn test_rol_with_previous_c_flag() {$/;"	f
+test_rol_with_z_flag	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/rol.rs	/^    fn test_rol_with_z_flag() {$/;"	f
+test_ror	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/ror.rs	/^    fn test_ror() {$/;"	f
+test_ror_acc	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/ror.rs	/^    fn test_ror_acc() {$/;"	f
+test_ror_with_c_flag	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/ror.rs	/^    fn test_ror_with_c_flag() {$/;"	f
+test_ror_with_n_flag	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/ror.rs	/^    fn test_ror_with_n_flag() {$/;"	f
+test_ror_with_previous_c_flag	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/ror.rs	/^    fn test_ror_with_previous_c_flag() {$/;"	f
+test_ror_with_z_flag	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/ror.rs	/^    fn test_ror_with_z_flag() {$/;"	f
+test_rti	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/rti.rs	/^    fn test_rti() {$/;"	f
+test_rts	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/rts.rs	/^    fn test_rts() {$/;"	f
 test_sbc	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/sbc.rs	/^    fn test_sbc() {$/;"	f
+test_sbc_negative	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/sbc.rs	/^    fn test_sbc_negative() {$/;"	f
+test_sbc_overflow	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/sbc.rs	/^    fn test_sbc_overflow() {$/;"	f
+test_sbc_with_no_preceding_carry	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/sbc.rs	/^    fn test_sbc_with_no_preceding_carry() {$/;"	f
+test_sbc_with_zero	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/sbc.rs	/^    fn test_sbc_with_zero() {$/;"	f
+test_sbc_zero	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/sbc.rs	/^    fn test_sbc_zero() {$/;"	f
+test_sbc_zero_with_carry	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/sbc.rs	/^    fn test_sbc_zero_with_carry() {$/;"	f
+test_sbc_zero_without_carry	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/sbc.rs	/^    fn test_sbc_zero_without_carry() {$/;"	f
+test_sec	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/sec.rs	/^    fn test_sec() {$/;"	f
+test_sed	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/sed.rs	/^    fn test_sed() {$/;"	f
+test_sei	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/sei.rs	/^    fn test_sei() {$/;"	f
+test_set_flags	/home/greg/rust/soft65c02/src/registers.rs	/^    fn test_set_flags() {$/;"	f
 test_sta	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/sta.rs	/^    fn test_sta() {$/;"	f
+test_stp	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/stp.rs	/^    fn test_stp() {$/;"	f
 test_stx	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/stx.rs	/^    fn test_stx() {$/;"	f
+test_sty	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/sty.rs	/^    fn test_sty() {$/;"	f
+test_stz	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/stz.rs	/^    fn test_stz() {$/;"	f
+test_tax	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/tax.rs	/^    fn test_tax() {$/;"	f
+test_tax_with_n_flag	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/tax.rs	/^    fn test_tax_with_n_flag() {$/;"	f
+test_tax_with_z_flag	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/tax.rs	/^    fn test_tax_with_z_flag() {$/;"	f
+test_tay	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/tay.rs	/^    fn test_tay() {$/;"	f
+test_tay_with_n_flag	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/tay.rs	/^    fn test_tay_with_n_flag() {$/;"	f
+test_tay_with_z_flag	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/tay.rs	/^    fn test_tay_with_z_flag() {$/;"	f
+test_trb	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/trb.rs	/^    fn test_trb() {$/;"	f
+test_trb_with_no_z_flag	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/trb.rs	/^    fn test_trb_with_no_z_flag() {$/;"	f
+test_tsb	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/tsb.rs	/^    fn test_tsb() {$/;"	f
+test_tsb_z	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/tsb.rs	/^    fn test_tsb_z() {$/;"	f
+test_tsx	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/tsx.rs	/^    fn test_tsx() {$/;"	f
+test_tsx_with_n_flag	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/tsx.rs	/^    fn test_tsx_with_n_flag() {$/;"	f
+test_tsx_with_z_flag	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/tsx.rs	/^    fn test_tsx_with_z_flag() {$/;"	f
+test_txa	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/txa.rs	/^    fn test_txa() {$/;"	f
+test_txa_with_n_flag	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/txa.rs	/^    fn test_txa_with_n_flag() {$/;"	f
+test_txa_with_z_flag	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/txa.rs	/^    fn test_txa_with_z_flag() {$/;"	f
+test_txs	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/txs.rs	/^    fn test_txs() {$/;"	f
+test_tya	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/tya.rs	/^    fn test_tya() {$/;"	f
+test_tya_with_n_flag	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/tya.rs	/^    fn test_tya_with_n_flag() {$/;"	f
+test_tya_with_z_flag	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/tya.rs	/^    fn test_tya_with_z_flag() {$/;"	f
+test_write_one_subsystem	/home/greg/rust/soft65c02/src/memory/memory_stack.rs	/^    fn test_write_one_subsystem() {$/;"	f
+test_write_overlapping_subsystems	/home/greg/rust/soft65c02/src/memory/memory_stack.rs	/^    fn test_write_overlapping_subsystems() {$/;"	f
 test_zero_page	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^    fn test_zero_page() {$/;"	f
+test_zero_page_indirect	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^    fn test_zero_page_indirect() {$/;"	f
 test_zero_page_indirect_y_indexed	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^    fn test_zero_page_indirect_y_indexed() {$/;"	f
+test_zero_page_wraparound	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^    fn test_zero_page_wraparound() {$/;"	f
 test_zero_page_x_indexed	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^    fn test_zero_page_x_indexed() {$/;"	f
 test_zero_page_y_indexed	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^    fn test_zero_page_y_indexed() {$/;"	f
+tests	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^mod tests {$/;"	m
 tests	/home/greg/rust/soft65c02/src/addressing_mode.rs	/^mod tests {$/;"	m
 tests	/home/greg/rust/soft65c02/src/cpu_instruction/cpu_instruction.rs	/^pub mod tests {$/;"	m
 tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/adc.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/and.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/asl.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bcc.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bcs.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/beq.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bit.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bmi.rs	/^mod tests {$/;"	m
 tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bne.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bpl.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bra.rs	/^mod tests {$/;"	m
 tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/brk.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bvc.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/bvs.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/clc.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/cld.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/cli.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/clv.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/cmp.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/cpx.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/cpy.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/dec.rs	/^mod tests {$/;"	m
 tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/dex.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/dey.rs	/^mod tests {$/;"	m
 tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/eor.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/inc.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/inx.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/iny.rs	/^mod tests {$/;"	m
 tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/jmp.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/jsr.rs	/^mod tests {$/;"	m
 tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/lda.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/ldx.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/ldy.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/lsr.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/ora.rs	/^mod tests {$/;"	m
 tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/pha.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/php.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/phx.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/phy.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/pla.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/plp.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/plx.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/ply.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/rol.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/ror.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/rti.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/rts.rs	/^mod tests {$/;"	m
 tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/sbc.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/sec.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/sed.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/sei.rs	/^mod tests {$/;"	m
 tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/sta.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/stp.rs	/^mod tests {$/;"	m
 tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/stx.rs	/^mod tests {$/;"	m
-tests	/home/greg/rust/soft65c02/src/lib.rs	/^mod tests {$/;"	m
-tests	/home/greg/rust/soft65c02/src/memory.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/sty.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/stz.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/tax.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/tay.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/trb.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/tsb.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/tsx.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/txa.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/txs.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/tya.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/memory/memory_stack.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/memory/mod.rs	/^mod tests {$/;"	m
 tests	/home/greg/rust/soft65c02/src/processing_unit.rs	/^mod tests {$/;"	m
+tests	/home/greg/rust/soft65c02/src/registers.rs	/^mod tests {$/;"	m
+to_range_set	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    pub fn to_range_set(&self) -> RangeSet<T> {$/;"	f
+to_wstring	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^fn to_wstring(str: &str) -> Vec<u16> {$/;"	f
+trb	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/trb.rs	/^pub fn trb(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+tsb	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/tsb.rs	/^pub fn tsb(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+tsx	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/tsx.rs	/^pub fn tsx(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+txa	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/txa.rs	/^pub fn txa(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+txs	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/txs.rs	/^pub fn txs(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+tya	/home/greg/rust/soft65c02/src/cpu_instruction/microcode/tya.rs	/^pub fn tya(memory: &mut Memory, registers: &mut Registers, cpu_instruction: &CPUInstruction) -> Result<LogLine> {$/;"	f
+union	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/range-map-0.1.5/src/lib.rs	/^    pub fn union(&self, other: &RangeSet<T>) -> RangeSet<T> {$/;"	f
+update	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/key_handler.rs	/^    pub fn update(&mut self) {$/;"	f
+update	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    pub fn update(&mut self) {$/;"	f
+update	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    pub fn update(&mut self) {$/;"	f
+update	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/redox/mod.rs	/^    pub fn update(&mut self) {$/;"	f
+update	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    pub fn update(&mut self) {$/;"	f
+update	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    pub fn update(&mut self) {$/;"	f
+update	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/rate.rs	/^    pub fn update(&mut self) {$/;"	f
+update_key_state	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    fn update_key_state(&mut self, sym: xlib::KeySym, is_down: bool) {$/;"	f
+update_key_state	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^fn update_key_state(window: &mut Window, wparam: u32, state: bool) {$/;"	f
+update_minifb	/home/greg/rust/soft65c02/src/memory/minifb_adapter.rs	/^    fn update_minifb(&mut self) {$/;"	f
+update_minifb_pixel	/home/greg/rust/soft65c02/src/memory/minifb_adapter.rs	/^    fn update_minifb_pixel(&mut self, addr: usize) {$/;"	f
+update_rate	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    pub fn update_rate(&mut self) {$/;"	f
+update_rate	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    pub fn update_rate(&mut self) {$/;"	f
+update_rate	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    pub fn update_rate(&mut self) {$/;"	f
+update_with_buffer	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/lib.rs	/^    pub fn update_with_buffer($/;"	f
+update_with_buffer	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/redox/mod.rs	/^    pub fn update_with_buffer(&mut self, buffer: &[u32]) -> Result<()> {$/;"	f
+update_with_buffer_stride	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/macos/mod.rs	/^    pub fn update_with_buffer_stride($/;"	f
+update_with_buffer_stride	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/unix/mod.rs	/^    pub fn update_with_buffer_stride($/;"	f
+update_with_buffer_stride	/home/greg/.cargo/registry/src/github.com-1ecc6299db9ec823/minifb-0.15.1/src/os/windows/mod.rs	/^    pub fn update_with_buffer_stride($/;"	f
 v_flag_is_set	/home/greg/rust/soft65c02/src/registers.rs	/^    pub fn v_flag_is_set(&self) -> bool {$/;"	f
-write	/home/greg/rust/soft65c02/src/memory.rs	/^    pub fn write(&mut self, location: usize, data: Vec<u8>) -> Result<(), MemoryError> {$/;"	f
+write	/home/greg/rust/soft65c02/src/memory/memory_stack.rs	/^    fn write(&mut self, addr: usize, data: Vec<u8>) -> Result<(), MemoryError> {$/;"	f
+write	/home/greg/rust/soft65c02/src/memory/memory_stack.rs	/^    fn write(&mut self, location: usize, data: Vec<u8>) -> Result<(), MemoryError> {$/;"	f
+write	/home/greg/rust/soft65c02/src/memory/minifb_adapter.rs	/^    fn write(&mut self, addr: usize, data: Vec<u8>) -> Result<(), MemoryError> {$/;"	f
+write	/home/greg/rust/soft65c02/src/memory/mod.rs	/^    fn write(&mut self, location: usize, data: Vec<u8>) -> Result<(), MemoryError>;$/;"	f
+write	/home/greg/rust/soft65c02/src/memory/ram.rs	/^    fn write(&mut self, location: usize, data: Vec<u8>) -> Result<(), MemoryError> {$/;"	f
+write	/home/greg/rust/soft65c02/src/memory/rom.rs	/^    fn write(&mut self, location: usize, _data: Vec<u8>) -> Result<(), MemoryError> {$/;"	f
 z_flag_is_set	/home/greg/rust/soft65c02/src/registers.rs	/^    pub fn z_flag_is_set(&self) -> bool {$/;"	f

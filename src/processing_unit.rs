@@ -358,7 +358,7 @@ mod tests {
 
     #[test]
     fn test_dex() {
-        let mut memory = Memory::new_with_ram();
+        let memory = Memory::new_with_ram();
         let instr: CPUInstruction = resolve_opcode(0x1000, 0xca, &memory);
         assert_eq!("DEX".to_owned(), instr.mnemonic);
         assert_eq!(AddressingMode::Implied, instr.addressing_mode);
