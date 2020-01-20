@@ -13,7 +13,7 @@ pub fn sty(
         .target_address
         .expect("STY must have operands, crashing the application");
 
-    memory.write(target_address, vec![registers.register_y])?;
+    memory.write(target_address, &vec![registers.register_y])?;
     registers.command_pointer += 1 + resolution.operands.len();
 
     Ok(LogLine::new(&cpu_instruction, resolution, String::new()))

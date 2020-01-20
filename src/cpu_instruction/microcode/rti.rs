@@ -39,7 +39,7 @@ mod tests {
             CPUInstruction::new(0x8000, 0xca, "RTI", AddressingMode::Implied, rti);
         let (mut memory, mut registers) = get_stuff(0x8000, vec![0x00]);
         memory
-            .write(STACK_BASE_ADDR + 0xfd, vec![0b00110000, 0x01, 0x10])
+            .write(STACK_BASE_ADDR + 0xfd, &vec![0b00110000, 0x01, 0x10])
             .unwrap();
         registers.stack_pointer = 0xfc;
         registers.set_z_flag(true);

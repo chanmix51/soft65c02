@@ -1,17 +1,17 @@
-use minifb::{Key, Window, WindowOptions, Error, ScaleMode, Scale};
-use soft65c02::{Memory, Registers, AddressableIO, LogLine};
-use soft65c02::memory::{MINIFB_HEIGHT, MINIFB_WIDTH, MiniFBMemoryAdapter};
+use minifb::{Error, Key, Scale, ScaleMode, Window, WindowOptions};
+use soft65c02::memory::{MiniFBMemoryAdapter, MINIFB_HEIGHT, MINIFB_WIDTH};
+use soft65c02::{AddressableIO, LogLine, Memory, Registers};
+use std::fs::File;
 use std::io;
 use std::io::prelude::*;
-use std::fs::File;
 use std::{thread, time};
 
 fn init_window() -> Window {
     let mut window = Window::new(
-            "65C02 computer graphic example",
-            MINIFB_WIDTH,
-            MINIFB_HEIGHT,
-            WindowOptions {
+        "65C02 computer graphic example",
+        MINIFB_WIDTH,
+        MINIFB_HEIGHT,
+        WindowOptions {
             resize: true,
             scale: Scale::X4,
             scale_mode: ScaleMode::AspectRatioStretch,
@@ -26,17 +26,16 @@ fn init_window() -> Window {
     window
 }
 
-
-fn main(){
-    let init_vector:usize = 0x1B00;
+fn main() {
+    let init_vector: usize = 0x1B00;
     let mut memory = Memory::new_with_ram();
     {
         let mut f = File::open("point.bin").unwrap();
-        let mut buffer:Vec<u8> = vec![];
+        let mut buffer: Vec<u8> = vec![];
         f.read_to_end(&mut buffer).unwrap();
-        let len = buffer.len();
-        memory.write(init_vector, buffer).unwrap();
-        for line in soft65c02::disassemble(init_vector, init_vector + len, &memory).iter() {
+        memory.write(init_vector, &buffer).unwrap();
+        for line in soft65c02::disassemble(init_vector, init_vector + buffer.len(), &memory).iter()
+        {
             println!("{}", line);
         }
     }
@@ -53,4 +52,3 @@ fn main(){
         thread::sleep(time::Duration::from_millis(1));
     }
 }
-

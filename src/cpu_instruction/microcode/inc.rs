@@ -25,7 +25,7 @@ pub fn inc(
 
     let outcome = match resolution.target_address {
         Some(addr) => {
-            memory.write(addr, vec![byte])?;
+            memory.write(addr, &vec![byte])?;
             format!("0x{:02x}[S={}]", byte, registers.format_status())
         }
         None => {
@@ -48,7 +48,7 @@ mod tests {
         let cpu_instruction =
             CPUInstruction::new(0x1000, 0xca, "INC", AddressingMode::ZeroPage([0x0a]), inc);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xe8, 0x0a, 0x02]);
-        memory.write(0x0a, vec![0x28]).unwrap();
+        memory.write(0x0a, &vec![0x28]).unwrap();
         let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();

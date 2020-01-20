@@ -13,7 +13,7 @@ pub fn sta(
         .target_address
         .expect("STA must have operands, crashing the application");
 
-    memory.write(target_address, vec![registers.accumulator])?;
+    memory.write(target_address, &vec![registers.accumulator])?;
     registers.command_pointer += 1 + resolution.operands.len();
 
     Ok(LogLine::new(

@@ -36,7 +36,7 @@ impl AddressableIO for Subsystem {
         self.subsystem.read(addr, len)
     }
 
-    fn write(&mut self, location: usize, data: Vec<u8>) -> Result<(), MemoryError> {
+    fn write(&mut self, location: usize, data: &Vec<u8>) -> Result<(), MemoryError> {
         self.subsystem.write(location, data)
     }
 
@@ -139,7 +139,7 @@ impl AddressableIO for MemoryStack {
         ))
     }
 
-    fn write(&mut self, addr: usize, data: Vec<u8>) -> Result<(), MemoryError> {
+    fn write(&mut self, addr: usize, data: &Vec<u8>) -> Result<(), MemoryError> {
         let write_range: Range<usize> = Range::new(addr, addr + data.len());
         for sub in self.stack.iter_mut().rev() {
             if let Some(inter) = sub.address_range.intersection(&write_range) {
@@ -150,17 +150,17 @@ impl AddressableIO for MemoryStack {
                     return sub.write(addr - sub.address_range.start, data);
                 } else if sub.address_range.contains(addr) {
                     // we are at the end of the current subsystem
-                    let mut data = data;
-                    let subdata = data.split_off(sub.address_range.end - addr);
-                    sub.write(addr - sub.address_range.start, data)?;
-                    let addr = sub.address_range.end;
-                    return self.write(addr, subdata);
+                    let sub_start_addr = addr - sub.address_range.start;
+                    let range_end = sub.address_range.end;
+                    let split_addr = range_end - addr;
+                    sub.write(sub_start_addr, &(data[..split_addr].to_vec()))?;
+                    return self.write(range_end, &(data[split_addr..].to_vec()));
                 } else {
                     // we are at the start of the current subsystem
-                    let mut data = data;
-                    let subdata = data.split_off(sub.address_range.start - addr);
-                    sub.write(0, subdata)?;
-                    return self.write(addr, data);
+                    let range_start = sub.address_range.start;
+                    let split_addr = range_start - addr;
+                    sub.write(0, &(data[split_addr..].to_vec()))?;
+                    return self.write(addr, &(data[..split_addr].to_vec()));
                 }
             }
         }
@@ -229,7 +229,7 @@ mod tests {
     fn test_write_one_subsystem() {
         let mut memory_stack = init_memory();
         let data: Vec<u8> = vec![0xff, 0xae, 0x81];
-        memory_stack.write(0x1000, data).unwrap();
+        memory_stack.write(0x1000, &data).unwrap();
         assert_eq!(
             vec![0xff, 0xae, 0x81],
             memory_stack.read(0x1000, 3).unwrap()
@@ -240,7 +240,7 @@ mod tests {
     fn test_write_overlapping_subsystems() {
         let mut memory_stack = init_memory();
         let data: Vec<u8> = vec![0xff, 0xae, 0x81];
-        match memory_stack.write(0xBFFE, data) {
+        match memory_stack.write(0xBFFE, &data) {
             Err(MemoryError::Other(addr, msg)) => {
                 assert_eq!(0x0000, addr);
                 assert_eq!("trying to write in a read-only memory".to_owned(), msg);

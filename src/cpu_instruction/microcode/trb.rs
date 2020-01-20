@@ -18,7 +18,7 @@ pub fn trb(
         registers.set_z_flag(true);
         let neg = registers.accumulator ^ 0xff; // negates all bits
         let res = byte & neg;
-        memory.write(target_address, vec![res])?;
+        memory.write(target_address, &vec![res])?;
         res
     } else {
         registers.set_z_flag(false);
@@ -43,7 +43,7 @@ mod tests {
         let cpu_instruction =
             CPUInstruction::new(0x1000, 0xca, "TRB", AddressingMode::ZeroPage([0x0a]), trb);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x8a, 0x0a, 0x02]);
-        memory.write(0x0a, vec![0xff]).unwrap();
+        memory.write(0x0a, &vec![0xff]).unwrap();
         registers.accumulator = 0x81;
         let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
@@ -59,7 +59,7 @@ mod tests {
         let cpu_instruction =
             CPUInstruction::new(0x1000, 0xca, "TRB", AddressingMode::ZeroPage([0x0a]), trb);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x8a, 0x0a, 0x02]);
-        memory.write(0x0a, vec![0x0f]).unwrap();
+        memory.write(0x0a, &vec![0x0f]).unwrap();
         registers.register_y = 0x80;
         let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)

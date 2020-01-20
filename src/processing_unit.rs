@@ -334,7 +334,10 @@ pub struct MemoryParserIterator<'a> {
 
 impl<'a> MemoryParserIterator<'a> {
     pub fn new(start_address: usize, memory: &'a Memory) -> MemoryParserIterator {
-        MemoryParserIterator { cp: start_address, memory: memory }
+        MemoryParserIterator {
+            cp: start_address,
+            memory: memory,
+        }
     }
 }
 
@@ -364,7 +367,7 @@ mod tests {
     #[test]
     fn test_execute_step_dex() {
         let mut memory = Memory::new_with_ram();
-        memory.write(0x1000, vec![0xca]).unwrap();
+        memory.write(0x1000, &vec![0xca]).unwrap();
         let mut registers = Registers::new(0x1000);
         registers.register_x = 0x10;
 
@@ -376,7 +379,7 @@ mod tests {
     #[test]
     fn simulate_step_dex() {
         let mut memory = Memory::new_with_ram();
-        memory.write(0x1000, vec![0xca]).unwrap();
+        memory.write(0x1000, &vec![0xca]).unwrap();
         let cpu_instruction: CPUInstruction = read_step(0x1000, &memory);
         assert_eq!(0x1000, cpu_instruction.address);
         assert_eq!("DEX".to_owned(), cpu_instruction.mnemonic);

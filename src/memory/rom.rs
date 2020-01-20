@@ -21,7 +21,7 @@ impl AddressableIO for ROM {
         }
     }
 
-    fn write(&mut self, location: usize, _data: Vec<u8>) -> Result<(), MemoryError> {
+    fn write(&mut self, location: usize, _data: &Vec<u8>) -> Result<(), MemoryError> {
         Err(MemoryError::Other(
             location,
             "trying to write in a read-only memory",

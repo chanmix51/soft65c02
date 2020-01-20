@@ -1,9 +1,9 @@
-use structopt::StructOpt;
-use soft65c02::{Memory, AddressableIO, MemoryParserIterator};
-use std::io::prelude::*;
+use hex;
+use soft65c02::{AddressableIO, Memory, MemoryParserIterator};
 use std::fs::File;
 use std::io;
-use hex;
+use std::io::prelude::*;
+use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
 #[structopt(name = "disassembler")]
@@ -13,11 +13,11 @@ struct CLOptions {
     filename: String,
 
     // address to start reading
-    #[structopt(short, long, default_value="0")]
+    #[structopt(short, long, default_value = "0")]
     start_address: String,
 
     // number of commands to read
-    #[structopt(short, long, default_value="0")]
+    #[structopt(short, long, default_value = "0")]
     commands: usize,
 }
 
@@ -34,7 +34,7 @@ impl CLOptions {
 
 fn read_file(filename: &str) -> Vec<u8> {
     let mut f = File::open(filename).unwrap();
-    let mut buffer:Vec<u8> = vec![];
+    let mut buffer: Vec<u8> = vec![];
     f.read_to_end(&mut buffer).unwrap();
     buffer
 }
@@ -42,9 +42,8 @@ fn read_file(filename: &str) -> Vec<u8> {
 fn main() {
     let cli_opt = CLOptions::from_args();
     let bytes = read_file(cli_opt.filename.as_str());
-    let len = bytes.len();
     let mut memory = Memory::new_with_ram();
-    memory.write(0x0000, bytes).unwrap();
+    memory.write(0x0000, &bytes).unwrap();
 
     for (op, line) in MemoryParserIterator::new(cli_opt.get_start_address(), &memory).enumerate() {
         println!("{}", line);

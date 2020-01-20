@@ -32,7 +32,7 @@ mod tests {
             CPUInstruction::new(0x8000, 0xca, "RTS", AddressingMode::Implied, rts);
         let (mut memory, mut registers) = get_stuff(0x8000, vec![0x00]);
         memory
-            .write(STACK_BASE_ADDR + 0xfe, vec![0x09, 0x10])
+            .write(STACK_BASE_ADDR + 0xfe, &vec![0x09, 0x10])
             .unwrap();
         registers.stack_pointer = 0xfd;
         let log_line = cpu_instruction

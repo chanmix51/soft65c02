@@ -58,7 +58,7 @@ impl Registers {
         memory: &mut Memory,
         byte: u8,
     ) -> std::result::Result<(), MemoryError> {
-        memory.write(STACK_BASE_ADDR + self.stack_pointer as usize, vec![byte])?;
+        memory.write(STACK_BASE_ADDR + self.stack_pointer as usize, &vec![byte])?;
         let (sp, _) = self.stack_pointer.overflowing_sub(1);
         self.stack_pointer = sp;
 

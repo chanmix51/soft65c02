@@ -42,7 +42,7 @@ mod tests {
         memory
             .write(
                 STACK_BASE_ADDR + 0xff,
-                vec![registers.get_status_register()],
+                &vec![registers.get_status_register()],
             )
             .unwrap();
         registers.stack_pointer = 0xfe;

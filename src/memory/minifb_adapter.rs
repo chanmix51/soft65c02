@@ -124,7 +124,7 @@ impl AddressableIO for MiniFBMemoryAdapter {
         Ok(vec![0x00])
     }
 
-    fn write(&mut self, addr: usize, data: Vec<u8>) -> Result<(), MemoryError> {
+    fn write(&mut self, addr: usize, data: &Vec<u8>) -> Result<(), MemoryError> {
         if addr < 0x30 {
             for (offset, val) in data.iter().enumerate() {
                 self.palette[addr + offset] = *val;

@@ -16,7 +16,7 @@ pub fn tsb(
     let byte = memory.read(target_address, 1)?[0];
     registers.set_z_flag(byte & registers.accumulator != 0);
     let res = byte | registers.accumulator;
-    memory.write(target_address, vec![res])?;
+    memory.write(target_address, &vec![res])?;
     registers.command_pointer += 1 + resolution.operands.len();
 
     Ok(LogLine::new(
@@ -36,7 +36,7 @@ mod tests {
         let cpu_instruction =
             CPUInstruction::new(0x1000, 0xca, "TSB", AddressingMode::ZeroPage([0x0a]), tsb);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x8a, 0x0a, 0x02]);
-        memory.write(0x0a, vec![0x55]).unwrap();
+        memory.write(0x0a, &vec![0x55]).unwrap();
         registers.accumulator = 0xaa;
         let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
@@ -52,7 +52,7 @@ mod tests {
         let cpu_instruction =
             CPUInstruction::new(0x1000, 0xca, "TSB", AddressingMode::ZeroPage([0x0a]), tsb);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x8a, 0x0a, 0x02]);
-        memory.write(0x0a, vec![0x0f]).unwrap();
+        memory.write(0x0a, &vec![0x0f]).unwrap();
         registers.register_y = 0x80;
         let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
