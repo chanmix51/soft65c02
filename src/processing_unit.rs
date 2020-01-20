@@ -33,7 +33,7 @@ fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> CPUInstruction
         0x0c => instr::new(address, opcode, "TSB", AM::Absolute(op2), mc::tsb),
         0x0d => instr::new(address, opcode, "ORA", AM::Absolute(op2), mc::ora),
         0x0e => instr::new(address, opcode, "ASL", AM::Absolute(op2), mc::asl),
-        0x10 => instr::new(address, opcode, "BPL", AM::Relative(op1), mc::bpl),
+        0x10 => instr::new(address, opcode, "BPL", AM::Relative(address, op1), mc::bpl),
         0x11 => instr::new(
             address,
             opcode,
@@ -68,7 +68,7 @@ fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> CPUInstruction
         0x2c => instr::new(address, opcode, "BIT", AM::Absolute(op2), mc::bit),
         0x2d => instr::new(address, opcode, "AND", AM::Absolute(op2), mc::and),
         0x2e => instr::new(address, opcode, "ROL", AM::Absolute(op2), mc::rol),
-        0x30 => instr::new(address, opcode, "BMI", AM::Relative(op1), mc::bmi),
+        0x30 => instr::new(address, opcode, "BMI", AM::Relative(address, op1), mc::bmi),
         0x31 => instr::new(
             address,
             opcode,
@@ -102,7 +102,7 @@ fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> CPUInstruction
         0x4c => instr::new(address, opcode, "JMP", AM::Absolute(op2), mc::jmp),
         0x4d => instr::new(address, opcode, "EOR", AM::Absolute(op2), mc::eor),
         0x4e => instr::new(address, opcode, "LSR", AM::Absolute(op2), mc::lsr),
-        0x50 => instr::new(address, opcode, "BVC", AM::Relative(op1), mc::bvc),
+        0x50 => instr::new(address, opcode, "BVC", AM::Relative(address, op1), mc::bvc),
         0x51 => instr::new(
             address,
             opcode,
@@ -135,7 +135,7 @@ fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> CPUInstruction
         0x6c => instr::new(address, opcode, "JMP", AM::Indirect(op2), mc::jmp),
         0x6d => instr::new(address, opcode, "ADC", AM::Absolute(op2), mc::adc),
         0x6e => instr::new(address, opcode, "ROR", AM::Absolute(op2), mc::ror),
-        0x70 => instr::new(address, opcode, "BVS", AM::Relative(op1), mc::bvs),
+        0x70 => instr::new(address, opcode, "BVS", AM::Relative(address, op1), mc::bvs),
         0x71 => instr::new(
             address,
             opcode,
@@ -159,7 +159,7 @@ fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> CPUInstruction
         ),
         0x7d => instr::new(address, opcode, "ADC", AM::AbsoluteXIndexed(op2), mc::adc),
         0x7e => instr::new(address, opcode, "ROR", AM::AbsoluteXIndexed(op2), mc::ror),
-        0x80 => instr::new(address, opcode, "BRA", AM::Relative(op1), mc::bra),
+        0x80 => instr::new(address, opcode, "BRA", AM::Relative(address, op1), mc::bra),
         0x81 => instr::new(
             address,
             opcode,
@@ -176,7 +176,7 @@ fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> CPUInstruction
         0x8c => instr::new(address, opcode, "STY", AM::Absolute(op2), mc::sty),
         0x8d => instr::new(address, opcode, "STA", AM::Absolute(op2), mc::sta),
         0x8e => instr::new(address, opcode, "STX", AM::Absolute(op2), mc::stx),
-        0x90 => instr::new(address, opcode, "BCC", AM::Relative(op1), mc::bcc),
+        0x90 => instr::new(address, opcode, "BCC", AM::Relative(address, op1), mc::bcc),
         0x91 => instr::new(
             address,
             opcode,
@@ -212,7 +212,7 @@ fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> CPUInstruction
         0xac => instr::new(address, opcode, "LDY", AM::Absolute(op2), mc::ldy),
         0xad => instr::new(address, opcode, "LDA", AM::Absolute(op2), mc::lda),
         0xae => instr::new(address, opcode, "LDX", AM::Absolute(op2), mc::ldx),
-        0xb0 => instr::new(address, opcode, "BCS", AM::Relative(op1), mc::bcs),
+        0xb0 => instr::new(address, opcode, "BCS", AM::Relative(address, op1), mc::bcs),
         0xb1 => instr::new(
             address,
             opcode,
@@ -247,7 +247,7 @@ fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> CPUInstruction
         0xcc => instr::new(address, opcode, "CPY", AM::Absolute(op2), mc::cpy),
         0xcd => instr::new(address, opcode, "CMP", AM::Absolute(op2), mc::cmp),
         0xce => instr::new(address, opcode, "DEC", AM::Absolute(op2), mc::dec),
-        0xd0 => instr::new(address, opcode, "BNE", AM::Relative(op1), mc::bne),
+        0xd0 => instr::new(address, opcode, "BNE", AM::Relative(address, op1), mc::bne),
         0xd1 => instr::new(
             address,
             opcode,
@@ -281,7 +281,7 @@ fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> CPUInstruction
         0xec => instr::new(address, opcode, "CPX", AM::Absolute(op2), mc::cpx),
         0xed => instr::new(address, opcode, "SBC", AM::Absolute(op2), mc::sbc),
         0xee => instr::new(address, opcode, "INC", AM::Absolute(op2), mc::inc),
-        0xf0 => instr::new(address, opcode, "BEQ", AM::Relative(op1), mc::beq),
+        0xf0 => instr::new(address, opcode, "BEQ", AM::Relative(address, op1), mc::beq),
         0xf1 => instr::new(
             address,
             opcode,

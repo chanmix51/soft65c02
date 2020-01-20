@@ -22,7 +22,7 @@ fn read_program() {
         "#0x0806: (00)          BRK",
         "#0x0807: (3a)          DEC  A",
         "#0x0808: (d5 20)       CMP  $20,X",
-        "#0x080A: (d0 fe)       BNE  -2",
+        "#0x080A: (d0 fe)       BNE  $080A",
         "#0x080C: (db)          STP",
     ];
     let mut count: usize = 0;

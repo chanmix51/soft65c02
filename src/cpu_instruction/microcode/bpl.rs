@@ -34,7 +34,7 @@ mod tests {
     #[test]
     fn test_bpl_branch() {
         let cpu_instruction =
-            CPUInstruction::new(0x1000, 0xca, "BPL", AddressingMode::Relative([0x0a]), bpl);
+            CPUInstruction::new(0x1000, 0xca, "BPL", AddressingMode::Relative(0x1000, [0x0a]), bpl);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xca, 0x0a, 0x02]);
         registers.set_n_flag(false);
         let log_line = cpu_instruction
@@ -47,7 +47,7 @@ mod tests {
     #[test]
     fn test_bpl_no_branch() {
         let cpu_instruction =
-            CPUInstruction::new(0x1000, 0xca, "BPL", AddressingMode::Relative([0x0a]), bpl);
+            CPUInstruction::new(0x1000, 0xca, "BPL", AddressingMode::Relative(0x1000, [0x0a]), bpl);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xca, 0x0a, 0x02]);
         registers.set_n_flag(true);
         let log_line = cpu_instruction

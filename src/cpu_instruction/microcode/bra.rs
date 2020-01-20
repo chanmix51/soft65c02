@@ -30,7 +30,7 @@ mod tests {
     #[test]
     fn test_bne_branch() {
         let cpu_instruction =
-            CPUInstruction::new(0x1000, 0xca, "BRA", AddressingMode::Relative([0x0a]), bra);
+            CPUInstruction::new(0x1000, 0xca, "BRA", AddressingMode::Relative(0x1000, [0x0a]), bra);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xca, 0x0a, 0x02]);
         let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)

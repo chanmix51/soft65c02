@@ -34,7 +34,7 @@ mod tests {
     #[test]
     fn test_bne_branch() {
         let cpu_instruction =
-            CPUInstruction::new(0x1000, 0xca, "BNE", AddressingMode::Relative([0x0a]), bne);
+            CPUInstruction::new(0x1000, 0xca, "BNE", AddressingMode::Relative(0x1000, [0x0a]), bne);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xca, 0x0a, 0x02]);
         registers.set_z_flag(false);
         let log_line = cpu_instruction
@@ -47,7 +47,7 @@ mod tests {
     #[test]
     fn test_bne_no_branch() {
         let cpu_instruction =
-            CPUInstruction::new(0x1000, 0xca, "BNE", AddressingMode::Relative([0x0a]), bne);
+            CPUInstruction::new(0x1000, 0xca, "BNE", AddressingMode::Relative(0x1000, [0x0a]), bne);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xca, 0x0a, 0x02]);
         registers.set_z_flag(true);
         let log_line = cpu_instruction

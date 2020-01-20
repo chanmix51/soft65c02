@@ -34,7 +34,7 @@ mod tests {
     #[test]
     fn test_bcs() {
         let cpu_instruction =
-            CPUInstruction::new(0x1000, 0xca, "BCS", AddressingMode::Relative([0x0a]), bcs);
+            CPUInstruction::new(0x1000, 0xca, "BCS", AddressingMode::Relative(0x1000, [0x0a]), bcs);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xe8, 0x0a, 0x02]);
         registers.set_c_flag(true);
         let log_line = cpu_instruction
@@ -48,7 +48,7 @@ mod tests {
     #[test]
     fn test_bcs_with_c_clear() {
         let cpu_instruction =
-            CPUInstruction::new(0x1000, 0xca, "BCS", AddressingMode::Relative([0x0a]), bcs);
+            CPUInstruction::new(0x1000, 0xca, "BCS", AddressingMode::Relative(0x1000, [0x0a]), bcs);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xe8, 0x0a, 0x02]);
         registers.set_c_flag(false);
         let log_line = cpu_instruction
