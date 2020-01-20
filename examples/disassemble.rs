@@ -27,8 +27,7 @@ impl CLOptions {
         if bytes.len() > 2 {
             panic!("No it should not be that long!");
         }
-        bytes.resize_with(4, Default::default);
-        usize::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]])
+        soft65c02::memory::little_endian(vec![bytes[0], bytes[1]])
     }
 }
 
