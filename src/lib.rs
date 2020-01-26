@@ -16,23 +16,24 @@ pub use memory::MemoryStack as Memory;
 pub use processing_unit::*;
 pub use registers::Registers;
 
-fn mem_dump(start: usize, end: usize, memory: &Memory) {
-    let mut line = String::new();
-    let address = start;
-    let bytes = memory.read(start, end - start + 1).unwrap();
+pub fn mem_dump(start: usize, len: usize, memory: &Memory) -> Vec<String> {
+    let mut output:Vec<String> = vec![];
+    if len == 0 { return output }
+    let address = start - (start % 16);
+    let bytes = memory.read(address, address + 16 * len).unwrap();
 
-    while address < end {
-        if address % 16 == start % 16 {
-            println!("{}", line);
-            line = format!("#{:04X}: ", address);
-        } else if address % 8 == start % 8 {
-            line = format!("{} ", line);
+    for lineno in 0..len {
+        let mut line = format!("#{:04X}: ", address + lineno * 16);
+        for col in 0..15 {
+            if col == 7 {
+                line.push(' ');
+            }
+            line = format!("{} {:02x}", line, bytes[16 * lineno + col]);
         }
-
-        line = format!("{} {:02x}", line, bytes[address]);
+        output.push(line);
     }
 
-    println!("{}", line);
+    output
 }
 
 pub fn execute(

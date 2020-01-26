@@ -45,6 +45,15 @@ impl Registers {
         }
     }
 
+    pub fn flush(&mut self) {
+        self.accumulator = 0x00;
+        self.register_x =  0x00;
+        self.register_y =  0x00;
+        self.status_register =  0b00110000;
+        self.command_pointer =  0x000;
+        self.stack_pointer =  0xff;
+    }
+
     pub fn get_status_register(&self) -> u8 {
         self.status_register | 0x30 // auto set bits 5 & 6.
     }

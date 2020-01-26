@@ -1,0 +1,48 @@
+WHITESPACE = _{ " " }
+sentence = _{ SOI ~ instruction ~ EOI }
+
+instruction = { registers_instruction |
+    memory_instruction |
+    run_instruction |
+    help_instruction |
+    disassemble_instruction }
+
+registers_instruction = { ^"registers" ~ registers_action }
+registers_action = _{ registers_show | registers_flush }
+registers_flush = { ^"flush" }
+registers_show = { ^"show" }
+
+memory_instruction = { ^"memory" ~ memory_action }
+memory_action = _{ memory_show | memory_load }
+memory_show = { ^"show" ~ memory_address ~ size_parameter }
+memory_load = { ^"load" ~ memory_address ~ filename }
+
+run_instruction = { ^"run until" ~ boolean_condition | ^"run" ~ memory_address ~ ^"until" ~ boolean_condition | ^"run" ~ memory_address | ^"run" }
+
+disassemble_instruction = { ^"disassemble" ~ memory_address ~ size_parameter }
+
+help_instruction = { help_registers | help_memory | help_run | help_disassemble | ^"help" }
+help_registers = { ^"help registers" }
+help_memory = { ^"help memory" }
+help_run = { ^"help run" }
+help_disassemble = { ^"help disassemble" }
+
+boolean_condition = { boolean | operation }
+
+boolean = { ^"true" | ^"false" }
+operation = { operation16 | operation8 }
+operation16 = _{ location16 ~ operator ~ value16 }
+operation8 = _{ location8 ~ operator ~ value8 }
+
+location16 = _{ register16 }
+location8 = _{ memory_address | register8 }
+
+memory_address = { "#0x" ~ ASCII_HEX_DIGIT{4} }
+register16 = { "CP" }
+register8 = { "A" | "X" | "Y" | "S" }
+value16 = { "0x" ~ ASCII_HEX_DIGIT{4} }
+value8 = { "0x" ~ ASCII_HEX_DIGIT{2} | "0b" ~ ASCII_BIN_DIGIT{8} }
+size_parameter = { ASCII_DIGIT+ }
+
+operator = { ">=" | "<=" | "!=" | "=" | ">" | "<" }
+filename = { "\"" ~ ASCII_DIGIT ~ "\"" }
