@@ -178,10 +178,30 @@ fn exec_memory_instruction(mut nodes: Pairs<Rule>, memory: &mut Memory) {
             for line in soft65c02::mem_dump(addr, len, memory).iter() {
                 println!("{}", line);
             }
-            
         },
+        Rule::memory_load   => {
+            let mut subnodes = node.into_inner();
+            let addr = parse_memory(subnodes.next().unwrap().as_str()[3..].to_owned());
+            let filename = subnodes.next().unwrap().as_str().trim_matches('"');
+            match load_memory(filename, addr, memory) {
+                Ok(len) => println!("Loaded {} bytes at address #0x{:04X}.", len, addr),
+                Err(e)  => println!("{}: {}", Colour::Red.paint("Error"), e),
+            }
+        }
         _   => { println!("{:?}", node); },
     }
+}
+
+fn load_memory(filename: &str, addr: usize, memory: &mut Memory) -> std::io::Result<usize> {
+    let buffer = {
+        let mut f = File::open(filename)?;
+        let mut buffer: Vec<u8> = vec![];
+        f.read_to_end(&mut buffer)?;
+        buffer
+    };
+    memory.write(addr, &buffer).unwrap();
+
+    Ok(buffer.len())
 }
 
 fn exec_register_instruction(mut nodes: Pairs<Rule>, registers: &mut Registers) {

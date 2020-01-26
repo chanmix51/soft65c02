@@ -45,4 +45,5 @@ value8 = { "0x" ~ ASCII_HEX_DIGIT{2} | "0b" ~ ASCII_BIN_DIGIT{8} }
 size_parameter = { ASCII_DIGIT+ }
 
 operator = { ">=" | "<=" | "!=" | "=" | ">" | "<" }
-filename = { "\"" ~ ASCII_DIGIT ~ "\"" }
+filename = { "\"" ~ filechar+ ~ "\"" }
+filechar = _{ ASCII_ALPHANUMERIC | "." | "_" | "/" }
