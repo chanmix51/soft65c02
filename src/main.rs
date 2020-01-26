@@ -16,7 +16,7 @@ use rustyline::error::ReadlineError;
 use rustyline::{Context, Editor};
 use rustyline::Result as RustyResult;
 
-use soft65c02::{AddressableIO, LogLine, Memory, Registers};
+use soft65c02::{AddressableIO, LogLine, Memory, Registers, MemoryParserIterator};
 
 use std::fs::File;
 use std::io;
@@ -126,6 +126,9 @@ fn main() {
     println!("{}", Colour::Green.paint("Welcome in Soft-65C02 version 1.0.0-alpha1"));
     let prompt = format!("{}", Colour::Fixed(148).bold().paint(">> "));
     let mut rl = Editor::<CommandLineCompleter>::new();
+    if rl.load_history("history.txt").is_err() {
+        println!("No previous history.");
+    }
     rl.set_helper(Some(CommandLineCompleter {}));
     loop {
         let readline = rl.readline(&prompt);
@@ -154,6 +157,8 @@ fn main() {
             }
         }
     }
+    rl.save_history("history.txt").unwrap();
+    println!("Writing commands history in 'history.txt'.");
 }
 
 pub fn parse_instruction(mut nodes: Pairs<Rule>, registers: &mut Registers, memory: &mut Memory) {
@@ -163,9 +168,20 @@ pub fn parse_instruction(mut nodes: Pairs<Rule>, registers: &mut Registers, memo
         Rule::memory_instruction    => exec_memory_instruction(node.into_inner(), memory),
         Rule::run_instruction       => println!("Run instruction"),
         Rule::help_instruction      => help(node.into_inner()),
-        Rule::disassemble_instruction => println!("Disassemble instruction"),
+        Rule::disassemble_instruction => exec_disassemble_instruction(node.into_inner(), memory),
         _   => {}, 
     };
+}
+
+fn exec_disassemble_instruction(mut nodes: Pairs<Rule>, memory: &mut Memory) {
+    let addr = parse_memory(nodes.next().unwrap().as_str()[3..].to_owned());
+    let len:usize = nodes.next().unwrap().as_str().parse::<usize>().unwrap();
+    for (op, line) in MemoryParserIterator::new(addr, &memory).enumerate() {
+        println!("{}", line);
+        if op >= len {
+            break;
+        }
+    }
 }
 
 fn exec_memory_instruction(mut nodes: Pairs<Rule>, memory: &mut Memory) {
