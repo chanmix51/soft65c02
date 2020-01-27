@@ -408,7 +408,21 @@ impl rustyline::completion::Completer for CommandLineCompleter {
     type Candidate = String;
     fn complete(&self, line: &str, pos: usize, _ctx: &Context) -> RustyResult<(usize, Vec<Self::Candidate>)> {
         let mut candidates:Vec<String> = vec![];
-        let keywords = vec!["registers", "memory", "run", "disassemble", "help"];
+        let keywords = vec![
+            "registers show",
+            "registers flush",
+            "memory load #0x",
+            "memory show #0x",
+            "run",
+            "run #0x",
+            "run until",
+            "disassemble #0x",
+            "help",
+            "help registers",
+            "help memory",
+            "help run",
+            "help disassemble",
+        ];
 
         for word in keywords {
             if word.contains(line) {
