@@ -180,7 +180,7 @@ pub fn parse_instruction(mut nodes: Pairs<Rule>, registers: &mut Registers, memo
 }
 
 fn exec_run_instruction(mut nodes: Pairs<Rule>, registers: &mut Registers, memory: &mut Memory, interrupted: &Arc<AtomicBool>) {
-    let mut stop_condition = BooleanExpression::Value(false);
+    let mut stop_condition = BooleanExpression::Value(true);
     while let Some(node) = nodes.next() {
         match node.as_rule() {
             Rule::memory_address    => registers.command_pointer = parse_memory(node.as_str()[3..].to_owned()),
@@ -189,8 +189,7 @@ fn exec_run_instruction(mut nodes: Pairs<Rule>, registers: &mut Registers, memor
         };
     };
 
-    println!("{:?}", stop_condition);
-    let mut cp = 0x10000; // non addressable on purpose
+    let mut cp = registers.command_pointer;
     let mut loglines:VecDeque<LogLine> = VecDeque::new();
     let mut i = 0;
     loop {
@@ -304,14 +303,7 @@ fn help(mut nodes: Pairs<Rule>) {
                 println!("{}", Colour::Green.paint("Execution commands:"));
                 println!("   run [ADDRESS] [until BOOLEAN_CONDITION]");
                 println!("          Launch execution of the program.");
-                println!("          Without further information, the execution goes on forever.");
-                println!("          There is one condition for the execution to stop: the Command Pointer");
-                println!("          to be at the exact same address before after an operand is executed.");
-                println!("          This is the case for the STP (stop) instruction but also after");
-                println!("          infinite loops like BRA -2 or a JMP at the exact same address.");
-                println!("          It is possible to give extra conditions to break the execution of the");
-                println!("          program, by example if it is desirable to execute step by step at a");
-                println!("          certain point by using the \"until\" keyword");
+                println!("          Without further information, this executes one instruction.");
                 println!("");
                 println!("{}", Colour::White.bold().paint("Examples:"));
                 println!("  {}", Colour::Fixed(240).paint("run"));
@@ -321,26 +313,35 @@ fn help(mut nodes: Pairs<Rule>) {
                 println!("          Set the CP register at 0x1C00 and launch execution.");
                 println!("");
                 println!("{}", Colour::Green.paint("Boolean conditions"));
-                println!("  It is possible to stop the current execution process to check the state of");
-                println!("  the memory or CPU at this point. The execution is kept running until the");
-                println!("  given condition is evaluated to be true.");
-                println!("  It is possible to give any combination of >, <, <= >= or != from registers");
-                println!("  or from a memory location.");
+                println!("          By default, only one instruction is executed, but it is possible");
+                println!("          provide a custom condition so a program can be executed until");
+                println!("          a certain state is met.");
+                println!("          Conditions can be made on registers or memory content, stopping");
+                println!("          the execution if met.");
+                println!("          In any cases, the program will stop if the Command Pointer is not");
+                println!("          incremented after an instruction.");
+                println!("          This is the case for the STP (stop) instruction but also after");
+                println!("          infinite loops like BRA -2 or a JMP at the exact same address.");
                 println!("");
                 println!("{}", Colour::White.bold().paint("Examples:"));
-                println!("  {}", Colour::Fixed(240).paint("run until false"));
-                println!("    The instruction is executed, this is step by step mode.");
+                println!("  {}", Colour::Fixed(240).paint("run until true"));
+                println!("          Launch the program forever. This may require CTRL-C to break.");
                 println!("");
-                println!("  {}", Colour::Fixed(240).paint("run until A = 0x12"));
-                println!("    The execution is launched until the A registers equals 0x12.");
+                println!("  {}", Colour::Fixed(240).paint("run until A <= 0x12"));
+                println!("          The execution is launched until the A register is lesser or");
+                println!("          equal to 0x12.");
                 println!("");
-                println!("  {}", Colour::Fixed(240).paint("run until 0x0200 > 0"));
-                println!("    The execution is launched until the given memory address at is greater");
-                println!("    than 0.");
+                println!("  {}", Colour::Fixed(240).paint("run until #0x0200 > 0"));
+                println!("          The execution is launched until the given memory address holds a");
+                println!("          value greater than 0.");
                 println!("");
                 println!("  {}", Colour::Fixed(240).paint("run until S > 0x7f"));
-                println!("    The execution is launched until the Negative flag of the status register is");
-                println!("    set.");
+                println!("          The execution is launched until the Negative flag of the status");
+                println!("          register is set.");
+                println!("");
+                println!("  {}", Colour::Fixed(240).paint("run until CP = 0x1234"));
+                println!("          The execution is launched until the Command Pointer reaches the");
+                println!("          given value.");
             },
             Rule::help_disassemble => {
                 println!("{}", Colour::Green.paint("Registers command:"));

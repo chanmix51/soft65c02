@@ -17,7 +17,11 @@ memory_action = _{ memory_show | memory_load }
 memory_show = { ^"show" ~ memory_address ~ size_parameter }
 memory_load = { ^"load" ~ memory_address ~ filename }
 
-run_instruction = { ^"run until" ~ boolean_condition | ^"run" ~ memory_address ~ ^"until" ~ boolean_condition | ^"run" ~ memory_address | ^"run" }
+run_instruction = { ^"run until" ~ boolean_condition
+    | ^"run" ~ memory_address ~ ^"until" ~ boolean_condition
+    | ^"run" ~ memory_address
+    | ^"run"
+    }
 
 disassemble_instruction = { ^"disassemble" ~ memory_address ~ size_parameter }
 
