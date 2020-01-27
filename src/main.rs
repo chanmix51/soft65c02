@@ -1,3 +1,6 @@
+/*
+ * This is the CLI frontend for the Soft65C02 library.
+ */
 use ansi_term::Colour;
 
 extern crate pest;
