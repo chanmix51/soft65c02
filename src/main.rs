@@ -22,6 +22,8 @@ use std::collections::VecDeque;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
+const LOGLINE_MEMORY_LEN:usize = 25;
+
 #[derive(Parser)]
 #[grammar = "cli.pest"]
 pub struct BEParser;
@@ -174,7 +176,7 @@ pub fn parse_instruction(mut nodes: Pairs<Rule>, registers: &mut Registers, memo
         Rule::memory_instruction    => exec_memory_instruction(node.into_inner(), memory, interrupted),
         Rule::run_instruction       => exec_run_instruction(node.into_inner(), registers, memory, interrupted),
         Rule::help_instruction      => help(node.into_inner()),
-        Rule::disassemble_instruction => exec_disassemble_instruction(node.into_inner(), memory, interrupted),
+        Rule::disassemble_instruction => exec_disassemble_instruction(node.into_inner(), registers, memory, interrupted),
         _   => {}, 
     };
 }
@@ -195,7 +197,7 @@ fn exec_run_instruction(mut nodes: Pairs<Rule>, registers: &mut Registers, memor
     loop {
         loglines.push_back(soft65c02::execute_step(registers, memory).unwrap());
         i += 1;
-        if loglines.len() > 15 {
+        if loglines.len() > LOGLINE_MEMORY_LEN {
             loglines.pop_front();
         }
         if interrupted.load(Ordering::Relaxed) || stop_condition.solve(registers, memory) || registers.command_pointer == cp {
@@ -204,16 +206,29 @@ fn exec_run_instruction(mut nodes: Pairs<Rule>, registers: &mut Registers, memor
         cp = registers.command_pointer;
     }
 
-    if i > 15 {
+    if i > LOGLINE_MEMORY_LEN {
         println!("Stopped after {} cpu instructions.", i);
     }
     loglines.iter()
         .for_each(|x| println!("{}", x) );
 }
 
-fn exec_disassemble_instruction(mut nodes: Pairs<Rule>, memory: &mut Memory, interrupted: &Arc<AtomicBool>) {
-    let addr = parse_memory(nodes.next().unwrap().as_str()[3..].to_owned());
-    let len:usize = nodes.next().unwrap().as_str().parse::<usize>().unwrap();
+fn exec_disassemble_instruction(mut nodes: Pairs<Rule>, registers: &Registers, memory: &Memory, interrupted: &Arc<AtomicBool>) {
+    let mut addr = registers.command_pointer;
+    let mut len = 0;
+    while let Some(node) = nodes.next() {
+        match node.as_rule() {
+            Rule::memory_address    => addr = parse_memory(node.as_str()[3..].to_owned()),
+            Rule::size_parameter    => len = node.as_str().parse::<usize>().unwrap(),
+            _   => { },
+        }
+    }
+
+    if len == 0 {
+        println!("{} uneffective size {}.", Colour::Red.paint("Error:"), len);
+        return;
+    }
+
     for (op, line) in MemoryParserIterator::new(addr, &memory).enumerate() {
         println!("{}", line);
         if interrupted.load(Ordering::Relaxed) || op >= len {
@@ -346,10 +361,16 @@ fn help(mut nodes: Pairs<Rule>) {
             Rule::help_disassemble => {
                 println!("{}", Colour::Green.paint("Registers command:"));
                 println!("");
-                println!("  disassemble ADDR LENGTH");
-                println!("         Disassemble start from address for the next \"operations\" instructions.");
-                println!("          Example: {}", Colour::Fixed(240).paint("disassemble 0x1C00 100"));
+                println!("  disassemble [ADDRESS] LENGTH");
+                println!("          Disassemble starting from ADDRESS for the next \"OPERATIONS\"");
+                println!("          instructions. If the ADDRESS parameter is not provided, the actual");
+                println!("          register Command Pointer's value is taken.");
+                println!("");
+                println!("          Example: {}", Colour::Fixed(240).paint("disassemble #0x1C00 100"));
                 println!("          Disassemble 100 opcodes starting from address 0x1C00.");
+                println!("");
+                println!("          Example: {}", Colour::Fixed(240).paint("disassemble 10"));
+                println!("          Disassemble 10 opcodes starting from the address in register CP.");
             },
             _   => { },
         };
@@ -368,9 +389,12 @@ fn help(mut nodes: Pairs<Rule>) {
         println!("{}", Colour::White.bold().paint("Execution"));
         println!("   run [ADDRESS] [until BOOLEAN_CONDITION]");
         println!("          Launch execution of the program.");
+        println!("         If the ADDRESS parameter is not provided, the actual register Command");
+        println!("         Pointer value is taken. If no conditions are given, this executes one");
+        println!("         instruction and get back to interactive mode (step by step mode).");
         println!("{}", Colour::White.bold().paint("Disassembler"));
-        println!("   disassemble ADDRESS OPERATIONS");
-        println!("         Disassemble start from address for the next \"operations\" instructions.");
+        println!("   disassemble [ADDRESS] OPERATIONS");
+        println!("         Disassemble starting from ADDRESS for the next \"OPERATIONS\" instructions.");
         println!("{}", Colour::White.bold().paint("Help"));
         println!("   help [TOPIC]");
         println!("         Display informations about commands.");
@@ -453,11 +477,12 @@ impl rustyline::completion::Completer for CommandLineCompleter {
         let keywords = vec![
             "registers show",
             "registers flush",
-            "memory load #0x",
             "memory show #0x",
-            "run",
+            "memory load #0x",
+            "run ",
             "run #0x",
-            "run until",
+            "run until ",
+            "disassemble ",
             "disassemble #0x",
             "help",
             "help registers",

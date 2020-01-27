@@ -23,7 +23,9 @@ run_instruction = { ^"run until" ~ boolean_condition
     | ^"run"
     }
 
-disassemble_instruction = { ^"disassemble" ~ memory_address ~ size_parameter }
+disassemble_instruction = {
+    ^"disassemble" ~ memory_address ~ size_parameter
+    | ^"disassemble" ~ size_parameter }
 
 help_instruction = { help_registers | help_memory | help_run | help_disassemble | ^"help" }
 help_registers = { ^"help registers" }
