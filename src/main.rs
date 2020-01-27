@@ -1,5 +1,3 @@
-extern crate ansi_term;
-
 use ansi_term::Colour;
 
 extern crate pest;
@@ -19,67 +17,65 @@ use rustyline::Result as RustyResult;
 use soft65c02::{AddressableIO, LogLine, Memory, Registers, MemoryParserIterator};
 
 use std::fs::File;
-use std::io;
 use std::io::prelude::*;
-use std::{thread, time};
+use std::collections::VecDeque;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 
 #[derive(Parser)]
 #[grammar = "cli.pest"]
 pub struct BEParser;
 
 #[derive(Debug)]
-pub enum Source8 {
+pub enum Source {
     Accumulator,
     RegisterX,
     RegisterY,
     RegisterS,
     RegisterSP,
+    RegisterCP,
     Memory(usize),
 }
 
-impl Source8 {
-    pub fn get_value(&self, registers: &Registers, memory: &Vec<u8>) -> u8 {
+impl Source {
+    pub fn get_value(&self, registers: &Registers, memory: &Memory) -> usize {
         match *self {
-            Source8::Accumulator => registers.accumulator,
-            Source8::RegisterX => registers.register_x,
-            Source8::RegisterY => registers.register_y,
-            Source8::RegisterSP => registers.get_status_register(),
-            Source8::RegisterS => registers.stack_pointer,
-            Source8::Memory(addr) => memory[addr],
+            Source::Accumulator => registers.accumulator as usize,
+            Source::RegisterX => registers.register_x as usize,
+            Source::RegisterY => registers.register_y as usize,
+            Source::RegisterSP => registers.get_status_register() as usize,
+            Source::RegisterS => registers.stack_pointer as usize,
+            Source::Memory(addr) => memory.read(addr, 1).unwrap()[0] as usize,
+            Source::RegisterCP => registers.command_pointer as usize,
         }
     }
 }
 
 #[derive(Debug)]
 pub enum BooleanExpression {
-    Equal(Source8, u8),
-    GreaterOrEqual(Source8, u8),
-    StrictlyGreater(Source8, u8),
-    LesserOrEqual(Source8, u8),
-    StrictlyLesser(Source8, u8),
-    Different(Source8, u8),
+    Equal(Source, usize),
+    GreaterOrEqual(Source, usize),
+    StrictlyGreater(Source, usize),
+    LesserOrEqual(Source, usize),
+    StrictlyLesser(Source, usize),
+    Different(Source, usize),
     Value(bool),
 }
 
 impl BooleanExpression {
-    pub fn solve(&self, registers: &Registers, memory: &Vec<u8>) -> bool {
+    pub fn solve(&self, registers: &Registers, memory: &Memory) -> bool {
         match &*self {
             BooleanExpression::Equal(source, val) => source.get_value(registers, memory) == *val,
-            BooleanExpression::GreaterOrEqual(source, val) => {
-                source.get_value(registers, memory) >= *val
-            }
-            BooleanExpression::StrictlyGreater(source, val) => {
-                source.get_value(registers, memory) > *val
-            }
-            BooleanExpression::LesserOrEqual(source, val) => {
-                source.get_value(registers, memory) <= *val
-            }
-            BooleanExpression::StrictlyLesser(source, val) => {
-                source.get_value(registers, memory) < *val
-            }
-            BooleanExpression::Different(source, val) => {
-                source.get_value(registers, memory) != *val
-            }
+            BooleanExpression::GreaterOrEqual(source, val) =>
+                source.get_value(registers, memory) >= *val,
+            BooleanExpression::StrictlyGreater(source, val) =>
+                source.get_value(registers, memory) > *val,
+            BooleanExpression::LesserOrEqual(source, val) =>
+                source.get_value(registers, memory) <= *val,
+            BooleanExpression::StrictlyLesser(source, val) =>
+                source.get_value(registers, memory) < *val,
+            BooleanExpression::Different(source, val) =>
+                source.get_value(registers, memory) != *val,
             BooleanExpression::Value(val) => *val,
         }
     }
@@ -130,6 +126,9 @@ fn main() {
         println!("No previous history.");
     }
     rl.set_helper(Some(CommandLineCompleter {}));
+    let interrupted = Arc::new(AtomicBool::new(false));
+    let rmtint = interrupted.clone();
+    ctrlc::set_handler(move || { rmtint.store(true, Ordering::SeqCst); }).unwrap();
     loop {
         let readline = rl.readline(&prompt);
         match readline {
@@ -140,12 +139,19 @@ fn main() {
                 rl.add_history_entry(line.as_str());
                 match BEParser::parse(Rule::sentence, line.as_str()) {
                     Ok(mut pairs)   => {
-                        let response = parse_instruction(pairs.next().unwrap().into_inner(), &mut registers, &mut memory);
+                        parse_instruction(pairs.next().unwrap().into_inner(), &mut registers, &mut memory, &interrupted);
+                        if interrupted.load(Ordering::Relaxed) {
+                            println!("Execution interrupted by CTRL+C!");
+                            interrupted.store(false, Ordering::SeqCst);
+                        }
                     },
                     Err(parse_err)    => {
                         display_error(parse_err);
                     },
                 };
+            },
+            Err(ReadlineError::Interrupted) => {
+                println!("CTRL+C caught, press CTRL+D to exit.");
             },
             Err(ReadlineError::Eof) => {
                 println!("Quit!");
@@ -161,30 +167,63 @@ fn main() {
     println!("Writing commands history in 'history.txt'.");
 }
 
-pub fn parse_instruction(mut nodes: Pairs<Rule>, registers: &mut Registers, memory: &mut Memory) {
+pub fn parse_instruction(mut nodes: Pairs<Rule>, registers: &mut Registers, memory: &mut Memory, interrupted: &Arc<AtomicBool>) {
     let node = nodes.next().unwrap();
     match node.as_rule() {
         Rule::registers_instruction => exec_register_instruction(node.into_inner(), registers),
-        Rule::memory_instruction    => exec_memory_instruction(node.into_inner(), memory),
-        Rule::run_instruction       => println!("Run instruction"),
+        Rule::memory_instruction    => exec_memory_instruction(node.into_inner(), memory, interrupted),
+        Rule::run_instruction       => exec_run_instruction(node.into_inner(), registers, memory, interrupted),
         Rule::help_instruction      => help(node.into_inner()),
-        Rule::disassemble_instruction => exec_disassemble_instruction(node.into_inner(), memory),
+        Rule::disassemble_instruction => exec_disassemble_instruction(node.into_inner(), memory, interrupted),
         _   => {}, 
     };
 }
 
-fn exec_disassemble_instruction(mut nodes: Pairs<Rule>, memory: &mut Memory) {
+fn exec_run_instruction(mut nodes: Pairs<Rule>, registers: &mut Registers, memory: &mut Memory, interrupted: &Arc<AtomicBool>) {
+    let mut stop_condition = BooleanExpression::Value(false);
+    while let Some(node) = nodes.next() {
+        match node.as_rule() {
+            Rule::memory_address    => registers.command_pointer = parse_memory(node.as_str()[3..].to_owned()),
+            Rule::boolean_condition => stop_condition = parse_boolex(node.into_inner()),
+            _   => {},
+        };
+    };
+
+    println!("{:?}", stop_condition);
+    let mut cp = 0x10000; // non addressable on purpose
+    let mut loglines:VecDeque<LogLine> = VecDeque::new();
+    let mut i = 0;
+    loop {
+        loglines.push_back(soft65c02::execute_step(registers, memory).unwrap());
+        i += 1;
+        if loglines.len() > 15 {
+            loglines.pop_front();
+        }
+        if interrupted.load(Ordering::Relaxed) || stop_condition.solve(registers, memory) || registers.command_pointer == cp {
+            break;
+        }
+        cp = registers.command_pointer;
+    }
+
+    if i > 15 {
+        println!("Stopped after {} cpu instructions.", i);
+    }
+    loglines.iter()
+        .for_each(|x| println!("{}", x) );
+}
+
+fn exec_disassemble_instruction(mut nodes: Pairs<Rule>, memory: &mut Memory, interrupted: &Arc<AtomicBool>) {
     let addr = parse_memory(nodes.next().unwrap().as_str()[3..].to_owned());
     let len:usize = nodes.next().unwrap().as_str().parse::<usize>().unwrap();
     for (op, line) in MemoryParserIterator::new(addr, &memory).enumerate() {
         println!("{}", line);
-        if op >= len {
+        if interrupted.load(Ordering::Relaxed) || op >= len {
             break;
         }
     }
 }
 
-fn exec_memory_instruction(mut nodes: Pairs<Rule>, memory: &mut Memory) {
+fn exec_memory_instruction(mut nodes: Pairs<Rule>, memory: &mut Memory, interrupted: &Arc<AtomicBool>) {
     let node = nodes.next().unwrap();
     match node.as_rule() {
         Rule::memory_show   => {
@@ -193,6 +232,9 @@ fn exec_memory_instruction(mut nodes: Pairs<Rule>, memory: &mut Memory) {
             let len:usize = subnodes.next().unwrap().as_str().parse::<usize>().unwrap();
             for line in soft65c02::mem_dump(addr, len, memory).iter() {
                 println!("{}", line);
+                if interrupted.load(Ordering::Relaxed) {
+                    break;
+                }
             }
         },
         Rule::memory_load   => {
@@ -346,13 +388,13 @@ pub fn parse_boolex(mut nodes: Pairs<Rule>) -> BooleanExpression {
 fn parse_operation(mut nodes: Pairs<Rule>) -> BooleanExpression {
     let node = nodes.next().unwrap();
     let lh = match node.as_rule() {
-        Rule::register8 => parse_source_register(&node),
+        Rule::register8 | Rule::register16 => parse_source_register(&node),
         Rule::memory_address => parse_source_memory(&node),
         v => panic!("unexpected node '{:?}' here.", v),
     };
     let middle_node = nodes.next().unwrap();
     let node = nodes.next().unwrap();
-    let rh = parse_value8(&node);
+    let rh = parse_value(&node);
     match middle_node.as_str() {
         "=" => BooleanExpression::Equal(lh, rh),
         ">=" => BooleanExpression::GreaterOrEqual(lh, rh),
@@ -364,13 +406,14 @@ fn parse_operation(mut nodes: Pairs<Rule>) -> BooleanExpression {
     }
 }
 
-fn parse_source_register(node: &Pair<Rule>) -> Source8 {
+fn parse_source_register(node: &Pair<Rule>) -> Source {
     match node.as_str() {
-        "A" => Source8::Accumulator,
-        "X" => Source8::RegisterX,
-        "Y" => Source8::RegisterY,
-        "S" => Source8::RegisterS,
-        "SP" => Source8::RegisterSP,
+        "A" => Source::Accumulator,
+        "X" => Source::RegisterX,
+        "Y" => Source::RegisterY,
+        "S" => Source::RegisterS,
+        "SP" => Source::RegisterSP,
+        "CP" => Source::RegisterCP,
         v => panic!("unknown register type '{:?}'.", v),
     }
 }
@@ -390,16 +433,14 @@ fn parse_memory(addr: String) -> usize {
     addr
 }
 
-fn parse_source_memory(node: &Pair<Rule>) -> Source8 {
+fn parse_source_memory(node: &Pair<Rule>) -> Source {
     let addr = parse_memory(node.as_str()[3..].to_owned());
-    Source8::Memory(addr)
+    Source::Memory(addr)
 }
 
-fn parse_value8(node: &Pair<Rule>) -> u8 {
+fn parse_value(node: &Pair<Rule>) -> usize {
     let hexa = node.as_str()[2..].to_owned();
-    let val = hex::decode(hexa).unwrap();
-
-    val[0] as u8
+    parse_memory(hexa)
 }
 
 struct CommandLineCompleter {}
