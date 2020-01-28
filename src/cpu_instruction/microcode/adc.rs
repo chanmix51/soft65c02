@@ -6,8 +6,8 @@ use super::*;
  * The 65C02 has only one instruction for addition, an addition with carry.
  * Note: the formula for the oVerflow bit comes from
  * http://www.righto.com/2012/12/the-6502-overflow-flag-explained.html
- *
- * TODO: handle the Decimal mode.
+ * Method to handle the decimal mode comes from
+ * http://www.6502.org/tutorials/decimal_mode.html
  */
 pub fn adc(
     memory: &mut Memory,
@@ -21,14 +21,23 @@ pub fn adc(
     let target_address = resolution
         .target_address
         .expect("ADC must have operands, crashing the application");
-
-    if registers.d_flag_is_set() {
-        panic!("Decimal mode is not implemented in SBC yet.");
-    }
-
     let byte = memory.read(target_address, 1)?[0];
     let a = registers.accumulator;
-    {
+
+    if registers.d_flag_is_set() {
+        let carry = if registers.c_flag_is_set() { 1 } else { 0 };
+        let low1 = a & 0x0F;
+        let low2 = byte & 0x0F;
+        let subres = low1 + low2 + carry;
+        let sublow = subres % 10;
+        let carry = if subres == sublow { 0 } else { 1 };
+        let hi1 = a >> 4;
+        let hi2 = byte >> 4;
+        let subres = hi1 + hi2 + carry;
+        let subhi = subres % 10;
+        registers.set_c_flag(subhi != subres);
+        registers.accumulator = (subhi << 4) | sublow;
+    } else {
         let (res, c) = byte.overflowing_add(if registers.c_flag_is_set() { 1 } else { 0 });
         let (res, has_carry) = a.overflowing_add(res);
         registers.accumulator = res;
@@ -165,6 +174,76 @@ mod tests {
             CPUInstruction::new(0x1000, 0xca, "ADC", AddressingMode::Immediate([0xff]), adc);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x4c, 0xff, 0x02]);
         registers.accumulator = 0x00;
+        registers.set_c_flag(true);
+        let _log_line = cpu_instruction
+            .execute(&mut memory, &mut registers)
+            .unwrap();
+        assert_eq!(0x00, registers.accumulator);
+        assert!(registers.c_flag_is_set());
+        assert!(registers.z_flag_is_set());
+        assert!(!registers.n_flag_is_set());
+        assert!(!registers.v_flag_is_set());
+    }
+
+    #[test]
+    fn test_adc_decmode() {
+        let cpu_instruction =
+            CPUInstruction::new(0x1000, 0xca, "ADC", AddressingMode::Immediate([0x15]), adc);
+        let (mut memory, mut registers) = get_stuff(0x1000, vec![0x4c, 0x15, 0x02]);
+        registers.accumulator = 0x07;
+        registers.set_d_flag(true);
+        let _log_line = cpu_instruction
+            .execute(&mut memory, &mut registers)
+            .unwrap();
+        assert_eq!(0x22, registers.accumulator);
+        assert!(!registers.c_flag_is_set());
+        assert!(!registers.z_flag_is_set());
+        assert!(!registers.n_flag_is_set());
+        assert!(!registers.v_flag_is_set());
+    }
+
+    #[test]
+    fn test_adc_decmode_with_carry() {
+        let cpu_instruction =
+            CPUInstruction::new(0x1000, 0xca, "ADC", AddressingMode::Immediate([0x15]), adc);
+        let (mut memory, mut registers) = get_stuff(0x1000, vec![0x4c, 0x15, 0x02]);
+        registers.accumulator = 0x07;
+        registers.set_c_flag(true);
+        registers.set_d_flag(true);
+        let _log_line = cpu_instruction
+            .execute(&mut memory, &mut registers)
+            .unwrap();
+        assert_eq!(0x23, registers.accumulator);
+        assert!(!registers.c_flag_is_set());
+        assert!(!registers.z_flag_is_set());
+        assert!(!registers.n_flag_is_set());
+        assert!(!registers.v_flag_is_set());
+    }
+
+    #[test]
+    fn test_adc_decmode_giving_carry() {
+        let cpu_instruction =
+            CPUInstruction::new(0x1000, 0xca, "ADC", AddressingMode::Immediate([0x95]), adc);
+        let (mut memory, mut registers) = get_stuff(0x1000, vec![0x4c, 0x95, 0x02]);
+        registers.accumulator = 0x05;
+        registers.set_d_flag(true);
+        let _log_line = cpu_instruction
+            .execute(&mut memory, &mut registers)
+            .unwrap();
+        assert_eq!(0x00, registers.accumulator);
+        assert!(registers.c_flag_is_set());
+        assert!(registers.z_flag_is_set());
+        assert!(!registers.n_flag_is_set());
+        assert!(!registers.v_flag_is_set());
+    }
+
+    #[test]
+    fn test_adc_decmode_overflowing_carry() {
+        let cpu_instruction =
+            CPUInstruction::new(0x1000, 0xca, "ADC", AddressingMode::Immediate([0x99]), adc);
+        let (mut memory, mut registers) = get_stuff(0x1000, vec![0x4c, 0x99, 0x02]);
+        registers.accumulator = 0x00;
+        registers.set_d_flag(true);
         registers.set_c_flag(true);
         let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
