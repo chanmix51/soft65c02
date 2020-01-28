@@ -20,21 +20,37 @@ pub fn sbc(
         .target_address
         .expect("SBC must have operands, crashing the application");
 
-    if registers.d_flag_is_set() {
-        panic!("Decimal mode is not implemented in SBC yet.");
-    }
-
     let byte = memory.read(target_address, 1)?[0];
-    let (sub, c) = if !registers.c_flag_is_set() {
-        byte.overflowing_add(1)
-    } else {
-        (byte, false)
-    };
-
     let a = registers.accumulator;
-    let (res, carry) = a.overflowing_sub(sub);
-    registers.accumulator = res;
-    registers.set_c_flag(!(carry | c));
+    if registers.d_flag_is_set() {
+        let carry = if registers.c_flag_is_set() { 0 } else { 1 };
+        let low1 = a & 0x0F;
+        let low2 = byte & 0x0F;
+        let (sublow, carry ) = if low1 >= (low2 + carry) {
+            (low1 - (low2 + carry), 0)
+        } else {
+            (10 + low1 - (low2 + carry), 1)
+        };
+        let hi1 = a >> 4;
+        let hi2 = byte >> 4;
+        let (subhi, carry) = if hi1 >= (hi2 + carry) {
+            (hi1 - (hi2 + carry), true)
+        } else {
+            (10 + hi1 - (hi2 + carry), false)
+        };
+        registers.accumulator = subhi << 4 | sublow;
+        registers.set_c_flag(carry);
+    } else {
+        let (sub, c) = if !registers.c_flag_is_set() {
+            byte.overflowing_add(1)
+        } else {
+            (byte, false)
+        };
+
+        let (res, carry) = a.overflowing_sub(sub);
+        registers.accumulator = res;
+        registers.set_c_flag(!(carry | c));
+    }
     registers.set_z_flag(registers.accumulator == 0);
     registers.set_n_flag(registers.accumulator & 0x80 != 0);
     registers.set_v_flag((a ^ registers.accumulator) & !(byte ^ registers.accumulator) & 0x80 != 0);
@@ -200,5 +216,42 @@ mod tests {
         assert!(registers.z_flag_is_set());
         assert!(!registers.v_flag_is_set());
         assert!(!registers.n_flag_is_set());
+    }
+
+    #[test]
+    fn test_sbc_decmode() {
+        let cpu_instruction =
+            CPUInstruction::new(0x1000, 0xca, "SBC", AddressingMode::Immediate([0x13]), sbc);
+        let (mut memory, mut registers) = get_stuff(0x1000, vec![0x4c, 0x13, 0x02]);
+        registers.accumulator = 0x40;
+        registers.set_d_flag(true);
+        registers.set_c_flag(true);
+        let log_line = cpu_instruction
+            .execute(&mut memory, &mut registers)
+            .unwrap();
+        assert_eq!(0x27, registers.accumulator);
+        assert_eq!(0x1002, registers.command_pointer);
+        assert!(registers.c_flag_is_set());
+        assert!(!registers.z_flag_is_set());
+        assert!(!registers.v_flag_is_set());
+        assert!(!registers.n_flag_is_set());
+    }
+    #[test]
+    fn test_sbc_decmode_negative() {
+        let cpu_instruction =
+            CPUInstruction::new(0x1000, 0xca, "SBC", AddressingMode::Immediate([0x21]), sbc);
+        let (mut memory, mut registers) = get_stuff(0x1000, vec![0x4c, 0x21, 0x02]);
+        registers.accumulator = 0x12;
+        registers.set_d_flag(true);
+        registers.set_c_flag(true);
+        let log_line = cpu_instruction
+            .execute(&mut memory, &mut registers)
+            .unwrap();
+        assert_eq!(0x91, registers.accumulator);
+        assert_eq!(0x1002, registers.command_pointer);
+        assert!(!registers.c_flag_is_set());
+        assert!(!registers.z_flag_is_set());
+        assert!(!registers.v_flag_is_set());
+        assert!(registers.n_flag_is_set());
     }
 }
