@@ -29,10 +29,10 @@ pub fn adc(
     let byte = memory.read(target_address, 1)?[0];
     let a = registers.accumulator;
     {
-        let (res, _) = byte.overflowing_add(if registers.c_flag_is_set() { 1 } else { 0 });
+        let (res, c) = byte.overflowing_add(if registers.c_flag_is_set() { 1 } else { 0 });
         let (res, has_carry) = a.overflowing_add(res);
         registers.accumulator = res;
-        registers.set_c_flag(has_carry);
+        registers.set_c_flag(has_carry | c);
     }
     registers.set_z_flag(registers.accumulator == 0);
     registers.set_n_flag(registers.accumulator & 0x80 != 0);
@@ -157,5 +157,22 @@ mod tests {
         assert!(!registers.z_flag_is_set());
         assert!(registers.n_flag_is_set());
         assert!(registers.v_flag_is_set());
+    }
+
+    #[test]
+    fn test_adc_with_overflowing_carry() {
+        let cpu_instruction =
+            CPUInstruction::new(0x1000, 0xca, "ADC", AddressingMode::Immediate([0xff]), adc);
+        let (mut memory, mut registers) = get_stuff(0x1000, vec![0x4c, 0xff, 0x02]);
+        registers.accumulator = 0x00;
+        registers.set_c_flag(true);
+        let _log_line = cpu_instruction
+            .execute(&mut memory, &mut registers)
+            .unwrap();
+        assert_eq!(0x00, registers.accumulator);
+        assert!(registers.c_flag_is_set());
+        assert!(registers.z_flag_is_set());
+        assert!(!registers.n_flag_is_set());
+        assert!(!registers.v_flag_is_set());
     }
 }
