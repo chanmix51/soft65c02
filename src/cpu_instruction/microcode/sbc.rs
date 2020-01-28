@@ -25,17 +25,16 @@ pub fn sbc(
     }
 
     let byte = memory.read(target_address, 1)?[0];
-    let sub = if !registers.c_flag_is_set() {
-        let (r, _) = byte.overflowing_add(1);
-        r
+    let (sub, c) = if !registers.c_flag_is_set() {
+        byte.overflowing_add(1)
     } else {
-        byte
+        (byte, false)
     };
 
     let a = registers.accumulator;
     let (res, carry) = a.overflowing_sub(sub);
     registers.accumulator = res;
-    registers.set_c_flag(!carry);
+    registers.set_c_flag(!(carry | c));
     registers.set_z_flag(registers.accumulator == 0);
     registers.set_n_flag(registers.accumulator & 0x80 != 0);
     registers.set_v_flag((a ^ registers.accumulator) & !(byte ^ registers.accumulator) & 0x80 != 0);
@@ -179,7 +178,7 @@ mod tests {
             .unwrap();
         assert_eq!(0x00, registers.accumulator);
         assert_eq!(0x1002, registers.command_pointer);
-        assert!(registers.c_flag_is_set());
+        assert!(!registers.c_flag_is_set());
         assert!(registers.z_flag_is_set());
         assert!(!registers.v_flag_is_set());
         assert!(!registers.n_flag_is_set());
