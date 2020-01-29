@@ -34,6 +34,7 @@ fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> CPUInstruction
         0x0c => instr::new(address, opcode, "TSB", AM::Absolute(op2), mc::tsb),
         0x0d => instr::new(address, opcode, "ORA", AM::Absolute(op2), mc::ora),
         0x0e => instr::new(address, opcode, "ASL", AM::Absolute(op2), mc::asl),
+        0x0f => instr::new(address, opcode, "BBR0", AM::ZeroPageRelative(address, op2), mc::bbr),
         0x10 => instr::new(address, opcode, "BPL", AM::Relative(address, op1), mc::bpl),
         0x11 => instr::new(
             address,
@@ -53,6 +54,7 @@ fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> CPUInstruction
         0x1c => instr::new(address, opcode, "TRB", AM::Absolute(op2), mc::trb),
         0x1d => instr::new(address, opcode, "ORA", AM::AbsoluteXIndexed(op2), mc::ora),
         0x1e => instr::new(address, opcode, "ASL", AM::AbsoluteXIndexed(op2), mc::asl),
+        0x1f => instr::new(address, opcode, "BBR1", AM::ZeroPageRelative(address, op2), mc::bbr),
         0x20 => instr::new(address, opcode, "JSR", AM::Absolute(op2), mc::jsr),
         0x21 => instr::new(
             address,
@@ -71,6 +73,7 @@ fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> CPUInstruction
         0x2c => instr::new(address, opcode, "BIT", AM::Absolute(op2), mc::bit),
         0x2d => instr::new(address, opcode, "AND", AM::Absolute(op2), mc::and),
         0x2e => instr::new(address, opcode, "ROL", AM::Absolute(op2), mc::rol),
+        0x2f => instr::new(address, opcode, "BBR2", AM::ZeroPageRelative(address, op2), mc::bbr),
         0x30 => instr::new(address, opcode, "BMI", AM::Relative(address, op1), mc::bmi),
         0x31 => instr::new(
             address,
@@ -90,6 +93,7 @@ fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> CPUInstruction
         0x3c => instr::new(address, opcode, "BIT", AM::AbsoluteXIndexed(op2), mc::bit),
         0x3d => instr::new(address, opcode, "AND", AM::AbsoluteXIndexed(op2), mc::and),
         0x3e => instr::new(address, opcode, "ROL", AM::AbsoluteXIndexed(op2), mc::rol),
+        0x3f => instr::new(address, opcode, "BBR3", AM::ZeroPageRelative(address, op2), mc::bbr),
         0x40 => instr::new(address, opcode, "RTI", AM::Implied, mc::rti),
         0x41 => instr::new(
             address,
@@ -107,6 +111,7 @@ fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> CPUInstruction
         0x4c => instr::new(address, opcode, "JMP", AM::Absolute(op2), mc::jmp),
         0x4d => instr::new(address, opcode, "EOR", AM::Absolute(op2), mc::eor),
         0x4e => instr::new(address, opcode, "LSR", AM::Absolute(op2), mc::lsr),
+        0x4f => instr::new(address, opcode, "BBR4", AM::ZeroPageRelative(address, op2), mc::bbr),
         0x50 => instr::new(address, opcode, "BVC", AM::Relative(address, op1), mc::bvc),
         0x51 => instr::new(
             address,
@@ -124,6 +129,7 @@ fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> CPUInstruction
         0x5a => instr::new(address, opcode, "PHY", AM::Implied, mc::phy),
         0x5d => instr::new(address, opcode, "EOR", AM::AbsoluteXIndexed(op2), mc::eor),
         0x5e => instr::new(address, opcode, "LSR", AM::AbsoluteXIndexed(op2), mc::lsr),
+        0x5f => instr::new(address, opcode, "BBR5", AM::ZeroPageRelative(address, op2), mc::bbr),
         0x60 => instr::new(address, opcode, "RTS", AM::Implied, mc::rts),
         0x61 => instr::new(
             address,
@@ -142,6 +148,7 @@ fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> CPUInstruction
         0x6c => instr::new(address, opcode, "JMP", AM::Indirect(op2), mc::jmp),
         0x6d => instr::new(address, opcode, "ADC", AM::Absolute(op2), mc::adc),
         0x6e => instr::new(address, opcode, "ROR", AM::Absolute(op2), mc::ror),
+        0x6f => instr::new(address, opcode, "BBR6", AM::ZeroPageRelative(address, op2), mc::bbr),
         0x70 => instr::new(address, opcode, "BVS", AM::Relative(address, op1), mc::bvs),
         0x71 => instr::new(
             address,
@@ -167,6 +174,7 @@ fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> CPUInstruction
         ),
         0x7d => instr::new(address, opcode, "ADC", AM::AbsoluteXIndexed(op2), mc::adc),
         0x7e => instr::new(address, opcode, "ROR", AM::AbsoluteXIndexed(op2), mc::ror),
+        0x7f => instr::new(address, opcode, "BBR7", AM::ZeroPageRelative(address, op2), mc::bbr),
         0x80 => instr::new(address, opcode, "BRA", AM::Relative(address, op1), mc::bra),
         0x81 => instr::new(
             address,

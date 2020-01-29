@@ -9,7 +9,9 @@ pub fn rmb(
         cpu_instruction
             .addressing_mode
             .solve(registers.command_pointer, memory, registers)?;
-    let addr = resolution.target_address.expect("RMB expects an operand, crashing the application");
+    let addr = resolution
+        .target_address
+        .expect("RMB must have operands, crashing the application");
     let byte = memory.read(addr, 1)?[0];
     let mut bit = 0b00000001;
     (0..cpu_instruction.opcode >> 4).for_each(|_| bit = bit << 1);
