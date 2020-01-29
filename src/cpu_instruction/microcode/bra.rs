@@ -9,11 +9,11 @@ pub fn bra(
         cpu_instruction
             .addressing_mode
             .solve(registers.command_pointer, memory, registers)?;
-    let target_address = resolution
-        .target_address
-        .expect("BRA must have operands, crashing the application");
 
-    registers.command_pointer = target_address;
+    registers.command_pointer = resolve_relative(
+        cpu_instruction.address,
+        cpu_instruction.addressing_mode.get_operands()[0]
+    ).expect("Could not resolve relative address for BRA");
 
     Ok(LogLine::new(
         &cpu_instruction,
@@ -28,7 +28,7 @@ mod tests {
     use crate::cpu_instruction::cpu_instruction::tests::get_stuff;
 
     #[test]
-    fn test_bne_branch() {
+    fn test_bra_branch() {
         let cpu_instruction =
             CPUInstruction::new(0x1000, 0xca, "BRA", AddressingMode::Relative(0x1000, [0x0a]), bra);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xca, 0x0a, 0x02]);

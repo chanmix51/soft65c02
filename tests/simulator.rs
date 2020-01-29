@@ -24,7 +24,7 @@ fn execute_program() {
         "#0x8000: (95 20)       STA  $20,X    (#0x00E1)  (0xd4)",
         "#0x8002: (40)          RTI                      [CP=0x0808][SP=0xff][S=Nv-Bdizc]",
         "#0x0808: (d5 20)       CMP  $20,X    (#0x00E1)  (0xd4)[A=0xd4][S=nv-BdiZC]",
-        "#0x080A: (d0 fe)       BNE  $080A    (#0x080A)  [CP=0x080C]",
+        "#0x080A: (d0 fe)       BNE  $080A               [CP=0x080C]",
         "#0x080C: (db)          STP",
     ];
     let mut count: usize = 0;

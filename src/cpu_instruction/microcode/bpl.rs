@@ -9,14 +9,14 @@ pub fn bpl(
         cpu_instruction
             .addressing_mode
             .solve(registers.command_pointer, memory, registers)?;
-    let target_address = resolution
-        .target_address
-        .expect("BPL must have operands, crashing the application");
 
     if registers.n_flag_is_set() {
         registers.command_pointer += 2;
     } else {
-        registers.command_pointer = target_address;
+        registers.command_pointer = resolve_relative(
+            cpu_instruction.address,
+            cpu_instruction.addressing_mode.get_operands()[0]
+        ).expect("Could not resolve relative address for BPL");
     }
 
     Ok(LogLine::new(
@@ -50,7 +50,7 @@ mod tests {
             CPUInstruction::new(0x1000, 0xca, "BPL", AddressingMode::Relative(0x1000, [0x0a]), bpl);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xca, 0x0a, 0x02]);
         registers.set_n_flag(true);
-        let log_line = cpu_instruction
+        let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!(0x1002, registers.command_pointer);
