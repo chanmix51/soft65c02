@@ -22,6 +22,7 @@ pub fn brk(
     registers.stack_push(memory, registers.get_status_register())?;
     registers.command_pointer = little_endian(memory.read(INTERRUPT_VECTOR_ADDR, 2)?);
     registers.set_i_flag(true);
+    registers.set_d_flag(false);
 
     Ok(LogLine::new(
         &cpu_instruction,
@@ -56,5 +57,6 @@ mod tests {
             memory.read(STACK_BASE_ADDR + 0xfd, 3).unwrap()
         );
         assert!(registers.i_flag_is_set());
+        assert!(!registers.d_flag_is_set());
     }
 }
