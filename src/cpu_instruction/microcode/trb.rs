@@ -21,7 +21,7 @@ pub fn trb(
         memory.write(target_address, &vec![res])?;
         res
     } else {
-        registers.set_z_flag(false);
+        registers.set_z_flag(registers.accumulator == 0);
         byte
     };
     registers.command_pointer += 1 + resolution.operands.len();
@@ -60,12 +60,27 @@ mod tests {
             CPUInstruction::new(0x1000, 0xca, "TRB", AddressingMode::ZeroPage([0x0a]), trb);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x8a, 0x0a, 0x02]);
         memory.write(0x0a, &vec![0x0f]).unwrap();
-        registers.register_y = 0x80;
+        registers.accumulator = 0x80;
         let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!(0x0f, memory.read(0x0a, 1).unwrap()[0]);
         assert!(!registers.z_flag_is_set());
+        assert_eq!(0x1002, registers.command_pointer);
+    }
+
+    #[test]
+    fn test_trb_with_accu_zero() {
+        let cpu_instruction =
+            CPUInstruction::new(0x1000, 0xca, "TRB", AddressingMode::ZeroPage([0x0a]), trb);
+        let (mut memory, mut registers) = get_stuff(0x1000, vec![0x8a, 0x0a, 0x02]);
+        memory.write(0x0a, &vec![0x0f]).unwrap();
+        registers.register_y = 0x00;
+        let log_line = cpu_instruction
+            .execute(&mut memory, &mut registers)
+            .unwrap();
+        assert_eq!(0x0f, memory.read(0x0a, 1).unwrap()[0]);
+        assert!(registers.z_flag_is_set());
         assert_eq!(0x1002, registers.command_pointer);
     }
 }

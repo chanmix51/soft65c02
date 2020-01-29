@@ -14,7 +14,7 @@ pub fn tsb(
         .expect("TSB must have operands, crashing the application");
 
     let byte = memory.read(target_address, 1)?[0];
-    registers.set_z_flag(byte & registers.accumulator != 0);
+    registers.set_z_flag((byte & registers.accumulator != 0) | (registers.accumulator == 0));
     let res = byte | registers.accumulator;
     memory.write(target_address, &vec![res])?;
     registers.command_pointer += 1 + resolution.operands.len();
@@ -48,17 +48,31 @@ mod tests {
     }
 
     #[test]
-    fn test_tsb_z() {
+    fn test_tsb_no_z() {
+        let cpu_instruction =
+            CPUInstruction::new(0x1000, 0xca, "TSB", AddressingMode::ZeroPage([0x0a]), tsb);
+        let (mut memory, mut registers) = get_stuff(0x1000, vec![0x8a, 0x0a, 0x02]);
+        memory.write(0x0a, &vec![0xf0]).unwrap();
+        registers.accumulator = 0x8f;
+        let log_line = cpu_instruction
+            .execute(&mut memory, &mut registers)
+            .unwrap();
+        assert_eq!(0xff, memory.read(0x0a, 1).unwrap()[0]);
+        assert!(registers.z_flag_is_set());
+        assert_eq!(0x1002, registers.command_pointer);
+    }
+
+    #[test]
+    fn test_tsb_with_zero_accu() {
         let cpu_instruction =
             CPUInstruction::new(0x1000, 0xca, "TSB", AddressingMode::ZeroPage([0x0a]), tsb);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x8a, 0x0a, 0x02]);
         memory.write(0x0a, &vec![0x0f]).unwrap();
-        registers.register_y = 0x80;
         let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!(0x0f, memory.read(0x0a, 1).unwrap()[0]);
-        assert!(!registers.z_flag_is_set());
+        assert!(registers.z_flag_is_set());
         assert_eq!(0x1002, registers.command_pointer);
     }
 }
