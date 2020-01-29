@@ -25,7 +25,7 @@ use std::collections::VecDeque;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
-const LOGLINE_MEMORY_LEN:usize = 25;
+const LOGLINE_MEMORY_LEN:usize = 35;
 
 #[derive(Parser)]
 #[grammar = "cli.pest"]

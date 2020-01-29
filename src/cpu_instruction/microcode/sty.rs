@@ -16,7 +16,11 @@ pub fn sty(
     memory.write(target_address, &vec![registers.register_y])?;
     registers.command_pointer += 1 + resolution.operands.len();
 
-    Ok(LogLine::new(&cpu_instruction, resolution, String::new()))
+    Ok(LogLine::new(
+        &cpu_instruction,
+        resolution,
+        format!("(0x{:02x})", registers.register_y),
+    ))
 }
 
 #[cfg(test)]
