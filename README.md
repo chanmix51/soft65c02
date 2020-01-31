@@ -25,7 +25,7 @@ This is a pet project so if you are interested into real world software regardin
 
 Why would you write another simulator for the 65C02?
 ----------------------------------------------------
-To learn the [Rust language](https://www.rust-lang.org/) and … the 65C02. It has been a real pleasure to code in the Rust programming language, guys you have created awesome tools.
+To learn the [Rust language](https://www.rust-lang.org/) and … the 65C02. It has been a real pleasure to code in the Rust programming language, guys & girls, you have created awesome tools.
 
 The Rust language OK, but why the 6502 and not a modern processor?
 ------------------------------------------------------------------

@@ -330,6 +330,12 @@ fn exec_memory_instruction(
                 Ok(len) => println!("Loaded {} bytes at address #0x{:04X}.", len, addr),
                 Err(e) => println!("{}: {}", Colour::Red.paint("Error"), e),
             }
+        },
+        Rule::memory_sub_list => {
+            println!("Memory subsystems:");
+            for line in memory.get_subsystems_info() {
+                println!("{}", line);
+            }
         }
         _ => {
             println!("{:?}", node);
@@ -394,6 +400,9 @@ fn help(mut nodes: Pairs<Rule>) {
                     "          Example: {}",
                     Colour::Fixed(240).paint("memory load #0x1C00 \"program.bin\"")
                 );
+                println!("");
+                println!("  memory sub list");
+                println!("          Show the list of the running memory subsystems.");
             }
             Rule::help_run => {
                 println!("{}", Colour::Green.paint("Execution commands:"));
@@ -593,6 +602,7 @@ impl rustyline::completion::Completer for CommandLineCompleter {
             "registers flush",
             "memory show #0x",
             "memory load #0x",
+            "memory sub list",
             "run ",
             "run #0x",
             "run until ",
