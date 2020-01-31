@@ -17,7 +17,8 @@ use rustyline::error::ReadlineError;
 use rustyline::Result as RustyResult;
 use rustyline::{Context, Editor};
 
-use soft65c02::{AddressableIO, LogLine, Memory, MemoryParserIterator, Registers};
+use soft65c02::{AddressableIO, LogLine, Memory, MemoryParserIterator, Registers, INIT_VECTOR};
+use soft65c02::memory::little_endian;
 
 use std::collections::VecDeque;
 use std::fs::File;
@@ -243,10 +244,11 @@ fn exec_run_instruction(
     let mut stop_condition = BooleanExpression::Value(true);
     while let Some(node) = nodes.next() {
         match node.as_rule() {
-            Rule::memory_address => {
-                registers.command_pointer = parse_memory(node.as_str()[3..].to_owned())
-            }
+            Rule::memory_address => 
+                registers.command_pointer = parse_memory(node.as_str()[3..].to_owned()),
             Rule::boolean_condition => stop_condition = parse_boolex(node.into_inner()),
+            Rule::init_vector =>
+                registers.command_pointer = little_endian(memory.read(INIT_VECTOR, 2).unwrap()),
             _ => {}
         };
     }
@@ -315,7 +317,7 @@ fn exec_memory_instruction(
             let mut subnodes = node.into_inner();
             let addr = parse_memory(subnodes.next().unwrap().as_str()[3..].to_owned());
             let len: usize = subnodes.next().unwrap().as_str().parse::<usize>().unwrap();
-            for line in soft65c02::mem_dump(addr, len, memory).iter() {
+            for line in mem_dump(addr, len, memory).iter() {
                 println!("{}", line);
                 if interrupted.load(Ordering::Relaxed) {
                     break;
@@ -341,6 +343,26 @@ fn exec_memory_instruction(
             println!("{:?}", node);
         }
     }
+}
+
+fn mem_dump(start: usize, len: usize, memory: &Memory) -> Vec<String> {
+    let mut output:Vec<String> = vec![];
+    if len == 0 { return output }
+    let address = start - (start % 16);
+    let bytes = memory.read(address, 16 * len).unwrap();
+
+    for lineno in 0..len {
+        let mut line = format!("#{:04X}: ", address + lineno * 16);
+        for col in 0..16 {
+            if col == 8 {
+                line.push(' ');
+            }
+            line = format!("{} {:02x}", line, bytes[16 * lineno + col]);
+        }
+        output.push(line);
+    }
+
+    output
 }
 
 fn load_memory(filename: &str, addr: usize, memory: &mut Memory) -> std::io::Result<usize> {

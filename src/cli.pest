@@ -20,11 +20,9 @@ memory_load = { ^"load" ~ memory_address ~ filename }
 memory_sub_action = _{ memory_sub_list }
 memory_sub_list = { ^"list" }
 
-run_instruction = { ^"run until" ~ boolean_condition
-    | ^"run" ~ memory_address ~ ^"until" ~ boolean_condition
-    | ^"run" ~ memory_address
-    | ^"run"
-    }
+run_instruction = { ^"run" ~ (memory_location)? ~ ("until" ~ boolean_condition)?  }
+memory_location = _{ memory_address | init_vector }
+init_vector = { ^"init" }
 
 disassemble_instruction = {
     ^"disassemble" ~ memory_address ~ size_parameter
