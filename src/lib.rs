@@ -7,10 +7,8 @@ mod processing_unit;
 mod registers;
 
 pub const VERSION: &'static str = "0.1.0";
-pub const INIT_VECTOR: usize = 0xFFFC;
-pub const INTERRUPT_VECTOR: usize = 0xFFFE;
 
-pub use cpu_instruction::{CPUInstruction, LogLine, MicrocodeError};
+pub use cpu_instruction::{CPUInstruction, LogLine, MicrocodeError, INIT_VECTOR_ADDR, INTERRUPT_VECTOR_ADDR};
 pub use memory::AddressableIO;
 pub use memory::MemoryStack as Memory;
 pub use processing_unit::*;

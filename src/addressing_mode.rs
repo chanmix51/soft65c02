@@ -227,11 +227,11 @@ impl AddressingMode {
                     Some(dst_addr),
                 ))
             }
-            AddressingMode::Relative(addr, v) => {
+            AddressingMode::Relative(_addr, v) => {
                 let bytes = vec![v[0]];
                 Ok(AddressingModeResolution::new(bytes, self.clone(), None))
             },
-            AddressingMode::ZeroPageRelative(addr, v) => {
+            AddressingMode::ZeroPageRelative(_addr, v) => {
                 let bytes = v.to_vec();
                 let dst_addr = Some(bytes[0] as usize);
 
@@ -260,8 +260,8 @@ impl AddressingMode {
             AddressingMode::AbsoluteXIndexedIndirect(v) => v.to_vec(),
             AddressingMode::AbsoluteYIndexed(v) => v.to_vec(),
             AddressingMode::Indirect(v) => v.to_vec(),
-            AddressingMode::Relative(addr, v) => v.to_vec(),
-            AddressingMode::ZeroPageRelative(addr, v) => v.to_vec(),
+            AddressingMode::Relative(_addr, v) => v.to_vec(),
+            AddressingMode::ZeroPageRelative(_addr, v) => v.to_vec(),
         }
     }
 }
