@@ -27,7 +27,7 @@ pub fn ror(
     let outcome = match resolution.target_address {
         Some(addr) => {
             memory.write(addr, &vec![res])?;
-            format!("0x{:02x}[S={}]", res, registers.format_status())
+            format!("(0x{:02x})[S={}]", res, registers.format_status())
         }
         None => {
             registers.accumulator = res;

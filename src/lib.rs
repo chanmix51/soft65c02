@@ -20,7 +20,7 @@ pub fn mem_dump(start: usize, len: usize, memory: &Memory) -> Vec<String> {
     let mut output:Vec<String> = vec![];
     if len == 0 { return output }
     let address = start - (start % 16);
-    let bytes = memory.read(address, address + 16 * len).unwrap();
+    let bytes = memory.read(address, 16 * len).unwrap();
 
     for lineno in 0..len {
         let mut line = format!("#{:04X}: ", address + lineno * 16);
@@ -54,19 +54,3 @@ pub fn execute(
         }
     }
 }
-
-/*
- * Logical execution breakpoint
- * Expressions are evaluated AFTER each instruction is executed.
- * In all cases the execution is stopped if the CP has not changed since last
- * execution. This can occure with a STP instruction of a 0xfe branching or
- * jumping at the same address.
- *
- * LEB might take expressions like:
- * "false" => step by step execution.
- * "CP=0x3456" stops when the command pointer reaches that address.
- * "A>0xa8 & S=0b11000001" stops if the accumulator value is greater than 0xa8
- * and NVZ status flags are set.
- * "#0x1234=0xfa" stops if the specified address matches.
- * "OP=CLC" break if the last executed opcode was CLC.
- */
