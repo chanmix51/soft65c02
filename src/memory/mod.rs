@@ -2,13 +2,13 @@ use std::fmt;
 
 mod error;
 mod memory_stack;
-mod minifb_adapter;
+mod minifb_sub;
 mod ram;
 mod rom;
 
 pub use error::MemoryError;
 pub use memory_stack::MemoryStack;
-pub use minifb_adapter::{MiniFBMemoryAdapter, MINIFB_HEIGHT, MINIFB_WIDTH};
+pub use minifb_sub::MiniFBMemory;
 pub use ram::RAM;
 pub use rom::ROM;
 
