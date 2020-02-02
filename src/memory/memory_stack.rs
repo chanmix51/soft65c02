@@ -192,7 +192,7 @@ mod tests {
 
     #[test]
     fn test_add_subsystem() {
-        let mut memory_stack = init_memory();
+        let memory_stack = init_memory();
         let output = memory_stack.get_subsystems_info();
         assert_eq!(2, output.len());
         assert_eq!(

@@ -1,6 +1,6 @@
 #[test]
 fn execute_program() {
-    use soft65c02::{execute, AddressableIO, LogLine, Memory, Registers};
+    use soft65c02::{execute, AddressableIO, Memory, Registers};
     let init_vector: usize = 0x0800;
     let mut memory = Memory::new_with_ram();
     memory

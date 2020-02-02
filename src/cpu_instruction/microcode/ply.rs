@@ -65,7 +65,7 @@ mod tests {
         memory.write(0x01ff, &vec![0x00]).unwrap();
         registers.register_y = 0x10;
         registers.stack_pointer = 0xfe;
-        let log_line = cpu_instruction
+        let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!(0x00, registers.register_y);
@@ -82,7 +82,7 @@ mod tests {
         memory.write(0x01ff, &vec![0x81]).unwrap();
         registers.register_y = 0x10;
         registers.stack_pointer = 0xfe;
-        let log_line = cpu_instruction
+        let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!(0x81, registers.register_y);

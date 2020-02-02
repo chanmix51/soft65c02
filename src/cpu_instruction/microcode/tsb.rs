@@ -57,7 +57,7 @@ mod tests {
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x8a, 0x0a, 0x02]);
         memory.write(0x0a, &vec![0xa6]).unwrap();
         registers.accumulator = 0x41;
-        let log_line = cpu_instruction
+        let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!(0xe7, memory.read(0x0a, 1).unwrap()[0]);

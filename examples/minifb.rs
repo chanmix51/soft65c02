@@ -1,4 +1,3 @@
-use minifb::{Error, Key, Scale, ScaleMode, Window, WindowOptions};
 use soft65c02::memory::MiniFBMemory;
 use soft65c02::{AddressableIO, LogLine, Memory, Registers};
 

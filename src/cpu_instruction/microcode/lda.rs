@@ -58,10 +58,9 @@ mod tests {
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xa9, 0x0a]);
         registers.accumulator = 0x10;
         memory.write(0x000a, &vec![0x80]).unwrap();
-        let log_line = cpu_instruction
+        let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
-        assert_eq!("LDA".to_owned(), log_line.mnemonic);
         assert_eq!(0x80, registers.accumulator);
         assert!(!registers.z_flag_is_set());
         assert!(registers.n_flag_is_set());

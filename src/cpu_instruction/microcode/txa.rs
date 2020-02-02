@@ -55,7 +55,7 @@ mod tests {
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x8a, 0x0a, 0x02]);
         registers.set_n_flag(false);
         registers.register_x = 0x80;
-        let log_line = cpu_instruction
+        let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!(0x80, registers.accumulator);
@@ -72,7 +72,7 @@ mod tests {
         registers.set_z_flag(false);
         registers.register_x = 0x00;
         registers.accumulator = 0x0a;
-        let log_line = cpu_instruction
+        let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!(0x00, registers.accumulator);

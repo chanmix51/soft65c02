@@ -59,7 +59,7 @@ mod tests {
         assert!(!registers.c_flag_is_set());
         assert_eq!(0x1002, registers.command_pointer);
         assert_eq!(
-            format!("#0x1000: (ca 0a)       ROR  $0a      (#0x000A)  0x14[S=nv-Bdizc]"),
+            format!("#0x1000: (ca 0a)       ROR  $0a      (#0x000A)  (0x14)[S=nv-Bdizc]"),
             format!("{}", log_line)
         );
     }
@@ -91,7 +91,7 @@ mod tests {
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x00]);
         registers.accumulator = 0x28;
         registers.set_c_flag(true);
-        let log_line = cpu_instruction
+        let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!(0x94, registers.accumulator);
@@ -121,7 +121,7 @@ mod tests {
             CPUInstruction::new(0x1000, 0xca, "ROR", AddressingMode::Accumulator, ror);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xe8, 0x0a, 0x02]);
         registers.accumulator = 0x03;
-        let log_line = cpu_instruction
+        let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!(0x01, registers.accumulator);

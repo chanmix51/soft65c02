@@ -632,6 +632,7 @@ impl rustyline::completion::Completer for CommandLineCompleter {
             "memory show #0x",
             "memory load #0x",
             "memory sub list",
+            "memory sub add minifb",
             "run ",
             "run #0x",
             "run until ",

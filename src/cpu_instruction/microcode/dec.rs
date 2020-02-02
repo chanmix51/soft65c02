@@ -64,7 +64,7 @@ mod tests {
             CPUInstruction::new(0x1000, 0xca, "DEC", AddressingMode::ZeroPage([0xa0]), dec);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xca, 0x0a]);
         memory.write(0xa0, &vec![0x10]).unwrap();
-        let log_line = cpu_instruction
+        let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!(0x0f, memory.read(0xa0, 1).unwrap()[0]);

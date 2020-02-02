@@ -100,7 +100,7 @@ mod tests {
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x4c, 0x00, 0x02]);
         registers.accumulator = 0x28;
         registers.set_c_flag(true);
-        let log_line = cpu_instruction
+        let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!(0x28, registers.accumulator);
@@ -118,7 +118,7 @@ mod tests {
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x4c, 0x01, 0x02]);
         registers.accumulator = 0x28;
         registers.set_c_flag(false);
-        let log_line = cpu_instruction
+        let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!(0x26, registers.accumulator);
@@ -136,7 +136,7 @@ mod tests {
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x4c, 0x01, 0x02]);
         registers.accumulator = 0x01;
         registers.set_c_flag(true);
-        let log_line = cpu_instruction
+        let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!(0x00, registers.accumulator);
@@ -154,7 +154,7 @@ mod tests {
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x4c, 0xff, 0x02]);
         registers.accumulator = 0xfb;
         registers.set_c_flag(true);
-        let log_line = cpu_instruction
+        let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!(0xfc, registers.accumulator);
@@ -172,7 +172,7 @@ mod tests {
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x4c, 0x02, 0x02]);
         registers.accumulator = 0x81;
         registers.set_c_flag(true);
-        let log_line = cpu_instruction
+        let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!(0x7f, registers.accumulator);
@@ -189,7 +189,7 @@ mod tests {
             CPUInstruction::new(0x1000, 0xca, "SBC", AddressingMode::Immediate([0xff]), sbc);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x4c, 0xff, 0x02]);
         registers.accumulator = 0x00;
-        let log_line = cpu_instruction
+        let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!(0x00, registers.accumulator);
@@ -207,7 +207,7 @@ mod tests {
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x4c, 0xff, 0x02]);
         registers.accumulator = 0xff;
         registers.set_c_flag(true);
-        let log_line = cpu_instruction
+        let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!(0x00, registers.accumulator);
@@ -226,7 +226,7 @@ mod tests {
         registers.accumulator = 0x40;
         registers.set_d_flag(true);
         registers.set_c_flag(true);
-        let log_line = cpu_instruction
+        let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!(0x27, registers.accumulator);
@@ -244,7 +244,7 @@ mod tests {
         registers.accumulator = 0x12;
         registers.set_d_flag(true);
         registers.set_c_flag(true);
-        let log_line = cpu_instruction
+        let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!(0x91, registers.accumulator);

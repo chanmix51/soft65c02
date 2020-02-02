@@ -54,7 +54,7 @@ mod tests {
             CPUInstruction::new(0x1000, 0xca, "CPX", AddressingMode::Immediate([0x0a]), cpx);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x4c, 0x0a, 0x02]);
         registers.register_x = 0x0a;
-        let log_line = cpu_instruction
+        let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert!(registers.c_flag_is_set());
@@ -68,7 +68,7 @@ mod tests {
             CPUInstruction::new(0x1000, 0xca, "CPX", AddressingMode::Immediate([0x0a]), cpx);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x4c, 0x0a, 0x02]);
         registers.register_x = 0x01;
-        let log_line = cpu_instruction
+        let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert!(!registers.c_flag_is_set());

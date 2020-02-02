@@ -37,13 +37,13 @@ mod tests {
     #[test]
     fn test_ldx() {
         let cpu_instruction =
-            CPUInstruction::new(0x1000, 0xa0, "ldx", AddressingMode::Immediate([0x0a]), ldx);
+            CPUInstruction::new(0x1000, 0xa0, "LDX", AddressingMode::Immediate([0x0a]), ldx);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xa0, 0x0a]);
         registers.register_x = 0x10;
         let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
-        assert_eq!("ldx".to_owned(), log_line.mnemonic);
+        assert_eq!("LDX".to_owned(), log_line.mnemonic);
         assert_eq!(0x0a, registers.register_x);
         assert!(!registers.z_flag_is_set());
         assert!(!registers.n_flag_is_set());
@@ -56,10 +56,9 @@ mod tests {
             CPUInstruction::new(0x1000, 0xca, "LDX", AddressingMode::Immediate([0x8a]), ldx);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xa9, 0x8a]);
         registers.register_x = 0x10;
-        let log_line = cpu_instruction
+        let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
-        assert_eq!("LDX".to_owned(), log_line.mnemonic);
         assert_eq!(0x8a, registers.register_x);
         assert!(!registers.z_flag_is_set());
         assert!(registers.n_flag_is_set());

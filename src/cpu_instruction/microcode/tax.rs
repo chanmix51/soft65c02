@@ -53,10 +53,9 @@ mod tests {
             CPUInstruction::new(0x1000, 0xca, "TAX", AddressingMode::Implied, tax);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x8a, 0x0a, 0x02]);
         registers.register_x = 0x28;
-        let log_line = cpu_instruction
+        let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
-        assert_eq!("TAX".to_owned(), log_line.mnemonic);
         assert_eq!(0x00, registers.register_x);
         assert!(registers.z_flag_is_set());
         assert!(!registers.n_flag_is_set());
@@ -69,10 +68,9 @@ mod tests {
             CPUInstruction::new(0x1000, 0xca, "TAX", AddressingMode::Implied, tax);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x8a, 0x0a, 0x02]);
         registers.accumulator = 0xf8;
-        let log_line = cpu_instruction
+        let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
-        assert_eq!("TAX".to_owned(), log_line.mnemonic);
         assert_eq!(0xf8, registers.register_x);
         assert!(!registers.z_flag_is_set());
         assert!(registers.n_flag_is_set());

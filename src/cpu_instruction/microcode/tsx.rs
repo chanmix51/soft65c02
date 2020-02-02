@@ -53,7 +53,7 @@ mod tests {
             CPUInstruction::new(0x1000, 0xca, "tsx", AddressingMode::Implied, tsx);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x8a, 0x0a, 0x02]);
         registers.stack_pointer = 0xfe;
-        let log_line = cpu_instruction
+        let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!(0xfe, registers.register_x);
@@ -68,7 +68,7 @@ mod tests {
             CPUInstruction::new(0x1000, 0xca, "tsx", AddressingMode::Implied, tsx);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x8a, 0x0a, 0x02]);
         registers.stack_pointer = 0x00;
-        let log_line = cpu_instruction
+        let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!(0x00, registers.register_x);

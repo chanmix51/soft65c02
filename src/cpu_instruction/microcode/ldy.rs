@@ -56,10 +56,9 @@ mod tests {
             CPUInstruction::new(0x1000, 0xca, "LDY", AddressingMode::Immediate([0x8a]), ldy);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xa9, 0x8a]);
         registers.register_y = 0x10;
-        let log_line = cpu_instruction
+        let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
-        assert_eq!("LDY".to_owned(), log_line.mnemonic);
         assert_eq!(0x8a, registers.register_y);
         assert!(!registers.z_flag_is_set());
         assert!(registers.n_flag_is_set());

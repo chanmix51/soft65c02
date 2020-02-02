@@ -57,7 +57,7 @@ mod tests {
             CPUInstruction::new(0x1000, 0xca, "EOR", AddressingMode::Immediate([0x0a]), eor);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x4c, 0x0a, 0x02]);
         registers.accumulator = 0x0a;
-        let log_line = cpu_instruction
+        let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!(0x00, registers.accumulator);
@@ -72,7 +72,7 @@ mod tests {
             CPUInstruction::new(0x1000, 0xca, "EOR", AddressingMode::Immediate([0x0a]), eor);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x4c, 0x0a, 0x02]);
         registers.accumulator = 0xfa;
-        let log_line = cpu_instruction
+        let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!(0xf0, registers.accumulator);

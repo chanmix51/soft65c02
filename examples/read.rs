@@ -1,6 +1,5 @@
-use soft65c02::{AddressableIO, LogLine, Memory, Registers};
+use soft65c02::{AddressableIO, Memory, Registers};
 use std::fs::File;
-use std::io;
 use std::io::prelude::*;
 
 fn read_file(filename: &str) -> Vec<u8> {

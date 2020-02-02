@@ -63,7 +63,7 @@ mod tests {
             CPUInstruction::new(0x1000, 0xca, "ASL", AddressingMode::Accumulator, asl);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xe8, 0x0a, 0x02]);
         registers.accumulator = 0x28;
-        let log_line = cpu_instruction
+        let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!(0x50, registers.accumulator);
@@ -94,7 +94,7 @@ mod tests {
             CPUInstruction::new(0x1000, 0xca, "ASL", AddressingMode::Accumulator, asl);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xe8, 0x0a, 0x02]);
         registers.accumulator = 0x81;
-        let log_line = cpu_instruction
+        let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!(0x02, registers.accumulator);

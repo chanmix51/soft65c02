@@ -1,7 +1,6 @@
 use hex;
 use soft65c02::{AddressableIO, Memory, MemoryParserIterator};
 use std::fs::File;
-use std::io;
 use std::io::prelude::*;
 use structopt::StructOpt;
 
@@ -23,7 +22,7 @@ struct CLOptions {
 
 impl CLOptions {
     pub fn get_start_address(&self) -> usize {
-        let mut bytes = hex::decode(self.start_address.clone()).unwrap();
+        let bytes = hex::decode(self.start_address.clone()).unwrap();
         if bytes.len() > 2 {
             panic!("No it should not be that long!");
         }

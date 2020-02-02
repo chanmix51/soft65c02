@@ -7,7 +7,6 @@ use std::collections::HashMap;
 
 pub const MINIFB_WIDTH: usize = 128;
 pub const MINIFB_HEIGHT: usize = 96;
-const KEY_STACK_POINTER: usize = 0x0030;
 
 struct KeyboardBuffer {
     sender: mpsc::Sender<u32>,
@@ -94,11 +93,12 @@ impl MiniFBMemory {
                     memory[addr] = byte1;
                     memory[addr + 1] = byte2;
                     rtoken.is_calling.store(false, Ordering::SeqCst);
-                } 
-                window
-                    .update_with_buffer(&(memory), MINIFB_WIDTH, MINIFB_HEIGHT)
-                    .unwrap();
-                //thread::sleep(time::Duration::from_micros(10))
+                } else {
+                    window
+                        .update_with_buffer(&(memory), MINIFB_WIDTH, MINIFB_HEIGHT)
+                        .unwrap();
+                }
+
             }
         });
 

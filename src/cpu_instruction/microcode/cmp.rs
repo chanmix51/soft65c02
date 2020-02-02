@@ -59,7 +59,7 @@ mod tests {
             CPUInstruction::new(0x1000, 0xca, "CMP", AddressingMode::Immediate([0x0a]), cmp);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x4c, 0x0a, 0x02]);
         registers.accumulator = 0x0a;
-        let log_line = cpu_instruction
+        let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert!(registers.c_flag_is_set());
@@ -73,7 +73,7 @@ mod tests {
             CPUInstruction::new(0x1000, 0xca, "CMP", AddressingMode::Immediate([0x0a]), cmp);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x4c, 0x0a, 0x02]);
         registers.accumulator = 0x01;
-        let log_line = cpu_instruction
+        let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert!(!registers.c_flag_is_set());

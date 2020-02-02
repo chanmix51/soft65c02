@@ -63,7 +63,7 @@ mod tests {
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xca, 0xa0, 0x02]);
         registers.accumulator = 0x03;
         memory.write(0xa0, &vec![0xba]).unwrap();
-        let log_line = cpu_instruction
+        let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert!(!registers.z_flag_is_set());
@@ -77,7 +77,7 @@ mod tests {
             CPUInstruction::new(0x1000, 0xca, "bit", AddressingMode::Immediate([0xba]), bit);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xca, 0xba, 0x02]);
         registers.accumulator = 0x03;
-        let log_line = cpu_instruction
+        let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert!(!registers.z_flag_is_set());
@@ -91,7 +91,7 @@ mod tests {
             CPUInstruction::new(0x1000, 0xca, "bit", AddressingMode::Immediate([0x03]), bit);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xca, 0x03, 0x02]);
         registers.accumulator = 0x04;
-        let log_line = cpu_instruction
+        let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert!(registers.z_flag_is_set());
@@ -106,7 +106,7 @@ mod tests {
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xca, 0xa0, 0x02]);
         registers.accumulator = 0x03;
         memory.write(0xa0, &vec![0x4d]).unwrap();
-        let log_line = cpu_instruction
+        let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert!(!registers.z_flag_is_set());
@@ -120,7 +120,7 @@ mod tests {
             CPUInstruction::new(0x1000, 0xca, "bit", AddressingMode::Immediate([0x4d]), bit);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xca, 0x4d, 0x02]);
         registers.accumulator = 0x03;
-        let log_line = cpu_instruction
+        let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert!(!registers.z_flag_is_set());
