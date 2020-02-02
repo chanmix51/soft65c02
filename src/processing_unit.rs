@@ -124,7 +124,6 @@ fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> CPUInstruction
             mc::eor,
         ),
         0x52 => instr::new(address, opcode, "EOR", AM::ZeroPageIndirect(op1), mc::eor),
-        0x54 => instr::new(address, opcode, "NOP", AM::ZeroPageXIndexed(op1), mc::nop),
         0x55 => instr::new(address, opcode, "EOR", AM::ZeroPageXIndexed(op1), mc::eor),
         0x56 => instr::new(address, opcode, "LSR", AM::ZeroPageXIndexed(op1), mc::lsr),
         0x57 => instr::new(address, opcode, "RMB5", AM::ZeroPage(op1), mc::rmb),

@@ -18,7 +18,7 @@ use rustyline::Result as RustyResult;
 use rustyline::{Context, Editor};
 
 use soft65c02::{AddressableIO, LogLine, Memory, MemoryParserIterator, Registers, INIT_VECTOR_ADDR};
-use soft65c02::memory::little_endian;
+use soft65c02::memory::{little_endian, MiniFBMemory };
 
 use std::collections::VecDeque;
 use std::fs::File;
@@ -120,12 +120,8 @@ fn display_error<T: RuleType>(err: PestError<T>) {
             )
         }
     };
-    println!(
-        "   {}\n{} {}",
-        mark_str,
-        format!("{}", Colour::Red.paint("Syntax error")),
-        msg
-    );
+    println!("   {}", mark_str);
+    print_err(&msg);
     match err.variant {
         pest::error::ErrorVariant::ParsingError {
             positives,
@@ -205,7 +201,7 @@ fn main() {
                 break;
             }
             Err(err) => {
-                println!("Error: {:?}", err);
+                print_err(format!("{:?}", err).as_str());
                 break;
             }
         }
@@ -294,7 +290,7 @@ fn exec_disassemble_instruction(
     }
 
     if len == 0 {
-        println!("{} uneffective size {}.", Colour::Red.paint("Error:"), len);
+        print_err("length 0");
         return;
     }
 
@@ -330,7 +326,7 @@ fn exec_memory_instruction(
             let filename = subnodes.next().unwrap().as_str().trim_matches('"');
             match load_memory(filename, addr, memory) {
                 Ok(len) => println!("Loaded {} bytes at address #0x{:04X}.", len, addr),
-                Err(e) => println!("{}: {}", Colour::Red.paint("Error"), e),
+                Err(e) => print_err(format!("{}", e).as_str()),
             }
         },
         Rule::memory_sub_list => {
@@ -339,6 +335,13 @@ fn exec_memory_instruction(
                 println!("{}", line);
             }
         }
+        Rule::memory_sub_add => {
+            let subnode = node.into_inner().next().unwrap();
+            match subnode.as_str() {
+                "minifb"    => memory.add_subsystem("VIDEO TERMINAL", 0x0200, MiniFBMemory::new(None)),
+                whatever    => print_err(format!("unknown sub system {}", whatever).as_str()),
+            }
+        },
         _ => {
             println!("{:?}", node);
         }
@@ -606,6 +609,10 @@ fn parse_source_memory(node: &Pair<Rule>) -> Source {
 fn parse_value(node: &Pair<Rule>) -> usize {
     let hexa = node.as_str()[2..].to_owned();
     parse_memory(hexa)
+}
+
+fn print_err(msg: &str) {
+    println!("{}: {}", Colour::Red.paint("Error"), msg);
 }
 
 struct CommandLineCompleter {}

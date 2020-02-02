@@ -17,8 +17,10 @@ memory_action = _{ memory_show | memory_load | ^"sub " ~ memory_sub_action }
 memory_show = { ^"show" ~ memory_address ~ size_parameter }
 memory_load = { ^"load" ~ memory_address ~ filename }
 
-memory_sub_action = _{ memory_sub_list }
+memory_sub_action = _{ memory_sub_list | memory_sub_add }
 memory_sub_list = { ^"list" }
+memory_sub_add = { ^"add" ~ memory_sub_name }
+memory_sub_name = { ASCII_ALPHANUMERIC+ }
 
 run_instruction = { ^"run" ~ (memory_location)? ~ ("until" ~ boolean_condition)?  }
 memory_location = _{ memory_address | init_vector }

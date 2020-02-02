@@ -46,7 +46,7 @@ impl MiniFBMemory {
                 MINIFB_HEIGHT,
                 WindowOptions {
                     resize: true,
-                    scale: Scale::FitScreen,
+                    scale: Scale::X2,
                     scale_mode: ScaleMode::AspectRatioStretch,
                     ..WindowOptions::default()
                 },
