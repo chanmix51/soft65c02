@@ -98,7 +98,7 @@ impl MiniFBMemory {
                 window
                     .update_with_buffer(&(memory), MINIFB_WIDTH, MINIFB_HEIGHT)
                     .unwrap();
-                thread::sleep(time::Duration::from_micros(100))
+                //thread::sleep(time::Duration::from_micros(10))
             }
         });
 
