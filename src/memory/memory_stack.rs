@@ -1,6 +1,8 @@
 use super::*;
 use fmt::Debug;
 use range_map::Range;
+use std::collections::BTreeMap;
+
 
 struct Subsystem {
     subsystem: Box<dyn AddressableIO>,
@@ -61,11 +63,12 @@ impl fmt::Debug for Subsystem {
 #[derive(Debug)]
 pub struct MemoryStack {
     stack: Vec<Subsystem>,
+    address_map: BTreeMap<usize, usize>,
 }
 
 impl MemoryStack {
     pub fn new() -> MemoryStack {
-        MemoryStack { stack: vec![] }
+        MemoryStack { stack: vec![], address_map: BTreeMap::new() }
     }
 
     pub fn new_with_ram() -> MemoryStack {
@@ -81,7 +84,31 @@ impl MemoryStack {
         start_address: usize,
         memory: impl AddressableIO + 'static,
     ) {
-        self.stack.push(Subsystem::new(name, start_address, memory));
+        let end_address = start_address + memory.get_size();
+        let sub = Subsystem::new(name, start_address, memory);
+        let mut address_map:BTreeMap<usize, usize> = BTreeMap::new();
+        address_map.insert(end_address, self.stack.len());
+        let mut keys:Vec<usize> = vec![];
+            self.address_map.keys()
+                .for_each(|x| keys.push(x.clone()));
+
+        if start_address != 0 {
+            for (sub_index, sub) in self.stack.iter().enumerate() {
+                if sub.contains(start_address - 1) {
+                    address_map.insert(start_address, sub_index);
+                    break;
+                }
+            }
+        }
+
+        for (&addr, &sub_index) in self.address_map.iter() {
+            if !sub.address_range.contains(addr) {
+                address_map.insert(addr, sub_index);
+            }
+        }
+        self.address_map = address_map;
+        self.stack.push(sub);
+        println!("{:?}", self.address_map);
     }
 
     pub fn get_subsystems_info(&self) -> Vec<String> {
@@ -98,41 +125,6 @@ impl MemoryStack {
 impl AddressableIO for MemoryStack {
     fn read(&self, addr: usize, len: usize) -> Result<Vec<u8>, MemoryError> {
         let read_range: Range<usize> = Range::new(addr, addr + len);
-
-        // iter on reverse order as our stack is LIFO
-        for sub in self.stack.iter().rev() {
-            // does our read range interfer with the current subsystem?
-            if let Some(inter) = sub.address_range.intersection(&read_range) {
-                // a touching range does not count, we deal with overlapping ranges
-                if inter.start == inter.end {
-                    continue;
-                }
-                // is the read range completely contained in the current subsystem?
-                if inter == read_range {
-                    return sub.read(addr - sub.address_range.start, len);
-                } else {
-                    // the read range runs accross several subsystems
-                    // is this subsystem on the left or on the right of the read range?
-                    if inter.start == read_range.start {
-                        // we are on the left (the ending part of the current subsystem)
-                        let mut left = sub.read(0, inter.end - addr)?;
-                        let right = self.read(inter.end, len - (inter.end - addr))?;
-                        left.extend_from_slice(right.as_slice());
-                        return Ok(left);
-                    } else {
-                        // we are on the right (the starting part of the current subsystem)
-                        let right = sub.read(0, inter.end - inter.start)?;
-                        let mut left = self.read(addr, len - (inter.end - inter.start))?;
-                        left.extend_from_slice(right.as_slice());
-                        return Ok(left);
-                    }
-                }
-            }
-        }
-        Err(MemoryError::Other(
-            addr,
-            "no memory subsystem at given location",
-        ))
     }
 
     fn write(&mut self, addr: usize, data: &Vec<u8>) -> Result<(), MemoryError> {
