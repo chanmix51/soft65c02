@@ -43,10 +43,6 @@ impl AddressableIO for Subsystem {
     fn get_size(&self) -> usize {
         self.subsystem.get_size()
     }
-
-    fn refresh(&mut self) {
-        self.subsystem.refresh();
-    }
 }
 
 impl fmt::Debug for Subsystem {
@@ -170,17 +166,43 @@ impl AddressableIO for MemoryStack {
     fn get_size(&self) -> usize {
         MEMMAX
     }
-
-    fn refresh(&mut self) {
-        for sub in self.stack.iter_mut() {
-            sub.refresh();
-        }
-    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    struct FakeMemory {
+        size: usize,
+    }
+
+    impl FakeMemory {
+        fn new(size: usize) -> FakeMemory {
+            FakeMemory { size }
+        }
+    }
+
+    impl AddressableIO for FakeMemory {
+        fn get_size(&self) -> usize {
+            self.size
+        }
+
+        fn read(&self, addr: usize, len: usize) -> Result<Vec<u8>, MemoryError> {
+            if addr + len > self.size {
+                Err(MemoryError::ReadOverflow(len, addr, self.size))
+            } else {
+                Ok(vec![0x00; len])
+            }
+        }
+
+        fn write(&mut self, addr: usize, data: &Vec<u8>) -> Result<(), MemoryError> {
+            if addr + data.len() > self.size {
+                Err(MemoryError::WriteOverflow(data.len(), addr, self.size))
+            } else {
+                Ok(())
+            }
+        }
+    }
 
     fn init_memory() -> MemoryStack {
         let mut memory_stack = MemoryStack::new();
@@ -247,5 +269,15 @@ mod tests {
             }
             v => panic!("it should return the expected error, got {:?}", v),
         };
+    }
+
+    #[test]
+    fn test_write_over_entire_memory() {
+        let mut memory_stack = MemoryStack::new();
+        memory_stack.add_subsystem("RAM", 0x0000, RAM::new());
+        memory_stack.add_subsystem("DUMMY", 0x8000, FakeMemory::new(1024));
+        let _ = memory_stack.read(0x7F00, 2048).unwrap();
+        let data:Vec<u8> = vec![0xff; 2048];
+        memory_stack.write(0x7F00, &data).unwrap();
     }
 }
