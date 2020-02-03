@@ -1,7 +1,7 @@
 use super::*;
 use minifb::{InputCallback, Window, Scale, ScaleMode, WindowOptions};
 use std::sync::atomic::{AtomicBool, AtomicUsize, AtomicU8, Ordering};
-use std::sync::{Arc, mpsc};
+use std::sync::{Arc, mpsc, Mutex};
 use std::{thread, time};
 use std::collections::HashMap;
 
@@ -21,22 +21,24 @@ impl InputCallback for KeyboardBuffer {
 pub struct CommunicationToken {
     is_calling: AtomicBool,
     address:    AtomicUsize,
-    byte:       AtomicU8,
+    len:        AtomicUsize
 }
 
 pub struct MiniFBMemory {
     token:          Arc<CommunicationToken>,
-    buffer:         Vec<u8>,
+    buffer:         Arc<Mutex<Vec<u8>>>,
 }
 
 impl MiniFBMemory {
     pub fn new(kb: Option<mpsc::Sender<u32>>) -> MiniFBMemory {
+        let buffer = Arc::new(Mutex::new(vec![0; MINIFB_WIDTH * MINIFB_HEIGHT / 2]));
         let token = Arc::new( CommunicationToken {
             is_calling: AtomicBool::new(false),
             address: AtomicUsize::new(0),
-            byte: AtomicU8::new(0),
+            len: AtomicUsize::new(0),
         });
         let rtoken = token.clone();
+        let rbuffer = buffer.clone();
 
         thread::spawn(move || {
             let mut window = Window::new(
@@ -45,7 +47,7 @@ impl MiniFBMemory {
                 MINIFB_HEIGHT,
                 WindowOptions {
                     resize: true,
-                    scale: Scale::X2,
+                    scale: Scale::X4,
                     scale_mode: ScaleMode::AspectRatioStretch,
                     ..WindowOptions::default()
                 },
@@ -56,7 +58,6 @@ impl MiniFBMemory {
                 window.set_input_callback(Box::new(KeyboardBuffer { sender: tx }));
             }
             // Limit to max ~60 fps update rate
-            window.limit_update_rate(Some(time::Duration::from_micros(16600)));
             let mut memory:Vec<u32> = vec![0; MINIFB_WIDTH * MINIFB_HEIGHT];
             let mut palette:HashMap<u8, (u8, u8, u8)> = HashMap::new();
             palette.insert(0, (0x00, 0x00, 0x00));
@@ -79,19 +80,23 @@ impl MiniFBMemory {
 
             loop {
                 if rtoken.is_calling.load(Ordering::Acquire) {
-                    let byte = rtoken.byte.load(Ordering::SeqCst);
-                    let addr = rtoken.address.load(Ordering::SeqCst) * 2;
-                    let (loval, hival) = (byte & 0x0F, byte >> 4);
-                    let byte1:u32 = {
-                        let (r, g, b) = palette.get(&loval).expect("palette overflow ?");
-                        (*r as u32) << 16 | (*g as u32) << 8 | (*b as u32)
-                    };
-                    let byte2:u32 = {
-                        let (r, g, b) = palette.get(&hival).expect("palette overflow ?");
-                        (*r as u32) << 16 | (*g as u32) << 8 | (*b as u32)
-                    };
-                    memory[addr] = byte1;
-                    memory[addr + 1] = byte2;
+                    let addr = rtoken.address.load(Ordering::SeqCst);
+                    let len  = rtoken.len.load(Ordering::SeqCst);
+                    let buffer = rbuffer.lock().unwrap();
+
+                    for (index, byte) in buffer[addr..addr + len].iter().enumerate() {
+                        let (loval, hival) = (byte & 0x0F, byte >> 4);
+                        let byte1:u32 = {
+                            let (r, g, b) = palette.get(&loval).expect("palette overflow ?");
+                            (*r as u32) << 16 | (*g as u32) << 8 | (*b as u32)
+                        };
+                        let byte2:u32 = {
+                            let (r, g, b) = palette.get(&hival).expect("palette overflow ?");
+                            (*r as u32) << 16 | (*g as u32) << 8 | (*b as u32)
+                        };
+                        memory[(addr + index - 1) * 2] = byte1;
+                        memory[(addr + index -1 ) * 2 + 1] = byte2;
+                    }
                     rtoken.is_calling.store(false, Ordering::SeqCst);
                 } else {
                     window
@@ -104,7 +109,7 @@ impl MiniFBMemory {
 
         MiniFBMemory {
             token:          token,
-            buffer:         vec![0; MINIFB_WIDTH * MINIFB_HEIGHT / 2],
+            buffer:         buffer,
         }
     }
 }
@@ -115,23 +120,22 @@ impl AddressableIO for MiniFBMemory {
     }
 
     fn read(&self, addr: usize, len: usize) -> Result<Vec<u8>, MemoryError> {
-        if self.buffer.len() >= addr + len {
-            Ok(self.buffer[addr..addr + len].to_vec())
+        let buffer = self.buffer.lock().unwrap();
+        if buffer.len() >= addr + len {
+            Ok(buffer[addr..addr + len].to_vec())
         } else {
-            Err(MemoryError::ReadOverflow(len, addr, self.buffer.len()))
+            Err(MemoryError::ReadOverflow(len, addr, buffer.len()))
         }
     }
 
     fn write(&mut self, addr: usize, data: &Vec<u8>) -> Result<(), MemoryError> {
+        let mut buffer = self.buffer.lock().unwrap();
         for (offset, byte) in data.iter().enumerate() {
-            self.buffer[addr + offset] = *byte;
-            while self.token.is_calling.load(Ordering::Acquire) {
-                thread::sleep(time::Duration::from_micros(10))
-            }
-            self.token.is_calling.store(true, Ordering::Release);
-            self.token.address.store(addr + offset, Ordering::SeqCst);
-            self.token.byte.store(*byte, Ordering::SeqCst);
+            buffer[addr + offset] = *byte;
         }
+        self.token.is_calling.store(true, Ordering::Release);
+        self.token.address.store(addr, Ordering::SeqCst);
+        self.token.len.store(data.len(), Ordering::SeqCst);
         Ok(())
     }
 }

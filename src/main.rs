@@ -336,15 +336,16 @@ fn exec_memory_instruction(
             }
         }
         Rule::memory_sub_add => {
-            let subnode = node.into_inner().next().unwrap();
+            let mut nodes = node.into_inner();
+            let subnode = nodes.next().unwrap();
+            let addr = parse_memory(subnode.as_str()[3..].to_owned());
+            let subnode = nodes.next().unwrap();
             match subnode.as_str() {
-                "minifb"    => memory.add_subsystem("VIDEO TERMINAL", 0x0200, MiniFBMemory::new(None)),
+                "minifb"    => memory.add_subsystem("VIDEO TERMINAL", addr, MiniFBMemory::new(None)),
                 whatever    => print_err(format!("unknown sub system {}", whatever).as_str()),
             }
         },
-        _ => {
-            println!("{:?}", node);
-        }
+        _ => println!("{:?}", node),
     }
 }
 
@@ -629,10 +630,11 @@ impl rustyline::completion::Completer for CommandLineCompleter {
         let keywords = vec![
             "registers show",
             "registers flush",
+            "memory",
             "memory show #0x",
             "memory load #0x",
             "memory sub list",
-            "memory sub add minifb",
+            "memory sub add #0x",
             "run ",
             "run #0x",
             "run until ",

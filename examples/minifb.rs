@@ -1,5 +1,5 @@
 use soft65c02::memory::MiniFBMemory;
-use soft65c02::{AddressableIO, LogLine, Memory, Registers};
+use soft65c02::{AddressableIO, Memory, Registers};
 
 fn main() {
     use std::fs;

@@ -19,7 +19,7 @@ memory_load = { ^"load" ~ memory_address ~ filename }
 
 memory_sub_action = _{ memory_sub_list | memory_sub_add }
 memory_sub_list = { ^"list" }
-memory_sub_add = { ^"add" ~ memory_sub_name }
+memory_sub_add = { ^"add" ~  memory_address ~ memory_sub_name }
 memory_sub_name = { ASCII_ALPHANUMERIC+ }
 
 run_instruction = { ^"run" ~ (memory_location)? ~ ("until" ~ boolean_condition)?  }
