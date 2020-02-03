@@ -1,6 +1,6 @@
 Soft 65C02
 ==========
-![travis-CI](https://api.travis-ci.org/chanmix51/soft65c02.svg?branch=master)
+![travis-CI](https://api.travis-ci.org/chanmix51/soft65c02.svg?branch=master) ![GNU GPL V3.0](https://img.shields.io/github/license/chanmix51/soft65c02) ![Rust Language](https://img.shields.io/badge/language-rust-orange)
 
 Soft 65C02 is:
 
