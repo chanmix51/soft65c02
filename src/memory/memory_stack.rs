@@ -115,7 +115,6 @@ impl MemoryStack {
         }
         self.address_map = address_map;
         self.stack.push(sub);
-        println!("{:?}", self.address_map);
     }
 
     pub fn get_subsystems_info(&self) -> Vec<String> {

@@ -26,6 +26,7 @@ use std::io::prelude::*;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
+
 const LOGLINE_MEMORY_LEN: usize = 35;
 const VERSION: &'static str = "1.0.0-alpha1";
 

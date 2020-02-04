@@ -1,6 +1,6 @@
 use super::*;
 use minifb::{InputCallback, Window, Scale, ScaleMode, WindowOptions};
-use std::sync::atomic::{AtomicBool, AtomicUsize, AtomicU8, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, mpsc, Mutex};
 use std::{thread, time};
 use std::collections::HashMap;
@@ -102,6 +102,7 @@ impl MiniFBMemory {
                         .update_with_buffer(&(memory), MINIFB_WIDTH, MINIFB_HEIGHT)
                         .unwrap();
                 }
+                thread::sleep(time::Duration::from_micros(10));
 
             }
         });
