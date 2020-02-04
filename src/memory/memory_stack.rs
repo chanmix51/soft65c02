@@ -2,6 +2,7 @@ use super::*;
 use fmt::Debug;
 use range_map::Range;
 use std::collections::BTreeMap;
+use std::cmp;
 
 
 struct Subsystem {
@@ -78,6 +79,12 @@ impl MemoryStack {
         memory_stack
     }
 
+    /*
+     * The idea here is to ease the read & write operations.
+     * An address_map is created to present only visible portions of subsystems' address range.
+     * Once this is done, the only thing to do to read or write is to split the reads accross the
+     * different subsystems.
+     */
     pub fn add_subsystem(
         &mut self,
         name: &str,
@@ -124,35 +131,47 @@ impl MemoryStack {
 
 impl AddressableIO for MemoryStack {
     fn read(&self, addr: usize, len: usize) -> Result<Vec<u8>, MemoryError> {
-        let read_range: Range<usize> = Range::new(addr, addr + len);
+        let mut results:Vec<u8> = vec![];
+        let mut tmplen = len;
+        let mut tmpaddr = addr;
+        for (&addr_split, &sub_index) in &self.address_map {
+            if addr_split >= tmpaddr {
+                let sublen = cmp::min(addr_split - tmpaddr, tmplen);
+                let substart = self.stack[sub_index].address_range.start;
+                let mut subr = self.stack[sub_index].read(tmpaddr - substart, sublen)?;
+                results.append(&mut subr);
+                tmplen -= sublen;
+                tmpaddr += sublen;
+            }
+            if addr_split > addr + len {
+                break;
+            }
+        }
+
+        Ok(results)
     }
 
     fn write(&mut self, addr: usize, data: &Vec<u8>) -> Result<(), MemoryError> {
-        let write_range: Range<usize> = Range::new(addr, addr + data.len());
-        for sub in self.stack.iter_mut().rev() {
-            if let Some(inter) = sub.address_range.intersection(&write_range) {
-                if inter.start == inter.end {
-                    continue;
-                }
-                if inter == write_range {
-                    return sub.write(addr - sub.address_range.start, data);
-                } else if sub.address_range.contains(addr) {
-                    // we are at the end of the current subsystem
-                    let sub_start_addr = addr - sub.address_range.start;
-                    let range_end = sub.address_range.end;
-                    let split_addr = range_end - addr;
-                    sub.write(sub_start_addr, &(data[..split_addr].to_vec()))?;
-                    return self.write(range_end, &(data[split_addr..].to_vec()));
-                } else {
-                    // we are at the start of the current subsystem
-                    let range_start = sub.address_range.start;
-                    let split_addr = range_start - addr;
-                    sub.write(0, &(data[split_addr..].to_vec()))?;
-                    return self.write(addr, &(data[..split_addr].to_vec()));
-                }
+        let len = data.len();
+        let mut data = data.clone();
+        let mut tmplen = len;
+        let mut tmpaddr = addr;
+        for (&addr_split, &sub_index) in &self.address_map {
+            if addr_split > tmpaddr {
+                let sublen = cmp::min(addr_split - tmpaddr, tmplen);
+                let data_left = data.split_off(sublen);
+                let substart = self.stack[sub_index].address_range.start;
+                self.stack[sub_index].write(tmpaddr - substart, &data)?;
+                data = data_left;
+                tmplen -= sublen;
+                tmpaddr += sublen;
+            }
+            if addr_split >= addr + len {
+                break;
             }
         }
-        Err(MemoryError::Other(addr, "no memory at given location"))
+
+        Ok(())
     }
 
     fn get_size(&self) -> usize {
