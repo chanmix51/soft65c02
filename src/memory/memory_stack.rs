@@ -1,6 +1,9 @@
 use super::*;
 use fmt::Debug;
 use range_map::Range;
+use std::collections::BTreeMap;
+use std::cmp;
+
 
 struct Subsystem {
     subsystem: Box<dyn AddressableIO>,
@@ -43,10 +46,6 @@ impl AddressableIO for Subsystem {
     fn get_size(&self) -> usize {
         self.subsystem.get_size()
     }
-
-    fn refresh(&mut self) {
-        self.subsystem.refresh();
-    }
 }
 
 impl fmt::Debug for Subsystem {
@@ -65,11 +64,12 @@ impl fmt::Debug for Subsystem {
 #[derive(Debug)]
 pub struct MemoryStack {
     stack: Vec<Subsystem>,
+    address_map: BTreeMap<usize, usize>,
 }
 
 impl MemoryStack {
     pub fn new() -> MemoryStack {
-        MemoryStack { stack: vec![] }
+        MemoryStack { stack: vec![], address_map: BTreeMap::new() }
     }
 
     pub fn new_with_ram() -> MemoryStack {
@@ -79,13 +79,43 @@ impl MemoryStack {
         memory_stack
     }
 
+    /*
+     * The idea here is to ease the read & write operations.
+     * An address_map is created to present only visible portions of subsystems' address range.
+     * Once this is done, the only thing to do to read or write is to split the reads accross the
+     * different subsystems.
+     */
     pub fn add_subsystem(
         &mut self,
         name: &str,
         start_address: usize,
         memory: impl AddressableIO + 'static,
     ) {
-        self.stack.push(Subsystem::new(name, start_address, memory));
+        let end_address = start_address + memory.get_size();
+        let sub = Subsystem::new(name, start_address, memory);
+        let mut address_map:BTreeMap<usize, usize> = BTreeMap::new();
+        address_map.insert(end_address, self.stack.len());
+        let mut keys:Vec<usize> = vec![];
+            self.address_map.keys()
+                .for_each(|x| keys.push(x.clone()));
+
+        if start_address != 0 {
+            for (sub_index, sub) in self.stack.iter().enumerate() {
+                if sub.contains(start_address - 1) {
+                    address_map.insert(start_address, sub_index);
+                    break;
+                }
+            }
+        }
+
+        for (&addr, &sub_index) in self.address_map.iter() {
+            if !sub.address_range.contains(addr) {
+                address_map.insert(addr, sub_index);
+            }
+        }
+        self.address_map = address_map;
+        self.stack.push(sub);
+        println!("{:?}", self.address_map);
     }
 
     pub fn get_subsystems_info(&self) -> Vec<String> {
@@ -101,86 +131,89 @@ impl MemoryStack {
 
 impl AddressableIO for MemoryStack {
     fn read(&self, addr: usize, len: usize) -> Result<Vec<u8>, MemoryError> {
-        let read_range: Range<usize> = Range::new(addr, addr + len);
-
-        // iter on reverse order as our stack is LIFO
-        for sub in self.stack.iter().rev() {
-            // does our read range interfer with the current subsystem?
-            if let Some(inter) = sub.address_range.intersection(&read_range) {
-                // a touching range does not count, we deal with overlapping ranges
-                if inter.start == inter.end {
-                    continue;
-                }
-                // is the read range completely contained in the current subsystem?
-                if inter == read_range {
-                    return sub.read(addr - sub.address_range.start, len);
-                } else {
-                    // the read range runs accross several subsystems
-                    // is this subsystem on the left or on the right of the read range?
-                    if inter.start == read_range.start {
-                        // we are on the left (the ending part of the current subsystem)
-                        let mut left = sub.read(0, inter.end - addr)?;
-                        let right = self.read(inter.end, len - (inter.end - addr))?;
-                        left.extend_from_slice(right.as_slice());
-                        return Ok(left);
-                    } else {
-                        // we are on the right (the starting part of the current subsystem)
-                        let right = sub.read(0, inter.end - inter.start)?;
-                        let mut left = self.read(addr, len - (inter.end - inter.start))?;
-                        left.extend_from_slice(right.as_slice());
-                        return Ok(left);
-                    }
-                }
+        let mut results:Vec<u8> = vec![];
+        let mut tmplen = len;
+        let mut tmpaddr = addr;
+        for (&addr_split, &sub_index) in &self.address_map {
+            if addr_split >= tmpaddr {
+                let sublen = cmp::min(addr_split - tmpaddr, tmplen);
+                let substart = self.stack[sub_index].address_range.start;
+                let mut subr = self.stack[sub_index].read(tmpaddr - substart, sublen)?;
+                results.append(&mut subr);
+                tmplen -= sublen;
+                tmpaddr += sublen;
+            }
+            if addr_split > addr + len {
+                break;
             }
         }
-        Err(MemoryError::Other(
-            addr,
-            "no memory subsystem at given location",
-        ))
+
+        Ok(results)
     }
 
     fn write(&mut self, addr: usize, data: &Vec<u8>) -> Result<(), MemoryError> {
-        let write_range: Range<usize> = Range::new(addr, addr + data.len());
-        for sub in self.stack.iter_mut().rev() {
-            if let Some(inter) = sub.address_range.intersection(&write_range) {
-                if inter.start == inter.end {
-                    continue;
-                }
-                if inter == write_range {
-                    return sub.write(addr - sub.address_range.start, data);
-                } else if sub.address_range.contains(addr) {
-                    // we are at the end of the current subsystem
-                    let sub_start_addr = addr - sub.address_range.start;
-                    let range_end = sub.address_range.end;
-                    let split_addr = range_end - addr;
-                    sub.write(sub_start_addr, &(data[..split_addr].to_vec()))?;
-                    return self.write(range_end, &(data[split_addr..].to_vec()));
-                } else {
-                    // we are at the start of the current subsystem
-                    let range_start = sub.address_range.start;
-                    let split_addr = range_start - addr;
-                    sub.write(0, &(data[split_addr..].to_vec()))?;
-                    return self.write(addr, &(data[..split_addr].to_vec()));
-                }
+        let len = data.len();
+        let mut data = data.clone();
+        let mut tmplen = len;
+        let mut tmpaddr = addr;
+        for (&addr_split, &sub_index) in &self.address_map {
+            if addr_split > tmpaddr {
+                let sublen = cmp::min(addr_split - tmpaddr, tmplen);
+                let data_left = data.split_off(sublen);
+                let substart = self.stack[sub_index].address_range.start;
+                self.stack[sub_index].write(tmpaddr - substart, &data)?;
+                data = data_left;
+                tmplen -= sublen;
+                tmpaddr += sublen;
+            }
+            if addr_split >= addr + len {
+                break;
             }
         }
-        Err(MemoryError::Other(addr, "no memory at given location"))
+
+        Ok(())
     }
 
     fn get_size(&self) -> usize {
         MEMMAX
-    }
-
-    fn refresh(&mut self) {
-        for sub in self.stack.iter_mut() {
-            sub.refresh();
-        }
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    struct FakeMemory {
+        size: usize,
+    }
+
+    impl FakeMemory {
+        fn new(size: usize) -> FakeMemory {
+            FakeMemory { size }
+        }
+    }
+
+    impl AddressableIO for FakeMemory {
+        fn get_size(&self) -> usize {
+            self.size
+        }
+
+        fn read(&self, addr: usize, len: usize) -> Result<Vec<u8>, MemoryError> {
+            if addr + len > self.size {
+                Err(MemoryError::ReadOverflow(len, addr, self.size))
+            } else {
+                Ok(vec![0x00; len])
+            }
+        }
+
+        fn write(&mut self, addr: usize, data: &Vec<u8>) -> Result<(), MemoryError> {
+            if addr + data.len() > self.size {
+                Err(MemoryError::WriteOverflow(data.len(), addr, self.size))
+            } else {
+                Ok(())
+            }
+        }
+    }
 
     fn init_memory() -> MemoryStack {
         let mut memory_stack = MemoryStack::new();
@@ -247,5 +280,15 @@ mod tests {
             }
             v => panic!("it should return the expected error, got {:?}", v),
         };
+    }
+
+    #[test]
+    fn test_write_over_entire_memory() {
+        let mut memory_stack = MemoryStack::new();
+        memory_stack.add_subsystem("RAM", 0x0000, RAM::new());
+        memory_stack.add_subsystem("DUMMY", 0x8000, FakeMemory::new(1024));
+        let _ = memory_stack.read(0x7F00, 2048).unwrap();
+        let data:Vec<u8> = vec![0xff; 2048];
+        memory_stack.write(0x7F00, &data).unwrap();
     }
 }

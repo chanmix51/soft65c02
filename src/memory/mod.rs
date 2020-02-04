@@ -32,7 +32,6 @@ pub trait AddressableIO {
     fn read(&self, addr: usize, len: usize) -> Result<Vec<u8>, MemoryError>;
     fn write(&mut self, location: usize, data: &Vec<u8>) -> Result<(), MemoryError>;
     fn get_size(&self) -> usize;
-    fn refresh(&mut self) {}
 }
 
 /*
@@ -47,7 +46,7 @@ pub trait DebugIO: AddressableIO {
 
         while address < end {
             if address % 16 == 0 {
-                write!(f, "{}", line);
+                write!(f, "{}", line).unwrap();
                 line = format!("#{:04X}: ", address);
             } else if address % 8 == 0 {
                 line = format!("{} ", line);
