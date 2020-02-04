@@ -22,8 +22,6 @@ fn main() {
             "{}",
             soft65c02::execute_step(&mut registers, &mut memory).unwrap()
         );
-        memory.refresh();
-        thread::sleep(time::Duration::from_millis(1));
     }
 }
 

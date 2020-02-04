@@ -57,7 +57,6 @@ impl MiniFBMemory {
             if let Some(tx) = kb {
                 window.set_input_callback(Box::new(KeyboardBuffer { sender: tx }));
             }
-            // Limit to max ~60 fps update rate
             let mut memory:Vec<u32> = vec![0; MINIFB_WIDTH * MINIFB_HEIGHT];
             let mut palette:HashMap<u8, (u8, u8, u8)> = HashMap::new();
             palette.insert(0, (0x00, 0x00, 0x00));
@@ -94,8 +93,8 @@ impl MiniFBMemory {
                             let (r, g, b) = palette.get(&hival).expect("palette overflow ?");
                             (*r as u32) << 16 | (*g as u32) << 8 | (*b as u32)
                         };
-                        memory[(addr + index - 1) * 2] = byte1;
-                        memory[(addr + index -1 ) * 2 + 1] = byte2;
+                        memory[addr + index * 2] = byte1;
+                        memory[addr + index * 2 + 1] = byte2;
                     }
                     rtoken.is_calling.store(false, Ordering::SeqCst);
                 } else {
