@@ -342,7 +342,7 @@ fn exec_memory_instruction(
             let addr = parse_memory(subnode.as_str()[3..].to_owned());
             let subnode = nodes.next().unwrap();
             match subnode.as_str() {
-                "minifb"    => memory.add_subsystem("VIDEO TERMINAL", addr, MiniFBMemory::new(None)),
+                "minifb"    => memory.add_subsystem("FRAMEBUFFER", addr, MiniFBMemory::new(None)),
                 whatever    => print_err(format!("unknown sub system {}", whatever).as_str()),
             }
         },

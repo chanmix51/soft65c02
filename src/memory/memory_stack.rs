@@ -52,7 +52,7 @@ impl fmt::Debug for Subsystem {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "Subsystem {}, address range=#0x{:04X} → #0x{:04X}, size = {} bytes",
+            "Subsystem {:<12}, address range=#0x{:04X} → #0x{:04X}, size = {} bytes",
             self.name,
             self.address_range.start,
             self.address_range.end - 1,
@@ -228,11 +228,11 @@ mod tests {
         let output = memory_stack.get_subsystems_info();
         assert_eq!(2, output.len());
         assert_eq!(
-            "#0: Subsystem RAM, address range=#0x0000 → #0xFFFF, size = 65536 bytes",
+            "#0: Subsystem RAM         , address range=#0x0000 → #0xFFFF, size = 65536 bytes",
             output[0]
         );
         assert_eq!(
-            "#1: Subsystem ROM, address range=#0xC000 → #0xFFFF, size = 16384 bytes",
+            "#1: Subsystem ROM         , address range=#0xC000 → #0xFFFF, size = 16384 bytes",
             output[1]
         );
     }
