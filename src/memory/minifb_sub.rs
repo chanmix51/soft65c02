@@ -2,7 +2,7 @@
  * Soft65C02 Mini Framebuffer
  *
  * The framebuffer memory subsystem is composed as following:
- * #0x0000 → #0x002F    palette ( 16 × 3 bytes for RGB)
+ * #0x0000 → #0x002F    palette (16 × 3 bytes for RGB)
  * #0x0030              keyboard input
  * #0x0031 → #0x00FF    unused
  * #0x0100 → #0x1900    video buffer
@@ -67,7 +67,8 @@ impl MiniFBMemory {
                 window.set_input_callback(Box::new(KeyboardBuffer { sender: tx }));
             }
             let mut memory:Vec<u32> = vec![0; MINIFB_WIDTH * MINIFB_HEIGHT];
-
+            // 4ms is the default
+            //window.limit_update_rate(Some(std::time::Duration::from_micros(4000)));
             loop {
                 if rtoken.is_calling.load(Ordering::Acquire) {
                     let addr = rtoken.address.load(Ordering::SeqCst);
