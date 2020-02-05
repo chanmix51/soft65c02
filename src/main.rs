@@ -28,7 +28,7 @@ use std::sync::Arc;
 
 
 const LOGLINE_MEMORY_LEN: usize = 35;
-const VERSION: &'static str = "1.0.0-alpha1";
+const VERSION: &'static str = "1.0.0-alpha2";
 
 #[derive(Parser)]
 #[grammar = "cli.pest"]
