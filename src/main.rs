@@ -414,80 +414,80 @@ fn help(mut nodes: Pairs<Rule>) {
                 println!("{}", Colour::Green.paint("Memory commands:"));
                 println!("  memory show ADDRESS LENGTH");
                 println!("          Show the content of the memory starting from ADDRESS.");
-                println!(
-                    "          Example: {}",
-                    Colour::Fixed(240).paint("memory show #0x1234 100")
-                );
+                print_example("memory show #0x1234 100");
                 println!("");
                 println!("   memory load ADDRESS \"filename.ext\" ");
                 println!("          Load a binary file at the selected address in memory.");
                 println!("          The content of the file is copied in the memory, so the memory has to");
                 println!("          be writable.");
-                println!(
-                    "          Example: {}",
-                    Colour::Fixed(240).paint("memory load #0x1C00 \"program.bin\"")
-                );
+                print_example("memory load #0x1C00 \"program.bin\"");
                 println!("");
                 println!("  memory sub list");
                 println!("          Show the list of the running memory subsystems.");
+                println!("");
+                println!("  memory sub add ADDRESS SUBSYSTEM");
+                println!("          Add the given memory subsystem starting at ADDRESS.");
+                println!("          For now, only “minifb” is implemented.");
+                print_example("memory add sub #0x0200 minifb");
             }
             Rule::help_run => {
                 println!("{}", Colour::Green.paint("Execution commands:"));
                 println!("   run [ADDRESS] [until BOOLEAN_CONDITION]");
-                println!("          Launch execution of the program.");
-                println!("          Without further information, this executes one instruction.");
+                println!("          Launch execution of the program. If an address is given, the");
+                println!("          instruction at this address is executed otherwise the instruction");
+                println!("          pointed by the current CP register is executed. Since this");
+                println!("          register is automatically updated by each instruction, it is");
+                println!("          possible either to run programs step by step or continuously");
+                println!("          until a certain condition is met. Without condition information,");
+                println!("          this executes only one instruction.");
                 println!("");
                 println!("{}", Colour::White.bold().paint("Examples:"));
-                println!("  {}", Colour::Fixed(240).paint("run"));
-                println!("          Launch execution starting at the actual CP register position.");
+                print_example("run");
+                println!("          Execute the next instruction at the actual CP register position.");
                 println!("");
-                println!("  {}", Colour::Fixed(240).paint("run 0x1C00"));
-                println!("          Set the CP register at 0x1C00 and launch execution.");
+                print_example("run #0x1C00");
+                println!("          Execute the instruction at #0x1C00.");
+                println!("");
+                print_example("run init");
+                println!("          Load CP with the init vector (#0xFFFC) and run the first");
+                println!("          instruction.");
                 println!("");
                 println!("{}", Colour::Green.paint("Boolean conditions"));
                 println!(
                     "          By default, only one instruction is executed, but it is possible"
                 );
-                println!("          provide a custom condition so a program can be executed until");
-                println!("          a certain state is met.");
-                println!(
-                    "          Conditions can be made on registers or memory content, stopping"
-                );
-                println!("          the execution if met.");
+                println!("          to provide a custom condition so a program can be executed until");
+                println!("          a certain state is met. These conditions can be made on either");
+                println!("          registers or memory content");
                 println!(
                     "          In any cases, the program will stop if the Command Pointer is not"
                 );
-                println!("          incremented after an instruction.");
-                println!(
-                    "          This is the case for the STP (stop) instruction but also after"
-                );
-                println!(
-                    "          infinite loops like BRA -2 or a JMP at the exact same address."
-                );
+                println!("          incremented after an instruction. This is the case for the STP");
+                println!("          (stop) instruction but also after  infinite loops like BRA -2 or");
+                println!("          a JMP at the exact same address.");
                 println!("");
                 println!("{}", Colour::White.bold().paint("Examples:"));
-                println!("  {}", Colour::Fixed(240).paint("run until true"));
-                println!("          Launch the program forever. This may require CTRL-C to break.");
+                print_example("run init until false");
+                println!("          Init CP and launch the program forever. This may require CTRL-C to");
+                println!("          break.");
                 println!("");
-                println!("  {}", Colour::Fixed(240).paint("run until A <= 0x12"));
-                println!("          The execution is launched until the A register is lesser or");
-                println!("          equal to 0x12.");
+                print_example("run #0x0400 until A <= 0x12");
+                println!("          The execution is launched starting at #0x0400 until the A register");
+                println!("          is lesser or equal to 0x12.");
                 println!("");
-                println!("  {}", Colour::Fixed(240).paint("run until #0x0200 > 0"));
-                println!(
-                    "          The execution is launched until the given memory address holds a"
-                );
+                print_example("run until #0x0200 > 0x00");
+                println!("          The execution is continued until the given memory address holds a");
                 println!("          value greater than 0.");
                 println!("");
-                println!("  {}", Colour::Fixed(240).paint("run until S > 0x7f"));
+                print_example("run until S > 0x7f");
                 println!(
-                    "          The execution is launched until the Negative flag of the status"
+                    "          The execution is continued until the Negative flag of the status"
                 );
                 println!("          register is set.");
                 println!("");
-                println!("  {}", Colour::Fixed(240).paint("run until CP = 0x1234"));
+                print_example("run until CP = 0x1234");
                 println!(
-                    "          The execution is launched until the Command Pointer reaches the"
+                    "          The execution is continued until the Command Pointer equals the"
                 );
                 println!("          given value.");
             }
@@ -501,16 +501,10 @@ fn help(mut nodes: Pairs<Rule>) {
                 );
                 println!("          register Command Pointer's value is taken.");
                 println!("");
-                println!(
-                    "          Example: {}",
-                    Colour::Fixed(240).paint("disassemble #0x1C00 100")
-                );
+                print_example("disassemble #0x1C00 100");
                 println!("          Disassemble 100 opcodes starting from address 0x1C00.");
                 println!("");
-                println!(
-                    "          Example: {}",
-                    Colour::Fixed(240).paint("disassemble 10")
-                );
+                print_example("disassemble 10");
                 println!(
                     "          Disassemble 10 opcodes starting from the address in register CP."
                 );
@@ -532,9 +526,9 @@ fn help(mut nodes: Pairs<Rule>) {
         println!("{}", Colour::White.bold().paint("Execution"));
         println!("   run [ADDRESS] [until BOOLEAN_CONDITION]");
         println!("          Launch execution of the program.");
-        println!("         If the ADDRESS parameter is not provided, the actual register Command");
-        println!("         Pointer value is taken. If no conditions are given, this executes one");
-        println!("         instruction and get back to interactive mode (step by step mode).");
+        println!("          If the ADDRESS parameter is not provided, the actual register Command");
+        println!("          Pointer value is taken. If no conditions are given, this executes one");
+        println!("          instruction and get back to interactive mode (step by step mode).");
         println!("{}", Colour::White.bold().paint("Disassembler"));
         println!("   disassemble [ADDRESS] OPERATIONS");
         println!(
@@ -542,7 +536,7 @@ fn help(mut nodes: Pairs<Rule>) {
         );
         println!("{}", Colour::White.bold().paint("Help"));
         println!("   help [TOPIC]");
-        println!("         Display informations about commands.");
+        println!("          Display informations about commands.");
     };
 }
 
@@ -615,6 +609,13 @@ fn parse_value(node: &Pair<Rule>) -> usize {
 
 fn print_err(msg: &str) {
     println!("{}: {}", Colour::Red.paint("Error"), msg);
+}
+
+fn print_example(msg: &str) {
+    println!(
+        "          Example: {}",
+        Colour::Fixed(130).paint(msg)
+    );
 }
 
 struct CommandLineCompleter {}
