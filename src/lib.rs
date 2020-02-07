@@ -9,7 +9,7 @@ mod registers;
 pub const VERSION: &'static str = "0.1.0";
 
 pub use cpu_instruction::{CPUInstruction, LogLine, MicrocodeError, INIT_VECTOR_ADDR, INTERRUPT_VECTOR_ADDR};
-pub use memory::AddressableIO;
+pub use memory::{AddressableIO, MemoryError};
 pub use memory::MemoryStack as Memory;
 pub use processing_unit::*;
 pub use registers::Registers;

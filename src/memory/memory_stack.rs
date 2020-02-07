@@ -137,6 +137,9 @@ impl AddressableIO for MemoryStack {
             if addr_split >= tmpaddr {
                 let sublen = cmp::min(addr_split - tmpaddr, tmplen);
                 let substart = self.stack[sub_index].address_range.start;
+                if substart > tmpaddr {
+                    return Err(MemoryError::Other(tmpaddr, "reading unallocated memory"));
+                }
                 let mut subr = self.stack[sub_index].read(tmpaddr - substart, sublen)?;
                 results.append(&mut subr);
                 tmplen -= sublen;
@@ -145,6 +148,10 @@ impl AddressableIO for MemoryStack {
             if addr_split > addr + len {
                 break;
             }
+        }
+        // there is still memory to read but no remaining subsystems
+        if tmplen > 0 {
+            return Err(MemoryError::ReadOverflow(tmplen, tmpaddr));
         }
 
         Ok(results)
@@ -184,11 +191,12 @@ mod tests {
 
     struct FakeMemory {
         size: usize,
+        content: u8,
     }
 
     impl FakeMemory {
-        fn new(size: usize) -> FakeMemory {
-            FakeMemory { size }
+        fn new(size: usize, content: u8) -> FakeMemory {
+            FakeMemory { size, content }
         }
     }
 
@@ -199,15 +207,15 @@ mod tests {
 
         fn read(&self, addr: usize, len: usize) -> Result<Vec<u8>, MemoryError> {
             if addr + len > self.size {
-                Err(MemoryError::ReadOverflow(len, addr, self.size))
+                Err(MemoryError::ReadOverflow(len, addr))
             } else {
-                Ok(vec![0x00; len])
+                Ok(vec![self.content; len])
             }
         }
 
         fn write(&mut self, addr: usize, data: &Vec<u8>) -> Result<(), MemoryError> {
             if addr + data.len() > self.size {
-                Err(MemoryError::WriteOverflow(data.len(), addr, self.size))
+                Err(MemoryError::WriteOverflow(data.len(), addr))
             } else {
                 Ok(())
             }
@@ -285,9 +293,38 @@ mod tests {
     fn test_write_over_entire_memory() {
         let mut memory_stack = MemoryStack::new();
         memory_stack.add_subsystem("RAM", 0x0000, RAM::new());
-        memory_stack.add_subsystem("DUMMY", 0x8000, FakeMemory::new(1024));
+        memory_stack.add_subsystem("DUMMY", 0x8000, FakeMemory::new(1024, 0));
         let _ = memory_stack.read(0x7F00, 2048).unwrap();
         let data:Vec<u8> = vec![0xff; 2048];
         memory_stack.write(0x7F00, &data).unwrap();
+    }
+
+    #[test]
+    #[should_panic]
+    fn read_with_unallocated_memory() {
+        let mut memory_stack = MemoryStack::new();
+        memory_stack.add_subsystem("DUMMY", 0x0000, FakeMemory::new(0x1000, 0));
+        memory_stack.add_subsystem("DUMMY", 0x2000, FakeMemory::new(0x1000, 1));
+        match memory_stack.read(0x0000, 9*1024) {
+            Err(MemoryError::Other(addr, msg)) => {
+                assert_eq!(0x0000, addr);
+                assert_eq!("trying to write in a read-only memory".to_owned(), msg);
+            }
+            v => panic!("it should return the expected error, got {:?}", v),
+        }
+    }
+
+    #[test]
+    fn read_over_memory() {
+        let mut memory_stack = MemoryStack::new();
+        memory_stack.add_subsystem("DUMMY", 0x0000, FakeMemory::new(0x1000, 0));
+        match memory_stack.read(0, 0x2000) {
+            Err(MemoryError::ReadOverflow(len, addr_start)) => {
+                assert_eq!(0x1000, len);
+                assert_eq!(0x1000, addr_start);
+            }
+            Ok(_)   => panic!("this out of buffer read should not succeed"),
+                _   => panic!("that was not the expected error"),
+        }
     }
 }

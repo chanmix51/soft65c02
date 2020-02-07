@@ -17,7 +17,7 @@ impl AddressableIO for ROM {
         if self.rom.len() >= addr + len {
             Ok(self.rom[addr..addr + len].to_vec())
         } else {
-            Err(MemoryError::ReadOverflow(len, addr, self.rom.len()))
+            Err(MemoryError::ReadOverflow(len, addr))
         }
     }
 

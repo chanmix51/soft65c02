@@ -212,6 +212,7 @@ impl MiniFBMemory {
                 window
                     .update_with_buffer(&(memory), MINIFB_WIDTH, MINIFB_HEIGHT)
                     .unwrap();
+                /*
                 let mut codes = if let Some(keys) = window.get_keys_pressed(KeyRepeat::No) {
                     keys.iter().map(|x| get_key_code(*x)).collect()
                 } else {
@@ -222,8 +223,8 @@ impl MiniFBMemory {
                     let mut buffer = rbuffer.lock().unwrap();
                     let _a:Vec<u8> = buffer.splice(KEYB_ADDRESS..KEYB_ADDRESS + 16, codes).collect();
                 }
-
-                thread::sleep(time::Duration::from_micros(1000));
+                */
+                thread::sleep(time::Duration::from_micros(100));
 
             }
         });
@@ -245,7 +246,7 @@ impl AddressableIO for MiniFBMemory {
         if buffer.len() >= addr + len {
             Ok(buffer[addr..addr + len].to_vec())
         } else {
-            Err(MemoryError::ReadOverflow(len, addr, buffer.len()))
+            Err(MemoryError::ReadOverflow(len, addr))
         }
     }
 

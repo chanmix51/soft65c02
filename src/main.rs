@@ -17,7 +17,7 @@ use rustyline::error::ReadlineError;
 use rustyline::Result as RustyResult;
 use rustyline::{Context, Editor};
 
-use soft65c02::{AddressableIO, LogLine, Memory, MemoryParserIterator, Registers, INIT_VECTOR_ADDR};
+use soft65c02::{AddressableIO, LogLine, Memory, MemoryError, MemoryParserIterator, Registers, INIT_VECTOR_ADDR};
 use soft65c02::memory::{little_endian, MiniFBMemory };
 
 use std::collections::VecDeque;
@@ -314,11 +314,16 @@ fn exec_memory_instruction(
             let mut subnodes = node.into_inner();
             let addr = parse_memory(subnodes.next().unwrap().as_str()[3..].to_owned());
             let len: usize = subnodes.next().unwrap().as_str().parse::<usize>().unwrap();
-            for line in mem_dump(addr, len, memory).iter() {
-                println!("{}", line);
-                if interrupted.load(Ordering::Relaxed) {
-                    break;
-                }
+            match mem_dump(addr, len, memory) {
+                Ok(lines) => {
+                    for line in lines.iter() {
+                        println!("{}", line);
+                        if interrupted.load(Ordering::Relaxed) {
+                            break;
+                        }
+                    }
+                },
+                Err(e)  => print_err(format!("memory error: {}", e).as_str()),
             }
         }
         Rule::memory_load => {
@@ -350,11 +355,11 @@ fn exec_memory_instruction(
     }
 }
 
-fn mem_dump(start: usize, len: usize, memory: &Memory) -> Vec<String> {
+fn mem_dump(start: usize, len: usize, memory: &Memory) -> Result<Vec<String>, MemoryError> {
     let mut output:Vec<String> = vec![];
-    if len == 0 { return output }
+    if len == 0 { return Ok(output) }
     let address = start - (start % 16);
-    let bytes = memory.read(address, 16 * len).unwrap();
+    let bytes = memory.read(address, 16 * len)?;
 
     for lineno in 0..len {
         let mut line = format!("#{:04X}: ", address + lineno * 16);
@@ -367,7 +372,7 @@ fn mem_dump(start: usize, len: usize, memory: &Memory) -> Vec<String> {
         output.push(line);
     }
 
-    output
+    Ok(output)
 }
 
 fn load_memory(filename: &str, addr: usize, memory: &mut Memory) -> std::io::Result<usize> {

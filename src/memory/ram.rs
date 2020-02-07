@@ -17,16 +17,14 @@ impl AddressableIO for RAM {
         if self.ram.len() >= addr + len {
             Ok(self.ram[addr..addr + len].to_vec())
         } else {
-            Err(MemoryError::ReadOverflow(len, addr, self.ram.len()))
+            Err(MemoryError::ReadOverflow(len, addr))
         }
     }
 
     fn write(&mut self, location: usize, data: &Vec<u8>) -> Result<(), MemoryError> {
         if location + data.len() > self.ram.len() {
             Err(MemoryError::WriteOverflow(
-                data.len(),
-                location,
-                self.ram.len(),
+                data.len(), location
             ))
         } else {
             for offset in 0..data.len() {
