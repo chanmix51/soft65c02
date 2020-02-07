@@ -9,16 +9,16 @@ use std::error::Error;
 use std::convert::From;
 use std::result::Result;
 use std::fmt;
-fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> CPUInstruction {
+fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> Result<CPUInstruction, CPUError> {
     use microcode as mc;
     use AddressingMode as AM;
     use CPUInstruction as instr;
 
     let (op1, op2) = {
-        let y = memory.read(address + 1, 2).unwrap();
+        let y = memory.read(address + 1, 2)?;
         ([y[0]], [y[0], y[1]])
     };
-    match opcode {
+    let instruction = match opcode {
         0x00 => instr::new(address, opcode, "BRK", AM::Implied, mc::brk),
         0x01 => instr::new(
             address,
@@ -348,7 +348,9 @@ fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> CPUInstruction
             "Yet unsupported instruction opcode 0x{:02x} at address #0x{:04X}.",
             opcode, address
         ),
-    }
+    };
+
+    Ok(instruction)
 }
 
 pub fn execute_step(registers: &mut Registers, memory: &mut Memory) -> Result<LogLine, CPUError> {
@@ -358,7 +360,7 @@ pub fn execute_step(registers: &mut Registers, memory: &mut Memory) -> Result<Lo
 
 pub fn read_step(address: usize, memory: &Memory) -> Result<CPUInstruction, CPUError> {
     let opcode = memory.read(address, 1)?[0];
-    Ok(resolve_opcode(address, opcode, memory))
+    Ok(resolve_opcode(address, opcode, memory)?)
 }
 
 pub fn disassemble(start: usize, end: usize, memory: &Memory) -> Result<Vec<CPUInstruction>, CPUError> {
@@ -437,7 +439,7 @@ mod tests {
     #[test]
     fn test_dex() {
         let memory = Memory::new_with_ram();
-        let instr: CPUInstruction = resolve_opcode(0x1000, 0xca, &memory);
+        let instr: CPUInstruction = resolve_opcode(0x1000, 0xca, &memory).unwrap();
         assert_eq!("DEX".to_owned(), instr.mnemonic);
         assert_eq!(AddressingMode::Implied, instr.addressing_mode);
     }
