@@ -26,7 +26,7 @@ fn read_program() {
         "#0x080C: (db)          STP",
     ];
     let mut count: usize = 0;
-    let output = disassemble(init_vector, 0x080d, &memory);
+    let output = disassemble(init_vector, 0x080d, &memory).unwrap();
 
     for line in output {
         assert_eq!(

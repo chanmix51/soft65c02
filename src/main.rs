@@ -17,8 +17,8 @@ use rustyline::error::ReadlineError;
 use rustyline::Result as RustyResult;
 use rustyline::{Context, Editor};
 
-use soft65c02::{AddressableIO, LogLine, Memory, MemoryError, MemoryParserIterator, Registers, INIT_VECTOR_ADDR};
-use soft65c02::memory::{little_endian, MiniFBMemory };
+use soft65c02::{AddressableIO, LogLine, Memory, CPUError, MemoryParserIterator, Registers, INIT_VECTOR_ADDR};
+use soft65c02::memory::{little_endian, MiniFBMemory, MemoryError };
 
 use std::collections::VecDeque;
 use std::fs::File;

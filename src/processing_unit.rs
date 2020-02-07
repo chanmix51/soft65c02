@@ -1,11 +1,14 @@
 use super::addressing_mode::*;
 use super::cpu_instruction::microcode;
 use super::cpu_instruction::{CPUInstruction, LogLine};
-use super::memory::AddressableIO;
+use super::memory::{AddressableIO, MemoryError};
 use super::memory::MemoryStack as Memory;
 use super::registers::Registers;
-use crate::cpu_instruction::microcode::Result as MicrocodeResult;
-
+use crate::cpu_instruction::microcode::MicrocodeError;
+use std::error::Error;
+use std::convert::From;
+use std::result::Result;
+use std::fmt;
 fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> CPUInstruction {
     use microcode as mc;
     use AddressingMode as AM;
@@ -348,27 +351,27 @@ fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> CPUInstruction
     }
 }
 
-pub fn execute_step(registers: &mut Registers, memory: &mut Memory) -> MicrocodeResult<LogLine> {
-    let cpu_instruction = read_step(registers.command_pointer, memory);
-    cpu_instruction.execute(memory, registers)
+pub fn execute_step(registers: &mut Registers, memory: &mut Memory) -> Result<LogLine, CPUError> {
+    let cpu_instruction = read_step(registers.command_pointer, memory)?;
+    Ok(cpu_instruction.execute(memory, registers)?)
 }
 
-pub fn read_step(address: usize, memory: &Memory) -> CPUInstruction {
-    let opcode = memory.read(address, 1).unwrap()[0];
-    resolve_opcode(address, opcode, memory)
+pub fn read_step(address: usize, memory: &Memory) -> Result<CPUInstruction, CPUError> {
+    let opcode = memory.read(address, 1)?[0];
+    Ok(resolve_opcode(address, opcode, memory))
 }
 
-pub fn disassemble(start: usize, end: usize, memory: &Memory) -> Vec<CPUInstruction> {
+pub fn disassemble(start: usize, end: usize, memory: &Memory) -> Result<Vec<CPUInstruction>, CPUError> {
     let mut cp = start;
     let mut output: Vec<CPUInstruction> = vec![];
 
     while cp < end {
-        let cpu_instruction = read_step(cp, memory);
+        let cpu_instruction = read_step(cp, memory)?;
         cp = cp + 1 + cpu_instruction.addressing_mode.get_operands().len();
         output.push(cpu_instruction);
     }
 
-    output
+    Ok(output)
 }
 
 pub struct MemoryParserIterator<'a> {
@@ -389,10 +392,41 @@ impl Iterator for MemoryParserIterator<'_> {
     type Item = CPUInstruction;
 
     fn next(&mut self) -> Option<CPUInstruction> {
-        let cpu_instruction = read_step(self.cp, self.memory);
-        self.cp = self.cp + 1 + cpu_instruction.addressing_mode.get_operands().len();
+        if let Ok(cpu_instruction) = read_step(self.cp, self.memory) {
+            self.cp = self.cp + 1 + cpu_instruction.addressing_mode.get_operands().len();
+            Some(cpu_instruction)
+        } else {
+            None
+        }
+    }
+}
 
-        Some(cpu_instruction)
+#[derive(Debug)]
+pub enum CPUError {
+    MemoryError(MemoryError),
+    MicrocodeError(MicrocodeError),
+}
+
+impl Error for CPUError {}
+
+impl fmt::Display for CPUError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            CPUError::MemoryError(e)  => write!(f, "CPU Error (memory) {}", e),
+            CPUError::MicrocodeError(e)  => write!(f, "CPU Error (microcode) {}", e),
+        }
+    }
+}
+
+impl From<MicrocodeError> for CPUError {
+    fn from(e: MicrocodeError) -> Self {
+        CPUError::MicrocodeError(e)
+    }
+}
+
+impl From<MemoryError> for CPUError {
+    fn from(e: MemoryError) -> Self {
+        CPUError::MemoryError(e)
     }
 }
 
@@ -424,7 +458,7 @@ mod tests {
     fn simulate_step_dex() {
         let mut memory = Memory::new_with_ram();
         memory.write(0x1000, &vec![0xca]).unwrap();
-        let cpu_instruction: CPUInstruction = read_step(0x1000, &memory);
+        let cpu_instruction: CPUInstruction = read_step(0x1000, &memory).unwrap();
         assert_eq!(0x1000, cpu_instruction.address);
         assert_eq!("DEX".to_owned(), cpu_instruction.mnemonic);
     }

@@ -22,12 +22,10 @@ fn main() {
     memory.write(init_vector, &dump_program()).unwrap();
     let mut registers = Registers::new(init_vector);
     let mut cp = 0x0000;
-    let mut f = fs::File::create("log.txt").unwrap();
 
     while cp != registers.command_pointer {
         cp = registers.command_pointer;
-        writeln!(
-            f,
+        println!(
             "{}",
             soft65c02::execute_step(&mut registers, &mut memory).unwrap()
         );

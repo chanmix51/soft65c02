@@ -1,6 +1,19 @@
+use soft65c02::{execute_step, CPUError, AddressableIO, Memory, LogLine, Registers};
+
+fn execute(memory: &mut Memory, registers: &mut Registers) -> Result<Vec<LogLine>, CPUError> {
+    let mut cp:usize = 0;
+    let mut output:Vec<LogLine> = vec![];
+
+    while cp != registers.command_pointer {
+        cp = registers.command_pointer;
+        output.push(execute_step(registers, memory)?);
+    }
+
+    Ok(output)
+}
+
 #[test]
 fn execute_program() {
-    use soft65c02::{execute, AddressableIO, Memory, Registers};
     let init_vector: usize = 0x0800;
     let mut memory = Memory::new_with_ram();
     memory
