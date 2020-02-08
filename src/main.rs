@@ -404,7 +404,18 @@ fn exec_memory_instruction(
                 "minifb"    => memory.add_subsystem("FRAMEBUFFER", addr, MiniFBMemory::new(None)),
                 whatever    => print_err(format!("unknown sub system {}", whatever).as_str()),
             }
-        },
+        }
+        Rule::memory_write => {
+            let mut nodes = node.into_inner();
+            let addr_node = nodes.next().unwrap();
+            let addr = parse_memory(addr_node.as_str()[3..].to_owned());
+            let bytes_node = nodes.next().unwrap();
+            let bytes = parse_bytes(bytes_node.as_str());
+            match memory.write(addr, &bytes) {
+                Ok(_)   => println!("{} bytes written", bytes.len()),
+                Err(e)  => print_err(format!("{}", e).as_str()),
+            }
+        }
         _ => println!("{:?}", node),
     }
 }
@@ -480,6 +491,10 @@ fn help(mut nodes: Pairs<Rule>) {
                 println!("          The content of the file is copied in the memory, so the memory has to");
                 println!("          be writable.");
                 print_example("memory load #0x1C00 \"program.bin\"");
+                println!("");
+                println!("   memory write ADDRESS 0x(BYTES)");
+                println!("          Write bytes at the given address.");
+                print_example("memory write #0x0200 0x(0a,11,00,fe)");
                 println!("");
                 println!("  memory sub list");
                 println!("          Show the list of the running memory subsystems.");
@@ -597,6 +612,8 @@ fn help(mut nodes: Pairs<Rule>) {
         println!("          Show the content of the memory starting from ADDRESS.");
         println!("   memory load ADDRESS \"filename.ext\" ");
         println!("          Load a binary file at the selected address in memory.");
+        println!("   memory write ADDRESS 0x(BYTES)");
+        println!("          Write bytes starting at the given address in memory.");
         println!("{}", Colour::White.bold().paint("Execution"));
         println!("   run [ADDRESS] [until BOOLEAN_CONDITION]");
         println!("          Launch execution of the program.");
@@ -685,6 +702,12 @@ fn parse_value(node: &Pair<Rule>) -> usize {
     parse_memory(hexa)
 }
 
+fn parse_bytes(bytes: &str) -> Vec<u8> {
+    bytes.split(',')
+        .map(|x| hex::decode(x.trim()).unwrap()[0])
+        .collect()
+}
+
 fn print_err(msg: &str) {
     println!("{}: {}", Colour::Red.paint("Error"), msg);
 }
@@ -718,9 +741,9 @@ impl rustyline::completion::Completer for CommandLineCompleter {
             "run ",
             "run #0x",
             "run until ",
+            "assert ",
             "disassemble ",
             "disassemble #0x",
-            "assert ",
             "help",
             "help registers",
             "help memory",

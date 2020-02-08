@@ -17,6 +17,10 @@ Soft 65C02 is:
     * please you as much as readline can (with some auto completion)
     * kill infinite loops by pressing CTRL-C
     * help you with documentation and (hopefully) meaningful error messages
+ * a testing tool for compiled binaries that can
+    * do assertions on registers and memory
+    * write bytes in memory (to simulate I/Os)
+    * take scripts on its standard input
 
 The library is heavily tested, lot of the parts were coded driven by tests so it might be sort of reliable.
 The addressing mode mechanisms and operands were tested against [Klaus Dormann's 6502/65C02 test suite](https://github.com/Klaus2m5/6502_65C02_functional_tests/blob/master/65C02_extended_opcodes_test.a65c) and it looks like it ended up with succeeding both tests. Lot of informations about the hidden secrets of these processors were found on the [6502.org website](http://www.6502.org/) which is a gold mine crafted with patience by passionate people, thanks a lot to them for the wonderful tutos and documentation they wrote and shared.
@@ -33,7 +37,7 @@ Because the 6502 comes from an age where processors were built by humans for hum
 
 What's the actual state of this development?
 --------------------------------------------
-The CLI is working and supports a minimal set of instructions. The library is supposed to be wire to wire compatible with a real 65C02. It would be nice the CLI could send interruptions and the video frame buffer to work correctly. There are probably lot of little problems / glitches / bugs hidden so the priority is to tidy & clean everything in order to release a proper 1.0 software.
+The library is supposed to be wire to wire compatible with a real 65C02. The CLI is working, it features inline help, readline support and auto completion. Here is [an example](http://showterm.io/9f42ca2ae0cd4c9bb2011#slow) of what it can do. It would be nice the CLI could send interrupts and the video frame buffer to work correctly. There are probably lot of little problems / glitches / bugs hidden so the priority is to tidy & clean everything in order to release a proper 1.0 software.
 
 License
 -------
