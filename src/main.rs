@@ -17,7 +17,7 @@ use rustyline::error::ReadlineError;
 use rustyline::Result as RustyResult;
 use rustyline::{Context, Editor};
 
-use soft65c02::{AddressableIO, LogLine, Memory, CPUError, MemoryParserIterator, Registers, INIT_VECTOR_ADDR};
+use soft65c02::{AddressableIO, LogLine, Memory, MemoryParserIterator, Registers, INIT_VECTOR_ADDR};
 use soft65c02::memory::{little_endian, MiniFBMemory, MemoryError };
 
 use std::collections::VecDeque;
@@ -25,6 +25,7 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::fmt;
 
 
 const LOGLINE_MEMORY_LEN: usize = 35;
@@ -55,6 +56,20 @@ impl Source {
             Source::RegisterS => registers.stack_pointer as usize,
             Source::Memory(addr) => memory.read(addr, 1).unwrap()[0] as usize,
             Source::RegisterCP => registers.command_pointer as usize,
+        }
+    }
+}
+
+impl fmt::Display for Source {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Source::Accumulator => write!(f, "A"),
+            Source::RegisterX => write!(f, "X"),
+            Source::RegisterY => write!(f, "Y"),
+            Source::RegisterSP => write!(f, "SP"),
+            Source::RegisterS => write!(f, "S"),
+            Source::Memory(addr) => write!(f, "#0x{:04X}", addr),
+            Source::RegisterCP => write!(f, "S"),
         }
     }
 }
@@ -90,6 +105,32 @@ impl BooleanExpression {
                 source.get_value(registers, memory) != *val
             }
             BooleanExpression::Value(val) => *val,
+        }
+    }
+}
+
+impl fmt::Display for BooleanExpression {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            BooleanExpression::Equal(source, val) => write!(f, "{} = 0x{:X}", source, val),
+            BooleanExpression::GreaterOrEqual(source, val) => {
+                write!(f, "{} ≥ 0x{:X}", source, val)
+            }
+            BooleanExpression::StrictlyGreater(source, val) => {
+                write!(f, "{} > 0x{:X}", source, val)
+            }
+            BooleanExpression::LesserOrEqual(source, val) => {
+                write!(f, "{} ≤ 0x{:X}", source, val)
+            }
+            BooleanExpression::StrictlyLesser(source, val) => {
+                write!(f, "{} < 0x{:X}", source, val)
+            }
+            BooleanExpression::Different(source, val) => {
+                write!(f, "{} ≠ 0x{:X}", source, val)
+            }
+            BooleanExpression::Value(val) => {
+                write!(f, "{}", if *val { "true" } else { "false" })
+            }
         }
     }
 }
@@ -217,19 +258,22 @@ pub fn parse_instruction(
     memory: &mut Memory,
     interrupted: &Arc<AtomicBool>,
 ) {
-    let node = nodes.next().unwrap();
-    match node.as_rule() {
-        Rule::registers_instruction =>
-            exec_register_instruction(node.into_inner(), registers),
-        Rule::memory_instruction =>
-            exec_memory_instruction(node.into_inner(), memory, interrupted),
-        Rule::run_instruction =>
-            exec_run_instruction(node.into_inner(), registers, memory, interrupted),
-        Rule::help_instruction => help(node.into_inner()),
-        Rule::disassemble_instruction =>
-            exec_disassemble_instruction(node.into_inner(), registers, memory, interrupted),
-        _ => {}
-    };
+    if let Some(node) = nodes.next() {
+        match node.as_rule() {
+            Rule::registers_instruction =>
+                exec_register_instruction(node.into_inner(), registers),
+            Rule::memory_instruction =>
+                exec_memory_instruction(node.into_inner(), memory, interrupted),
+            Rule::run_instruction =>
+                exec_run_instruction(node.into_inner(), registers, memory, interrupted),
+            Rule::help_instruction => help(node.into_inner()),
+            Rule::disassemble_instruction =>
+                exec_disassemble_instruction(node.into_inner(), registers, memory, interrupted),
+            Rule::assert_instruction =>
+                exec_assert_instruction(node.into_inner(), registers, memory),
+            smt => { println!("{:?}", smt); },
+        };
+    }
 }
 
 fn exec_run_instruction(
@@ -300,6 +344,16 @@ fn exec_disassemble_instruction(
         if interrupted.load(Ordering::Relaxed) || op >= len {
             break;
         }
+    }
+}
+
+
+fn exec_assert_instruction(mut nodes: Pairs<Rule>, registers: &Registers, memory: &Memory) {
+    let condition = parse_boolex(nodes.next().unwrap().into_inner());
+    if !condition.solve(registers, memory) {
+        panic!("{} is not true", condition);
+    } else {
+        println!("ok");
     }
 }
 
@@ -514,6 +568,21 @@ fn help(mut nodes: Pairs<Rule>) {
                     "          Disassemble 10 opcodes starting from the address in register CP."
                 );
             }
+            Rule::help_assert => {
+                println!("{}", Colour::Green.paint("Assertion command:"));
+                println!("");
+                println!("  assert BOOLEAN_CONDITION");
+                println!("          Evaluate the boolean condition. A \"ok\" message is printed if");
+                println!("          the condition is true, the program exit with an error code");
+                println!("          otherwise. See the \"run until\" command to get more explanations");
+                println!("          about the boolean conditions.");
+                println!("");
+                print_example("assert #0x0200 = 0x1a");
+                println!("          Test this memory address has got the given value.");
+                println!("");
+                print_example("assert X >= 0x80");
+                println!("          Test the X register is bigger than 0x80.");
+            }
             _ => {}
         };
     } else {
@@ -539,6 +608,10 @@ fn help(mut nodes: Pairs<Rule>) {
         println!(
             "         Disassemble starting from ADDRESS for the next \"OPERATIONS\" instructions."
         );
+        println!("{}", Colour::White.bold().paint("Asserter"));
+        println!("   assert BOOLEAN_CONDITION");
+        println!("          If the assertion is true, a 'ok' message is printed otherwise the program");
+        println!("          panics and exit with an error code. This is intended for automated tests.");
         println!("{}", Colour::White.bold().paint("Help"));
         println!("   help [TOPIC]");
         println!("          Display informations about commands.");
@@ -647,6 +720,7 @@ impl rustyline::completion::Completer for CommandLineCompleter {
             "run until ",
             "disassemble ",
             "disassemble #0x",
+            "assert ",
             "help",
             "help registers",
             "help memory",

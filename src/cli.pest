@@ -1,11 +1,13 @@
 WHITESPACE = _{ " " }
-sentence = _{ SOI ~ instruction ~ EOI }
+COMMENT = _{ "//" ~ ANY* }
+sentence = _{ SOI ~ instruction | COMMENT ~ EOI }
 
 instruction = { registers_instruction |
     memory_instruction |
     run_instruction |
     help_instruction |
-    disassemble_instruction }
+    disassemble_instruction |
+    assert_instruction }
 
 registers_instruction = { ^"registers" ~ registers_action }
 registers_action = _{ registers_show | registers_flush }
@@ -30,11 +32,14 @@ disassemble_instruction = {
     ^"disassemble" ~ memory_address ~ size_parameter
     | ^"disassemble" ~ size_parameter }
 
-help_instruction = { help_registers | help_memory | help_run | help_disassemble | ^"help" }
+assert_instruction = { ^"assert" ~ boolean_condition }
+
+help_instruction = { help_registers | help_memory | help_run | help_disassemble | help_assert | ^"help" }
 help_registers = { ^"help registers" }
 help_memory = { ^"help memory" }
 help_run = { ^"help run" }
 help_disassemble = { ^"help disassemble" }
+help_assert = { ^"help assert" }
 
 boolean_condition = { boolean | operation }
 
