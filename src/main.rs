@@ -20,6 +20,8 @@ use rustyline::{Context, Editor};
 use soft65c02::{AddressableIO, LogLine, Memory, MemoryParserIterator, Registers, INIT_VECTOR_ADDR};
 use soft65c02::memory::{little_endian, MiniFBMemory, MemoryError };
 
+use structopt::StructOpt;
+
 use std::collections::VecDeque;
 use std::fs::File;
 use std::io::prelude::*;
@@ -28,8 +30,38 @@ use std::sync::Arc;
 use std::fmt;
 
 
-const LOGLINE_MEMORY_LEN: usize = 35;
 const VERSION: &'static str = "1.0.0-alpha2";
+
+#[derive(StructOpt, Debug)]
+#[structopt(name = "soft65C02")]
+struct CommandLineArguments {
+    // logline buffer is the number of log lines kept after each instruction execution
+    #[structopt(short="l", long, default_value = "35")]
+    logline_buffer: usize,
+
+    // do not use history
+    #[structopt(short="s", long)]
+    no_history: bool,
+
+    // do not create initial 64K RAM
+    #[structopt(short="r", long)]
+    no_ram: bool,
+}
+
+#[derive(Debug)]
+pub struct ConfigToken {
+    cli_opts: CommandLineArguments,
+    ctrlc: Arc<AtomicBool>,
+}
+
+impl ConfigToken {
+    fn new(cli_opts: CommandLineArguments, ctrlc: Arc<AtomicBool>) -> ConfigToken {
+        ConfigToken {
+            cli_opts,
+            ctrlc,
+        }
+    }
+}
 
 #[derive(Parser)]
 #[grammar = "cli.pest"]
@@ -162,20 +194,20 @@ fn display_error<T: RuleType>(err: PestError<T>) {
             )
         }
     };
-    println!("   {}", mark_str);
+    eprintln!("   {}", mark_str);
     print_err(&msg);
     match err.variant {
         pest::error::ErrorVariant::ParsingError {
             positives,
             negatives: _,
         } => {
-            println!(
+            eprintln!(
                 "{}",
                 Colour::Fixed(240).paint(format!("hint: expected {:?}", positives))
             );
         }
         pest::error::ErrorVariant::CustomError { message } => {
-            println!(
+            eprintln!(
                 "{}",
                 Colour::Fixed(240).paint(format!("message: {}", message))
             );
@@ -184,9 +216,25 @@ fn display_error<T: RuleType>(err: PestError<T>) {
 }
 
 fn main() {
+    // 0 global configuration
+    let mut token = {
+        let cli_opts = CommandLineArguments::from_args();
+        let interrupted = Arc::new(AtomicBool::new(false));
+        let rmtint = interrupted.clone();
+        ctrlc::set_handler(move || {
+            rmtint.store(true, Ordering::SeqCst);
+        })
+        .unwrap();
+        ConfigToken::new(cli_opts, interrupted)
+    };
+
     // 1 setting up memory & registers
     let mut registers = Registers::new(0x0000);
-    let mut memory = Memory::new_with_ram();
+    let mut memory = if token.cli_opts.no_ram {
+        Memory::new()
+    } else {
+        Memory::new_with_ram()
+    };
 
     // 2 CLI prompt & readline configuration
     println!(
@@ -195,18 +243,15 @@ fn main() {
     );
     let prompt = format!("{}", Colour::Fixed(148).bold().paint(">> "));
     let mut rl = Editor::<CommandLineCompleter>::new();
-    if rl.load_history("history.txt").is_err() {
-        println!("No previous history.");
+    if !token.cli_opts.no_history {
+        if rl.load_history("history.txt").is_err() {
+            println!("No previous history.");
+        }
+    } else {
+        println!("Command history disabled.");
     }
     rl.set_helper(Some(CommandLineCompleter {}));
 
-    // 3 CTRL-C handler
-    let interrupted = Arc::new(AtomicBool::new(false));
-    let rmtint = interrupted.clone();
-    ctrlc::set_handler(move || {
-        rmtint.store(true, Ordering::SeqCst);
-    })
-    .unwrap();
 
     // 4 main CLI loop
     loop {
@@ -216,18 +261,20 @@ fn main() {
                 if line.len() == 0 {
                     continue;
                 }
-                rl.add_history_entry(line.as_str());
+                if !token.cli_opts.no_history {
+                    rl.add_history_entry(line.as_str());
+                }
                 match BEParser::parse(Rule::sentence, line.as_str()) {
                     Ok(mut pairs) => {
                         parse_instruction(
                             pairs.next().unwrap().into_inner(),
                             &mut registers,
                             &mut memory,
-                            &interrupted,
+                            &token,
                         );
-                        if interrupted.load(Ordering::Relaxed) {
+                        if token.ctrlc.load(Ordering::Relaxed) {
                             println!("Execution interrupted by CTRL+C!");
-                            interrupted.store(false, Ordering::SeqCst);
+                            token.ctrlc.store(false, Ordering::SeqCst);
                         }
                     }
                     Err(parse_err) => {
@@ -248,27 +295,29 @@ fn main() {
             }
         }
     }
-    rl.save_history("history.txt").unwrap();
-    println!("Writing commands history in 'history.txt'.");
+    if !token.cli_opts.no_history {
+        rl.save_history("history.txt").unwrap();
+        println!("Writing commands history in 'history.txt'.");
+    }
 }
 
 pub fn parse_instruction(
     mut nodes: Pairs<Rule>,
     registers: &mut Registers,
     memory: &mut Memory,
-    interrupted: &Arc<AtomicBool>,
+    token: &ConfigToken,
 ) {
     if let Some(node) = nodes.next() {
         match node.as_rule() {
             Rule::registers_instruction =>
                 exec_register_instruction(node.into_inner(), registers),
             Rule::memory_instruction =>
-                exec_memory_instruction(node.into_inner(), memory, interrupted),
+                exec_memory_instruction(node.into_inner(), memory, token),
             Rule::run_instruction =>
-                exec_run_instruction(node.into_inner(), registers, memory, interrupted),
+                exec_run_instruction(node.into_inner(), registers, memory, token),
             Rule::help_instruction => help(node.into_inner()),
             Rule::disassemble_instruction =>
-                exec_disassemble_instruction(node.into_inner(), registers, memory, interrupted),
+                exec_disassemble_instruction(node.into_inner(), registers, memory, token),
             Rule::assert_instruction =>
                 exec_assert_instruction(node.into_inner(), registers, memory),
             smt => { println!("{:?}", smt); },
@@ -280,7 +329,7 @@ fn exec_run_instruction(
     mut nodes: Pairs<Rule>,
     registers: &mut Registers,
     memory: &mut Memory,
-    interrupted: &Arc<AtomicBool>,
+    token: &ConfigToken,
 ) {
     let mut stop_condition = BooleanExpression::Value(true);
     while let Some(node) = nodes.next() {
@@ -300,10 +349,10 @@ fn exec_run_instruction(
     loop {
         loglines.push_back(soft65c02::execute_step(registers, memory).unwrap());
         i += 1;
-        if loglines.len() > LOGLINE_MEMORY_LEN {
+        if loglines.len() > token.cli_opts.logline_buffer {
             loglines.pop_front();
         }
-        if interrupted.load(Ordering::Relaxed)
+        if token.ctrlc.load(Ordering::Relaxed)
             || stop_condition.solve(registers, memory)
             || registers.command_pointer == cp
         {
@@ -312,7 +361,7 @@ fn exec_run_instruction(
         cp = registers.command_pointer;
     }
 
-    if i > LOGLINE_MEMORY_LEN {
+    if i > token.cli_opts.logline_buffer {
         println!("Stopped after {} cpu instructions.", i);
     }
     loglines.iter().for_each(|x| println!("{}", x));
@@ -322,7 +371,7 @@ fn exec_disassemble_instruction(
     mut nodes: Pairs<Rule>,
     registers: &Registers,
     memory: &Memory,
-    interrupted: &Arc<AtomicBool>,
+    token: &ConfigToken,
 ) {
     let mut addr = registers.command_pointer;
     let mut len = 0;
@@ -341,7 +390,7 @@ fn exec_disassemble_instruction(
 
     for (op, line) in MemoryParserIterator::new(addr, &memory).enumerate() {
         println!("{}", line);
-        if interrupted.load(Ordering::Relaxed) || op >= len {
+        if token.ctrlc.load(Ordering::Relaxed) || op >= len {
             break;
         }
     }
@@ -360,7 +409,7 @@ fn exec_assert_instruction(mut nodes: Pairs<Rule>, registers: &Registers, memory
 fn exec_memory_instruction(
     mut nodes: Pairs<Rule>,
     memory: &mut Memory,
-    interrupted: &Arc<AtomicBool>,
+    token: &ConfigToken,
 ) {
     let node = nodes.next().unwrap();
     match node.as_rule() {
@@ -372,7 +421,7 @@ fn exec_memory_instruction(
                 Ok(lines) => {
                     for line in lines.iter() {
                         println!("{}", line);
-                        if interrupted.load(Ordering::Relaxed) {
+                        if token.ctrlc.load(Ordering::Relaxed) {
                             break;
                         }
                     }
@@ -390,9 +439,14 @@ fn exec_memory_instruction(
             }
         },
         Rule::memory_sub_list => {
-            println!("Memory subsystems:");
-            for line in memory.get_subsystems_info() {
-                println!("{}", line);
+            let subs = memory.get_subsystems_info();
+            if subs.len() == 0 {
+                println!("No subsystem loaded.");
+            } else {
+                println!("Memory subsystems:");
+                for line in subs {
+                    println!("{}", line);
+                }
             }
         }
         Rule::memory_sub_add => {
@@ -709,7 +763,7 @@ fn parse_bytes(bytes: &str) -> Vec<u8> {
 }
 
 fn print_err(msg: &str) {
-    println!("{}: {}", Colour::Red.paint("Error"), msg);
+    eprintln!("{}: {}", Colour::Red.paint("Error"), msg);
 }
 
 fn print_example(msg: &str) {

@@ -1,6 +1,6 @@
 [package]
 name = "soft65c02"
-version = "1.0.0-alpha1"
+version = "1.0.0-alpha2"
 authors = ["greg <hubert.greg@gmail.com>"]
 edition = "2018"
 
