@@ -28,7 +28,7 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
-use std::fmt;
+use std::process;
 
 
 const VERSION: &'static str = "1.0.0-alpha2";
@@ -297,10 +297,12 @@ fn exec_disassemble_instruction(
 
 fn exec_assert_instruction(mut nodes: Pairs<Rule>, registers: &Registers, memory: &Memory) {
     let condition = parse_boolex(nodes.next().unwrap().into_inner());
+    let message = nodes.next().unwrap().as_str();
     if !condition.solve(registers, memory) {
-        panic!("{} is not true", condition);
+        println!("ASSERT {} is {}, message = '{}'.", condition, Colour::Red.paint("not true"), message);
+        process::exit(99);
     } else {
-        println!("ok");
+        println!("ASSERT {} - {}", message, Colour::Green.paint("ok"));
     }
 }
 

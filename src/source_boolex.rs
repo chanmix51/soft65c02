@@ -35,7 +35,7 @@ impl fmt::Display for Source {
             Source::RegisterSP => write!(f, "SP"),
             Source::RegisterS => write!(f, "S"),
             Source::Memory(addr) => write!(f, "#0x{:04X}", addr),
-            Source::RegisterCP => write!(f, "S"),
+            Source::RegisterCP => write!(f, "CP"),
         }
     }
 }

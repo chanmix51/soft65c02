@@ -33,7 +33,7 @@ disassemble_instruction = {
     ^"disassemble" ~ memory_address ~ size_parameter
     | ^"disassemble" ~ size_parameter }
 
-assert_instruction = { ^"assert" ~ boolean_condition }
+assert_instruction = { ^"assert" ~ boolean_condition ~ "$$" ~ description ~ "$$"}
 
 help_instruction = { help_registers | help_memory | help_run | help_disassemble | help_assert | ^"help" }
 help_registers = { ^"help registers" }
@@ -63,3 +63,4 @@ size_parameter = { ASCII_DIGIT+ }
 operator = { ">=" | "<=" | "!=" | "=" | ">" | "<" }
 filename = { "\"" ~ filechar+ ~ "\"" }
 filechar = _{ ASCII_ALPHANUMERIC | "." | "_" | "/" }
+description = { ((!"$$") ~ ANY)* }
