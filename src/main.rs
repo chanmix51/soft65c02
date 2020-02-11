@@ -790,6 +790,7 @@ impl rustyline::completion::Completer for CommandLineCompleter {
             "memory",
             "memory show #0x",
             "memory load #0x",
+            "memory write #0x",
             "memory sub list",
             "memory sub add #0x",
             "run ",
