@@ -53,6 +53,7 @@ struct CommandLineArguments {
 pub struct ConfigToken {
     cli_opts: CommandLineArguments,
     ctrlc: Arc<AtomicBool>,
+    assertion_count: usize,
 }
 
 impl ConfigToken {
@@ -60,6 +61,7 @@ impl ConfigToken {
         ConfigToken {
             cli_opts,
             ctrlc,
+            assertion_count: 0,
         }
     }
 }
@@ -168,7 +170,7 @@ fn main() {
                             pairs.next().unwrap().into_inner(),
                             &mut registers,
                             &mut memory,
-                            &token,
+                            &mut token,
                         );
                         if token.ctrlc.load(Ordering::Relaxed) {
                             println!("Execution interrupted by CTRL+C!");
@@ -197,13 +199,17 @@ fn main() {
         rl.save_history("history.txt").unwrap();
         println!("Writing commands history in 'history.txt'.");
     }
+
+    if token.assertion_count > 0 {
+        println!("{} assertions passed", token.assertion_count);
+    }
 }
 
 pub fn parse_instruction(
     mut nodes: Pairs<Rule>,
     registers: &mut Registers,
     memory: &mut Memory,
-    token: &ConfigToken,
+    token: &mut ConfigToken,
 ) {
     if let Some(node) = nodes.next() {
         match node.as_rule() {
@@ -217,7 +223,7 @@ pub fn parse_instruction(
             Rule::disassemble_instruction =>
                 exec_disassemble_instruction(node.into_inner(), registers, memory, token),
             Rule::assert_instruction =>
-                exec_assert_instruction(node.into_inner(), registers, memory),
+                exec_assert_instruction(node.into_inner(), registers, memory, token),
             smt => { println!("{:?}", smt); },
         };
     }
@@ -295,14 +301,16 @@ fn exec_disassemble_instruction(
 }
 
 
-fn exec_assert_instruction(mut nodes: Pairs<Rule>, registers: &Registers, memory: &Memory) {
+fn exec_assert_instruction(mut nodes: Pairs<Rule>, registers: &Registers, memory: &Memory, token: &mut ConfigToken) {
     let condition = parse_boolex(nodes.next().unwrap().into_inner());
     let message = nodes.next().unwrap().as_str();
     if !condition.solve(registers, memory) {
-        println!("ASSERT {} is {}, message = '{}'.", condition, Colour::Red.paint("not true"), message);
+        println!("[{:03}] {} is {}, message = '{}'.", token.assertion_count + 1, condition, Colour::Red.paint("not true"), message);
+        println!("{} assertions passed, 1 failed.", token.assertion_count);
         process::exit(99);
     } else {
-        println!("ASSERT {} - {}", message, Colour::Green.paint("ok"));
+        token.assertion_count += 1;
+        println!("[{:03}] {} - {}", token.assertion_count, message, Colour::Green.paint("ok"));
     }
 }
 
