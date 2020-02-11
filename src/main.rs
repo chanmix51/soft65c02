@@ -19,6 +19,7 @@ use rustyline::{Context, Editor};
 
 use soft65c02::{AddressableIO, LogLine, Memory, MemoryParserIterator, Registers, INIT_VECTOR_ADDR};
 use soft65c02::memory::{little_endian, MiniFBMemory, MemoryError };
+use soft65c02::source_boolex::*;
 
 use structopt::StructOpt;
 
@@ -67,106 +68,6 @@ impl ConfigToken {
 #[grammar = "cli.pest"]
 pub struct BEParser;
 
-#[derive(Debug)]
-pub enum Source {
-    Accumulator,
-    RegisterX,
-    RegisterY,
-    RegisterS,
-    RegisterSP,
-    RegisterCP,
-    Memory(usize),
-}
-
-impl Source {
-    pub fn get_value(&self, registers: &Registers, memory: &Memory) -> usize {
-        match *self {
-            Source::Accumulator => registers.accumulator as usize,
-            Source::RegisterX => registers.register_x as usize,
-            Source::RegisterY => registers.register_y as usize,
-            Source::RegisterSP => registers.get_status_register() as usize,
-            Source::RegisterS => registers.stack_pointer as usize,
-            Source::Memory(addr) => memory.read(addr, 1).unwrap()[0] as usize,
-            Source::RegisterCP => registers.command_pointer as usize,
-        }
-    }
-}
-
-impl fmt::Display for Source {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Source::Accumulator => write!(f, "A"),
-            Source::RegisterX => write!(f, "X"),
-            Source::RegisterY => write!(f, "Y"),
-            Source::RegisterSP => write!(f, "SP"),
-            Source::RegisterS => write!(f, "S"),
-            Source::Memory(addr) => write!(f, "#0x{:04X}", addr),
-            Source::RegisterCP => write!(f, "S"),
-        }
-    }
-}
-
-#[derive(Debug)]
-pub enum BooleanExpression {
-    Equal(Source, usize),
-    GreaterOrEqual(Source, usize),
-    StrictlyGreater(Source, usize),
-    LesserOrEqual(Source, usize),
-    StrictlyLesser(Source, usize),
-    Different(Source, usize),
-    Value(bool),
-}
-
-impl BooleanExpression {
-    pub fn solve(&self, registers: &Registers, memory: &Memory) -> bool {
-        match &*self {
-            BooleanExpression::Equal(source, val) => source.get_value(registers, memory) == *val,
-            BooleanExpression::GreaterOrEqual(source, val) => {
-                source.get_value(registers, memory) >= *val
-            }
-            BooleanExpression::StrictlyGreater(source, val) => {
-                source.get_value(registers, memory) > *val
-            }
-            BooleanExpression::LesserOrEqual(source, val) => {
-                source.get_value(registers, memory) <= *val
-            }
-            BooleanExpression::StrictlyLesser(source, val) => {
-                source.get_value(registers, memory) < *val
-            }
-            BooleanExpression::Different(source, val) => {
-                source.get_value(registers, memory) != *val
-            }
-            BooleanExpression::Value(val) => *val,
-        }
-    }
-}
-
-impl fmt::Display for BooleanExpression {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            BooleanExpression::Equal(source, val) => write!(f, "{} = 0x{:X}", source, val),
-            BooleanExpression::GreaterOrEqual(source, val) => {
-                write!(f, "{} ≥ 0x{:X}", source, val)
-            }
-            BooleanExpression::StrictlyGreater(source, val) => {
-                write!(f, "{} > 0x{:X}", source, val)
-            }
-            BooleanExpression::LesserOrEqual(source, val) => {
-                write!(f, "{} ≤ 0x{:X}", source, val)
-            }
-            BooleanExpression::StrictlyLesser(source, val) => {
-                write!(f, "{} < 0x{:X}", source, val)
-            }
-            BooleanExpression::Different(source, val) => {
-                write!(f, "{} ≠ 0x{:X}", source, val)
-            }
-            BooleanExpression::Value(val) => {
-                write!(f, "{}", if *val { "true" } else { "false" })
-            }
-        }
-    }
-}
-
 fn display_error<T: RuleType>(err: PestError<T>) {
     let (mark_str, msg) = match err.location {
         pest::error::InputLocation::Pos(x) => {
@@ -201,10 +102,7 @@ fn display_error<T: RuleType>(err: PestError<T>) {
             positives,
             negatives: _,
         } => {
-            eprintln!(
-                "{}",
-                Colour::Fixed(240).paint(format!("hint: expected {:?}", positives))
-            );
+            print_hint(format!("expected {:?}", positives).as_str());
         }
         pest::error::ErrorVariant::CustomError { message } => {
             eprintln!(
@@ -456,7 +354,10 @@ fn exec_memory_instruction(
             let subnode = nodes.next().unwrap();
             match subnode.as_str() {
                 "minifb"    => memory.add_subsystem("FRAMEBUFFER", addr, MiniFBMemory::new(None)),
-                whatever    => print_err(format!("unknown sub system {}", whatever).as_str()),
+                whatever    => {
+                    print_err(format!("unsupported sub system '{}'", whatever).as_str());
+                    print_hint("supported sub systems are: minifb.");
+                }
             }
         }
         Rule::memory_write => {
@@ -577,8 +478,8 @@ fn help(mut nodes: Pairs<Rule>) {
                 println!("          Execute the instruction at #0x1C00.");
                 println!("");
                 print_example("run init");
-                println!("          Load CP with the init vector (#0xFFFC) and run the first");
-                println!("          instruction.");
+                println!("          Load CP with the init vector (#0xFFFC) and run the instruction at");
+                println!("          this address.");
                 println!("");
                 println!("{}", Colour::Green.paint("Boolean conditions"));
                 println!(
@@ -667,7 +568,8 @@ fn help(mut nodes: Pairs<Rule>) {
         println!("   memory load ADDRESS \"filename.ext\" ");
         println!("          Load a binary file at the selected address in memory.");
         println!("   memory write ADDRESS 0x(BYTES)");
-        println!("          Write bytes starting at the given address in memory.");
+        println!("          Write bytes starting at the given address in memory. The BYTES sequence");
+        println!("          is a coma separated list of hexadecimal values.");
         println!("{}", Colour::White.bold().paint("Execution"));
         println!("   run [ADDRESS] [until BOOLEAN_CONDITION]");
         println!("          Launch execution of the program.");
@@ -770,6 +672,13 @@ fn print_example(msg: &str) {
     println!(
         "          Example: {}",
         Colour::Fixed(130).paint(msg)
+    );
+}
+
+fn print_hint(msg: &str) {
+    eprintln!(
+        "{}",
+        Colour::Fixed(240).paint(format!("hint: {}", msg).as_str())
     );
 }
 
