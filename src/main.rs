@@ -551,16 +551,16 @@ fn help(mut nodes: Pairs<Rule>) {
             Rule::help_assert => {
                 println!("{}", Colour::Green.paint("Assertion command:"));
                 println!("");
-                println!("  assert BOOLEAN_CONDITION");
+                println!("  assert BOOLEAN_CONDITION $$DESCRIPTION$$");
                 println!("          Evaluate the boolean condition. A \"ok\" message is printed if");
                 println!("          the condition is true, the program exit with an error code");
                 println!("          otherwise. See the \"run until\" command to get more explanations");
                 println!("          about the boolean conditions.");
                 println!("");
-                print_example("assert #0x0200 = 0x1a");
+                print_example("assert #0x0200 = 0x1a $$useful description here$$");
                 println!("          Test this memory address has got the given value.");
                 println!("");
-                print_example("assert X >= 0x80");
+                print_example("assert X >= 0x80 $$describe this assertion$$");
                 println!("          Test the X register is bigger than 0x80.");
             }
             _ => {}
@@ -581,7 +581,7 @@ fn help(mut nodes: Pairs<Rule>) {
         println!("          Write bytes starting at the given address in memory. The BYTES sequence");
         println!("          is a coma separated list of hexadecimal values.");
         println!("{}", Colour::White.bold().paint("Execution"));
-        println!("   run [ADDRESS] [until BOOLEAN_CONDITION]");
+        println!("   run [ADDRESS|init] [until BOOLEAN_CONDITION]");
         println!("          Launch execution of the program.");
         println!("          If the ADDRESS parameter is not provided, the actual register Command");
         println!("          Pointer value is taken. If no conditions are given, this executes one");
@@ -592,9 +592,9 @@ fn help(mut nodes: Pairs<Rule>) {
             "         Disassemble starting from ADDRESS for the next \"OPERATIONS\" instructions."
         );
         println!("{}", Colour::White.bold().paint("Asserter"));
-        println!("   assert BOOLEAN_CONDITION");
+        println!("   assert BOOLEAN_CONDITION $$DESCRIPTION$$");
         println!("          If the assertion is true, a 'ok' message is printed otherwise the program");
-        println!("          panics and exit with an error code. This is intended for automated tests.");
+        println!("          stops and exit with an error code. This is intended for automated tests.");
         println!("{}", Colour::White.bold().paint("Help"));
         println!("   help [TOPIC]");
         println!("          Display informations about commands.");
@@ -719,10 +719,11 @@ impl rustyline::completion::Completer for CommandLineCompleter {
             "disassemble ",
             "disassemble #0x",
             "help",
-            "help registers",
-            "help memory",
             "help run",
+            "help memory",
             "help disassemble",
+            "help registers",
+            "help assert",
         ];
 
         for word in keywords {
