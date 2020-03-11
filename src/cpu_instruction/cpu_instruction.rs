@@ -118,7 +118,7 @@ pub mod tests {
     pub fn get_stuff(addr: usize, program: Vec<u8>) -> (Memory, Registers) {
         let mut memory = Memory::new_with_ram();
         memory.write(addr, &program).unwrap();
-        let registers = Registers::new(addr);
+        let registers = Registers::new_initialized(addr);
 
         (memory, registers)
     }

@@ -1,6 +1,7 @@
 use super::memory::MemoryStack as Memory;
 use super::memory::{AddressableIO, MemoryError};
 use std::fmt;
+use rand::random;
 /*
  * 65C02 registers
  * accumulator, X & Y registers are 8 bits general purpose registers.
@@ -36,21 +37,28 @@ pub struct Registers {
 impl Registers {
     pub fn new(init_address: usize) -> Registers {
         Registers {
-            accumulator: 0x00,
-            register_x: 0x00,
-            register_y: 0x00,
-            status_register: 0b00110000,
+            accumulator: random::<u8>(),
+            register_x: random::<u8>(),
+            register_y: random::<u8>(),
+            status_register: (random::<u8>() | 0b00111100) & 0b11110111, // 0bXX1101XX
             command_pointer: init_address,
-            stack_pointer: 0xff,
+            stack_pointer: random::<u8>(),
         }
     }
 
-    pub fn flush(&mut self) {
+    pub fn new_initialized(init_address: usize) -> Registers {
+        let mut registers = Registers::new(0);
+        registers.initialize(init_address);
+
+        registers
+    }
+
+    pub fn initialize(&mut self, init_address: usize) {
         self.accumulator = 0x00;
         self.register_x =  0x00;
         self.register_y =  0x00;
         self.status_register =  0b00110000;
-        self.command_pointer =  0x000;
+        self.command_pointer =  init_address;
         self.stack_pointer =  0xff;
     }
 
@@ -185,14 +193,27 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_init_flags() {
+    fn test_new_flags() {
         let registers = Registers::new(0x1000);
+        assert!(registers.i_flag_is_set());
+        assert!(!registers.d_flag_is_set());
+        assert_eq!(0x1000, registers.command_pointer);
+    }
+
+    #[test]
+    fn test_init_flags() {
+        let registers = Registers::new_initialized(0x1000);
         assert!(!registers.z_flag_is_set());
         assert!(!registers.n_flag_is_set());
         assert!(!registers.i_flag_is_set());
         assert!(!registers.d_flag_is_set());
         assert!(!registers.c_flag_is_set());
         assert!(!registers.v_flag_is_set());
+        assert_eq!(0x1000, registers.command_pointer);
+        assert_eq!(0, registers.accumulator);
+        assert_eq!(0, registers.register_x);
+        assert_eq!(0, registers.register_y);
+        assert_eq!(0xff, registers.stack_pointer);
     }
 
     #[test]

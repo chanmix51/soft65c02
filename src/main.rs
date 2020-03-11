@@ -424,7 +424,7 @@ fn exec_register_instruction(mut nodes: Pairs<Rule>, registers: &mut Registers) 
             println!("{:?}", registers);
         }
         Rule::registers_flush => {
-            registers.flush();
+            registers.initialize(0);
             println!("Registers flushed!");
         }
         _ => {

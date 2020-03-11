@@ -26,7 +26,7 @@ fn execute_program() {
         .unwrap();
     memory.write(0xfffe, &vec![0x00, 0x80]).unwrap();
     memory.write(0x8000, &vec![0x95, 0x20, 0x40]).unwrap();
-    let mut registers = Registers::new(init_vector);
+    let mut registers = Registers::new_initialized(init_vector);
     let loglines = execute(&mut memory, &mut registers).unwrap();
     let expected_output: Vec<&str> = vec![
         "#0x0800: (a9 c0)       LDA  #$c0     (#0x0801)  [A=0xc0][S=Nv-Bdizc]",
