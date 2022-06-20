@@ -17,19 +17,20 @@ use rustyline::error::ReadlineError;
 use rustyline::Result as RustyResult;
 use rustyline::{Context, Editor};
 
-use soft65c02::{AddressableIO, LogLine, Memory, MemoryParserIterator, Registers, INIT_VECTOR_ADDR};
-use soft65c02::memory::{little_endian, MiniFBMemory, MemoryError };
+use soft65c02::memory::{little_endian, MemoryError, MiniFBMemory};
 use soft65c02::source_boolex::*;
+use soft65c02::{
+    AddressableIO, LogLine, Memory, MemoryParserIterator, Registers, INIT_VECTOR_ADDR,
+};
 
 use structopt::StructOpt;
 
 use std::collections::VecDeque;
 use std::fs::File;
 use std::io::prelude::*;
+use std::process;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
-use std::process;
-
 
 const VERSION: &'static str = "1.0.0-alpha2";
 
@@ -37,15 +38,15 @@ const VERSION: &'static str = "1.0.0-alpha2";
 #[structopt(name = "soft65C02")]
 struct CommandLineArguments {
     // logline buffer is the number of log lines kept after each instruction execution
-    #[structopt(short="l", long, default_value = "35")]
+    #[structopt(short = "l", long, default_value = "35")]
     logline_buffer: usize,
 
     // do not use history
-    #[structopt(short="s", long)]
+    #[structopt(short = "s", long)]
     no_history: bool,
 
     // do not create initial 64K RAM
-    #[structopt(short="r", long)]
+    #[structopt(short = "r", long)]
     no_ram: bool,
 }
 
@@ -139,8 +140,9 @@ fn main() {
     // 2 CLI prompt & readline configuration
     println!(
         "{}",
-        Colour::Green.paint(format!("Welcome in Soft-65C02 version {}", VERSION))
+        Colour::Green.paint(format!("Welcome in Soft-65C02 version {}.", VERSION))
     );
+    println!("Type 'help' to get a summary of available commands.");
     let prompt = format!("{}", Colour::Fixed(148).bold().paint(">> "));
     let mut rl = Editor::<CommandLineCompleter>::new();
     if !token.cli_opts.no_history {
@@ -151,7 +153,6 @@ fn main() {
         println!("Command history disabled.");
     }
     rl.set_helper(Some(CommandLineCompleter {}));
-
 
     // 4 main CLI loop
     loop {
@@ -213,18 +214,21 @@ pub fn parse_instruction(
 ) {
     if let Some(node) = nodes.next() {
         match node.as_rule() {
-            Rule::registers_instruction =>
-                exec_register_instruction(node.into_inner(), registers),
-            Rule::memory_instruction =>
-                exec_memory_instruction(node.into_inner(), memory, token),
-            Rule::run_instruction =>
-                exec_run_instruction(node.into_inner(), registers, memory, token),
+            Rule::registers_instruction => exec_register_instruction(node.into_inner(), registers),
+            Rule::memory_instruction => exec_memory_instruction(node.into_inner(), memory, token),
+            Rule::run_instruction => {
+                exec_run_instruction(node.into_inner(), registers, memory, token)
+            }
             Rule::help_instruction => help(node.into_inner()),
-            Rule::disassemble_instruction =>
-                exec_disassemble_instruction(node.into_inner(), registers, memory, token),
-            Rule::assert_instruction =>
-                exec_assert_instruction(node.into_inner(), registers, memory, token),
-            smt => { println!("{:?}", smt); },
+            Rule::disassemble_instruction => {
+                exec_disassemble_instruction(node.into_inner(), registers, memory, token)
+            }
+            Rule::assert_instruction => {
+                exec_assert_instruction(node.into_inner(), registers, memory, token)
+            }
+            smt => {
+                println!("{:?}", smt);
+            }
         };
     }
 }
@@ -238,11 +242,13 @@ fn exec_run_instruction(
     let mut stop_condition = BooleanExpression::Value(true);
     while let Some(node) = nodes.next() {
         match node.as_rule() {
-            Rule::memory_address => 
-                registers.command_pointer = parse_memory(node.as_str()[3..].to_owned()),
+            Rule::memory_address => {
+                registers.command_pointer = parse_memory(node.as_str()[3..].to_owned())
+            }
             Rule::boolean_condition => stop_condition = parse_boolex(node.into_inner()),
-            Rule::init_vector =>
-                registers.command_pointer = little_endian(memory.read(INIT_VECTOR_ADDR, 2).unwrap()),
+            Rule::init_vector => {
+                registers.command_pointer = little_endian(memory.read(INIT_VECTOR_ADDR, 2).unwrap())
+            }
             _ => {}
         };
     }
@@ -300,25 +306,36 @@ fn exec_disassemble_instruction(
     }
 }
 
-
-fn exec_assert_instruction(mut nodes: Pairs<Rule>, registers: &Registers, memory: &Memory, token: &mut ConfigToken) {
+fn exec_assert_instruction(
+    mut nodes: Pairs<Rule>,
+    registers: &Registers,
+    memory: &Memory,
+    token: &mut ConfigToken,
+) {
     let condition = parse_boolex(nodes.next().unwrap().into_inner());
     let message = nodes.next().unwrap().as_str();
     if !condition.solve(registers, memory) {
-        println!("[{:03}] {} is {}, message = '{}'.", token.assertion_count + 1, condition, Colour::Red.paint("not true"), message);
+        println!(
+            "[{:03}] {} is {}, message = '{}'.",
+            token.assertion_count + 1,
+            condition,
+            Colour::Red.paint("not true"),
+            message
+        );
         println!("{} assertions passed, 1 failed.", token.assertion_count);
         process::exit(99);
     } else {
         token.assertion_count += 1;
-        println!("[{:03}] {} - {}", token.assertion_count, message, Colour::Green.paint("ok"));
+        println!(
+            "[{:03}] {} - {}",
+            token.assertion_count,
+            message,
+            Colour::Green.paint("ok")
+        );
     }
 }
 
-fn exec_memory_instruction(
-    mut nodes: Pairs<Rule>,
-    memory: &mut Memory,
-    token: &ConfigToken,
-) {
+fn exec_memory_instruction(mut nodes: Pairs<Rule>, memory: &mut Memory, token: &ConfigToken) {
     let node = nodes.next().unwrap();
     match node.as_rule() {
         Rule::memory_show => {
@@ -333,8 +350,8 @@ fn exec_memory_instruction(
                             break;
                         }
                     }
-                },
-                Err(e)  => print_err(format!("memory error: {}", e).as_str()),
+                }
+                Err(e) => print_err(format!("memory error: {}", e).as_str()),
             }
         }
         Rule::memory_load => {
@@ -345,7 +362,7 @@ fn exec_memory_instruction(
                 Ok(len) => println!("Loaded {} bytes at address #0x{:04X}.", len, addr),
                 Err(e) => print_err(format!("{}", e).as_str()),
             }
-        },
+        }
         Rule::memory_sub_list => {
             let subs = memory.get_subsystems_info();
             if subs.len() == 0 {
@@ -363,8 +380,8 @@ fn exec_memory_instruction(
             let addr = parse_memory(subnode.as_str()[3..].to_owned());
             let subnode = nodes.next().unwrap();
             match subnode.as_str() {
-                "minifb"    => memory.add_subsystem("FRAMEBUFFER", addr, MiniFBMemory::new(None)),
-                whatever    => {
+                "minifb" => memory.add_subsystem("FRAMEBUFFER", addr, MiniFBMemory::new(None)),
+                whatever => {
                     print_err(format!("unsupported sub system '{}'", whatever).as_str());
                     print_hint("supported sub systems are: minifb.");
                 }
@@ -377,8 +394,8 @@ fn exec_memory_instruction(
             let bytes_node = nodes.next().unwrap();
             let bytes = parse_bytes(bytes_node.as_str());
             match memory.write(addr, &bytes) {
-                Ok(_)   => println!("{} bytes written", bytes.len()),
-                Err(e)  => print_err(format!("{}", e).as_str()),
+                Ok(_) => println!("{} bytes written", bytes.len()),
+                Err(e) => print_err(format!("{}", e).as_str()),
             }
         }
         _ => println!("{:?}", node),
@@ -386,8 +403,10 @@ fn exec_memory_instruction(
 }
 
 fn mem_dump(start: usize, len: usize, memory: &Memory) -> Result<Vec<String>, MemoryError> {
-    let mut output:Vec<String> = vec![];
-    if len == 0 { return Ok(output) }
+    let mut output: Vec<String> = vec![];
+    if len == 0 {
+        return Ok(output);
+    }
     let address = start - (start % 16);
     let bytes = memory.read(address, 16 * len)?;
 
@@ -471,51 +490,73 @@ fn help(mut nodes: Pairs<Rule>) {
             }
             Rule::help_run => {
                 println!("{}", Colour::Green.paint("Execution commands:"));
-                println!("   run [ADDRESS] [until BOOLEAN_CONDITION]");
+                println!("   run [ADDRESS|init] [until BOOLEAN_CONDITION]");
                 println!("          Launch execution of the program. If an address is given, the");
-                println!("          instruction at this address is executed otherwise the instruction");
+                println!(
+                    "          instruction at this address is executed otherwise the instruction"
+                );
                 println!("          pointed by the current CP register is executed. Since this");
                 println!("          register is automatically updated by each instruction, it is");
                 println!("          possible either to run programs step by step or continuously");
-                println!("          until a certain condition is met. Without condition information,");
+                println!(
+                    "          until a certain condition is met. Without condition information,"
+                );
                 println!("          this executes only one instruction.");
                 println!("");
                 println!("{}", Colour::White.bold().paint("Examples:"));
                 print_example("run");
-                println!("          Execute the next instruction at the actual CP register position.");
+                println!(
+                    "          Execute the next instruction at the actual CP register position."
+                );
                 println!("");
                 print_example("run #0x1C00");
                 println!("          Execute the instruction at #0x1C00.");
                 println!("");
                 print_example("run init");
-                println!("          Load CP with the init vector (#0xFFFC) and run the instruction at");
+                println!(
+                    "          Load CP with the init vector (#0xFFFC) and run the instruction at"
+                );
                 println!("          this address.");
                 println!("");
                 println!("{}", Colour::Green.paint("Boolean conditions"));
                 println!(
                     "          By default, only one instruction is executed, but it is possible"
                 );
-                println!("          to provide a custom condition so a program can be executed until");
-                println!("          a certain state is met. These conditions can be made on either");
+                println!(
+                    "          to provide a custom condition so a program can be executed until"
+                );
+                println!(
+                    "          a certain state is met. These conditions can be made on either"
+                );
                 println!("          registers or memory content");
                 println!(
                     "          In any cases, the program will stop if the Command Pointer is not"
                 );
-                println!("          incremented after an instruction. This is the case for the STP");
-                println!("          (stop) instruction but also after  infinite loops like BRA -2 or");
+                println!(
+                    "          incremented after an instruction. This is the case for the STP"
+                );
+                println!(
+                    "          (stop) instruction but also after  infinite loops like BRA -2 or"
+                );
                 println!("          a JMP at the exact same address.");
                 println!("");
                 println!("{}", Colour::White.bold().paint("Examples:"));
                 print_example("run init until false");
-                println!("          Init CP and launch the program forever. This may require CTRL-C to");
+                println!(
+                    "          Init CP and launch the program forever. This may require CTRL-C to"
+                );
                 println!("          break.");
                 println!("");
                 print_example("run #0x0400 until A <= 0x12");
-                println!("          The execution is launched starting at #0x0400 until the A register");
+                println!(
+                    "          The execution is launched starting at #0x0400 until the A register"
+                );
                 println!("          is lesser or equal to 0x12.");
                 println!("");
                 print_example("run until #0x0200 > 0x00");
-                println!("          The execution is continued until the given memory address holds a");
+                println!(
+                    "          The execution is continued until the given memory address holds a"
+                );
                 println!("          value greater than 0.");
                 println!("");
                 print_example("run until S > 0x7f");
@@ -552,9 +593,13 @@ fn help(mut nodes: Pairs<Rule>) {
                 println!("{}", Colour::Green.paint("Assertion command:"));
                 println!("");
                 println!("  assert BOOLEAN_CONDITION $$DESCRIPTION$$");
-                println!("          Evaluate the boolean condition. A \"ok\" message is printed if");
+                println!(
+                    "          Evaluate the boolean condition. A \"ok\" message is printed if"
+                );
                 println!("          the condition is true, the program exit with an error code");
-                println!("          otherwise. See the \"run until\" command to get more explanations");
+                println!(
+                    "          otherwise. See the \"run until\" command to get more explanations"
+                );
                 println!("          about the boolean conditions.");
                 println!("");
                 print_example("assert #0x0200 = 0x1a $$useful description here$$");
@@ -566,38 +611,63 @@ fn help(mut nodes: Pairs<Rule>) {
             _ => {}
         };
     } else {
-        println!("{}", Colour::Green.paint("Available commands:"));
+        println!("{}", Colour::Green.paint("Documentation:"));
+        println!("{}", Colour::White.bold().paint("Help"));
+        println!("{}", Colour::Yellow.paint("   help [TOPIC]"));
+        println!("          Display detailed informations about commands of a topic.");
+        println!("{}", Colour::Green.paint("Topics and available commands:"));
         println!("{}", Colour::White.bold().paint("Registers"));
-        println!("  registers show");
+        println!("{}", Colour::Yellow.paint("   registers show"));
         println!("          Dump the content of the CPU registers.");
-        println!("  registers flush");
+        println!("{}", Colour::Yellow.paint("   registers flush"));
         println!("          Reset the content of the CPU registers.");
         println!("{}", Colour::White.bold().paint("Memory"));
-        println!("   memory show ADDRESS LENGTH");
+        println!("{}", Colour::Yellow.paint("   memory show ADDRESS LENGTH"));
         println!("          Show the content of the memory starting from ADDRESS.");
-        println!("   memory load ADDRESS \"filename.ext\" ");
+        println!(
+            "{}",
+            Colour::Yellow.paint("   memory load ADDRESS \"filename.ext\" ")
+        );
         println!("          Load a binary file at the selected address in memory.");
-        println!("   memory write ADDRESS 0x(BYTES)");
-        println!("          Write bytes starting at the given address in memory. The BYTES sequence");
+        println!(
+            "{}",
+            Colour::Yellow.paint("   memory write ADDRESS 0x(BYTES)")
+        );
+        println!(
+            "          Write bytes starting at the given address in memory. The BYTES sequence"
+        );
         println!("          is a coma separated list of hexadecimal values.");
         println!("{}", Colour::White.bold().paint("Execution"));
-        println!("   run [ADDRESS|init] [until BOOLEAN_CONDITION]");
+        println!(
+            "{}",
+            Colour::Yellow.paint("   run [ADDRESS|init] [until BOOLEAN_CONDITION]")
+        );
         println!("          Launch execution of the program.");
         println!("          If the ADDRESS parameter is not provided, the actual register Command");
-        println!("          Pointer value is taken. If no conditions are given, this executes one");
-        println!("          instruction and get back to interactive mode (step by step mode).");
+        println!("          Pointer value is taken. If the 'init' keyword is provided, the");
+        println!("          processor will mimic the initialization of a 65C02.");
+        println!("          If no stop conditions are given, it executes one instruction and get");
+        println!("          back to interactive mode (step by step mode).");
+        println!("          Type 'help run' for more documentation on stop conditions.");
         println!("{}", Colour::White.bold().paint("Disassembler"));
-        println!("   disassemble [ADDRESS] OPERATIONS");
         println!(
-            "         Disassemble starting from ADDRESS for the next \"OPERATIONS\" instructions."
+            "{}",
+            Colour::Yellow.paint("   disassemble [ADDRESS] OPERATIONS")
+        );
+        println!(
+            "          Disassemble starting from ADDRESS for the next \"OPERATIONS\" number of instructions."
         );
         println!("{}", Colour::White.bold().paint("Asserter"));
-        println!("   assert BOOLEAN_CONDITION $$DESCRIPTION$$");
-        println!("          If the assertion is true, a 'ok' message is printed otherwise the program");
-        println!("          stops and exit with an error code. This is intended for automated tests.");
-        println!("{}", Colour::White.bold().paint("Help"));
-        println!("   help [TOPIC]");
-        println!("          Display informations about commands.");
+        println!(
+            "{}",
+            Colour::Yellow.paint("   assert BOOLEAN_CONDITION $$DESCRIPTION$$")
+        );
+        println!(
+            "          If the assertion is true, a 'ok' message is printed otherwise the program"
+        );
+        println!(
+            "          stops and exit with an error code. This is intended for automated tests."
+        );
     };
 }
 
@@ -669,7 +739,8 @@ fn parse_value(node: &Pair<Rule>) -> usize {
 }
 
 fn parse_bytes(bytes: &str) -> Vec<u8> {
-    bytes.split(',')
+    bytes
+        .split(',')
         .map(|x| hex::decode(x.trim()).unwrap()[0])
         .collect()
 }
@@ -679,10 +750,7 @@ fn print_err(msg: &str) {
 }
 
 fn print_example(msg: &str) {
-    println!(
-        "          Example: {}",
-        Colour::Fixed(130).paint(msg)
-    );
+    println!("          Example: {}", Colour::Fixed(130).paint(msg));
 }
 
 fn print_hint(msg: &str) {
