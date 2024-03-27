@@ -1,8 +1,8 @@
-use soft65c02::{execute_step, CPUError, AddressableIO, Memory, LogLine, Registers};
+use soft65c02_lib::{execute_step, AddressableIO, CPUError, LogLine, Memory, Registers};
 
 fn execute(memory: &mut Memory, registers: &mut Registers) -> Result<Vec<LogLine>, CPUError> {
-    let mut cp:usize = 0;
-    let mut output:Vec<LogLine> = vec![];
+    let mut cp: usize = 0;
+    let mut output: Vec<LogLine> = vec![];
 
     while cp != registers.command_pointer {
         cp = registers.command_pointer;

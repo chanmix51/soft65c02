@@ -1,6 +1,6 @@
 #[test]
 fn read_program() {
-    use soft65c02::{disassemble, AddressableIO, Memory};
+    use soft65c02_lib::{disassemble, AddressableIO, Memory};
 
     let init_vector: usize = 0x0800;
     let mut memory = Memory::new_with_ram();

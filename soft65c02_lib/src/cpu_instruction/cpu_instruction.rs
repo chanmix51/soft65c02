@@ -1,5 +1,5 @@
+use super::microcode::Result as MicrocodeResult;
 use crate::addressing_mode::*;
-use crate::cpu_instruction::microcode::Result as MicrocodeResult;
 use crate::memory::MemoryStack as Memory;
 use crate::registers::Registers;
 use std::fmt;

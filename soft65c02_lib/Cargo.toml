@@ -1,19 +1,12 @@
 [package]
-name = "soft65c02"
+name = "soft65c02_lib"
 version = "1.0.0-alpha2"
-authors = ["greg <hubert.greg@gmail.com>"]
-edition = "2018"
+edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-pest_derive = "2.1.0"
-ansi_term   = "0.12.1"
 range-map   = "0.1.5"
-rustyline   = "5.0.6"
-structopt   = "0.3.8"
 minifb      = "0.15.1"
-pest        = "2.1.2"
 hex         = "0.4.0"
-ctrlc       = "3.1.3"
 rand        = "0.7.3"

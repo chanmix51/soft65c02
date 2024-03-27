@@ -32,6 +32,7 @@ pub fn jsr(
 mod tests {
     use super::*;
     use crate::cpu_instruction::cpu_instruction::tests::get_stuff;
+    use crate::STACK_BASE_ADDR;
 
     #[test]
     fn test_jsr() {

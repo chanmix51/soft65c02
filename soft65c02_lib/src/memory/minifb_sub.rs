@@ -11,15 +11,14 @@
  * trigger token inspection on write hence might be less performant than a RAM memory subsystem.
  */
 use super::*;
-use minifb::{InputCallback, Window, Scale, ScaleMode, WindowOptions, Key, KeyRepeat};
+use minifb::{InputCallback, Key, Scale, ScaleMode, Window, WindowOptions};
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
-use std::sync::{Arc, mpsc, Mutex};
+use std::sync::{mpsc, Arc, Mutex};
 use std::{thread, time};
 
 pub const MINIFB_WIDTH: usize = 128;
 pub const MINIFB_HEIGHT: usize = 96;
-pub const BUFFER_VIDEO_START_ADDR:usize = 256;
-pub const KEYB_ADDRESS: usize = 0x30;
+pub const BUFFER_VIDEO_START_ADDR: usize = 256;
 
 struct InterruptHandler {
     sender: mpsc::Sender<u32>,
@@ -33,15 +32,16 @@ impl InputCallback for InterruptHandler {
 
 pub struct CommunicationToken {
     is_calling: AtomicBool,
-    address:    AtomicUsize,
-    len:        AtomicUsize
+    address: AtomicUsize,
+    len: AtomicUsize,
 }
 
 pub struct MiniFBMemory {
-    token:          Arc<CommunicationToken>,
-    buffer:         Arc<Mutex<Vec<u8>>>,
+    token: Arc<CommunicationToken>,
+    buffer: Arc<Mutex<Vec<u8>>>,
 }
 
+#[allow(dead_code)]
 fn get_key_code(key: Key) -> u8 {
     match key {
         Key::Key1 => 0x01,
@@ -157,8 +157,13 @@ fn get_key_code(key: Key) -> u8 {
 
 impl MiniFBMemory {
     pub fn new(interrupt: Option<mpsc::Sender<u32>>) -> MiniFBMemory {
-        let buffer:Arc<Mutex<Vec<u8>>> = Arc::new(Mutex::new(vec![0; MINIFB_WIDTH * MINIFB_HEIGHT / 2 + BUFFER_VIDEO_START_ADDR]));
-        let token = Arc::new( CommunicationToken {
+        let buffer: Arc<Mutex<Vec<u8>>> = Arc::new(Mutex::new(vec![
+            0;
+            MINIFB_WIDTH * MINIFB_HEIGHT
+                / 2
+                + BUFFER_VIDEO_START_ADDR
+        ]));
+        let token = Arc::new(CommunicationToken {
             is_calling: AtomicBool::new(false),
             address: AtomicUsize::new(0),
             len: AtomicUsize::new(0),
@@ -183,24 +188,30 @@ impl MiniFBMemory {
             if let Some(tx) = interrupt {
                 window.set_input_callback(Box::new(InterruptHandler { sender: tx }));
             }
-            let mut memory:Vec<u32> = vec![0; MINIFB_WIDTH * MINIFB_HEIGHT];
+            let mut memory: Vec<u32> = vec![0; MINIFB_WIDTH * MINIFB_HEIGHT];
             // 4ms is the default
             //window.limit_update_rate(Some(std::time::Duration::from_micros(4000)));
             loop {
                 if rtoken.is_calling.load(Ordering::Acquire) {
                     let addr = rtoken.address.load(Ordering::SeqCst);
-                    let len  = rtoken.len.load(Ordering::SeqCst);
+                    let len = rtoken.len.load(Ordering::SeqCst);
                     let buffer = rbuffer.lock().unwrap();
 
                     for (index, byte) in buffer[addr..addr + len].iter().enumerate() {
                         if addr + index >= BUFFER_VIDEO_START_ADDR {
                             let (loval, hival) = (byte & 0x0F, byte >> 4);
-                            let byte1:u32 = {
-                                let rgb = buffer.chunks(3).nth(loval as usize).expect("Where is the palette?");
+                            let byte1: u32 = {
+                                let rgb = buffer
+                                    .chunks(3)
+                                    .nth(loval as usize)
+                                    .expect("Where is the palette?");
                                 (rgb[0] as u32) << 16 | (rgb[1] as u32) << 8 | (rgb[2] as u32)
                             };
-                            let byte2:u32 = {
-                                let rgb = buffer.chunks(3).nth(hival as usize).expect("Where is the palette?");
+                            let byte2: u32 = {
+                                let rgb = buffer
+                                    .chunks(3)
+                                    .nth(hival as usize)
+                                    .expect("Where is the palette?");
                                 (rgb[0] as u32) << 16 | (rgb[1] as u32) << 8 | (rgb[2] as u32)
                             };
                             memory[(addr + index - BUFFER_VIDEO_START_ADDR) * 2] = byte1;
@@ -225,13 +236,12 @@ impl MiniFBMemory {
                 }
                 */
                 thread::sleep(time::Duration::from_micros(100));
-
             }
         });
 
         MiniFBMemory {
-            token:          token,
-            buffer:         buffer,
+            token: token,
+            buffer: buffer,
         }
     }
 }

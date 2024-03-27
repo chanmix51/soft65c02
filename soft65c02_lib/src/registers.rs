@@ -1,28 +1,30 @@
+//! # 65C02 registers
+//!
+//! accumulator, X & Y registers are 8 bits general purpose registers.
+//!
+//! status flags register :
+//!   bit 7: Negative flag
+//!   bit 6: oVerflow flag
+//!   bit 5: not used             (open circuit, always 1)
+//!   bit 4: Break interrupt mode (open circuit, always 1)
+//!   bit 3: Decimal mode
+//!   bit 2: Interrupt disable
+//!   bit 1: Zero flag
+//!   bit 0: Carry flag
+//!
+//! command pointer: 16 bit address register stack pointer: 8 bits at page 0x0100, set at 0xff at
+//! start.
+//!
+//! The way the BREAK bit works is a bit puzzling but a quick read at (this forum
+//! post)[http://forum.6502.org/viewtopic.php?f=8&t=3111] explains this bit is only aimed at being
+//! saved in the stack to determine if it is a hard or soft interrupt in the interrupt service
+//! routine (see [documentation](http://6502.org/tutorials/interrupts.html)).
+//!
 use super::memory::MemoryStack as Memory;
 use super::memory::{AddressableIO, MemoryError};
-use std::fmt;
 use rand::random;
-/*
- * 65C02 registers
- * accumulator, X & Y registers are 8 bits general purpose registers.
- * status flags register :
- *   bit 7: Negative flag
- *   bit 6: oVerflow flag
- *   bit 5: not used             (open circuit, always 1)
- *   bit 4: Break interrupt mode (open circuit, always 1)
- *   bit 3: Decimal mode
- *   bit 2: Interrupt disable
- *   bit 1: Zero flag
- *   bit 0: Carry flag
- *
- * command pointer: 16 bit address register
- * stack pointer: 8 bits at page 0x0100, set at 0xff at start.
- * The way the BREAK bit works is a bit puzzling but a quick read at
- * http://forum.6502.org/viewtopic.php?f=8&t=3111 explains this bit is only
- * aimed at being saved in the stack to determine if it is a hard or soft
- * interrupt in the interrupt service routine (see
- * http://6502.org/tutorials/interrupts.html).
- */
+use std::fmt;
+
 pub const STACK_BASE_ADDR: usize = 0x0100;
 
 pub struct Registers {
@@ -55,11 +57,11 @@ impl Registers {
 
     pub fn initialize(&mut self, init_address: usize) {
         self.accumulator = 0x00;
-        self.register_x =  0x00;
-        self.register_y =  0x00;
-        self.status_register =  0b00110000;
-        self.command_pointer =  init_address;
-        self.stack_pointer =  0xff;
+        self.register_x = 0x00;
+        self.register_y = 0x00;
+        self.status_register = 0b00110000;
+        self.command_pointer = init_address;
+        self.stack_pointer = 0xff;
     }
 
     pub fn get_status_register(&self) -> u8 {

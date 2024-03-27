@@ -1,9 +1,8 @@
 use super::*;
-use fmt::Debug;
 use range_map::Range;
-use std::collections::BTreeMap;
 use std::cmp;
-
+use std::collections::BTreeMap;
+use std::fmt::Debug;
 
 struct Subsystem {
     subsystem: Box<dyn AddressableIO>,
@@ -69,7 +68,10 @@ pub struct MemoryStack {
 
 impl MemoryStack {
     pub fn new() -> MemoryStack {
-        MemoryStack { stack: vec![], address_map: BTreeMap::new() }
+        MemoryStack {
+            stack: vec![],
+            address_map: BTreeMap::new(),
+        }
     }
 
     pub fn new_with_ram() -> MemoryStack {
@@ -93,11 +95,10 @@ impl MemoryStack {
     ) {
         let end_address = start_address + memory.get_size();
         let sub = Subsystem::new(name, start_address, memory);
-        let mut address_map:BTreeMap<usize, usize> = BTreeMap::new();
+        let mut address_map: BTreeMap<usize, usize> = BTreeMap::new();
         address_map.insert(end_address, self.stack.len());
-        let mut keys:Vec<usize> = vec![];
-            self.address_map.keys()
-                .for_each(|x| keys.push(x.clone()));
+        let mut keys: Vec<usize> = vec![];
+        self.address_map.keys().for_each(|x| keys.push(x.clone()));
 
         if start_address != 0 {
             for (sub_index, sub) in self.stack.iter().enumerate() {
@@ -130,7 +131,7 @@ impl MemoryStack {
 
 impl AddressableIO for MemoryStack {
     fn read(&self, addr: usize, len: usize) -> Result<Vec<u8>, MemoryError> {
-        let mut results:Vec<u8> = vec![];
+        let mut results: Vec<u8> = vec![];
         let mut tmplen = len;
         let mut tmpaddr = addr;
         for (&addr_split, &sub_index) in &self.address_map {
@@ -295,7 +296,7 @@ mod tests {
         memory_stack.add_subsystem("RAM", 0x0000, RAM::new());
         memory_stack.add_subsystem("DUMMY", 0x8000, FakeMemory::new(1024, 0));
         let _ = memory_stack.read(0x7F00, 2048).unwrap();
-        let data:Vec<u8> = vec![0xff; 2048];
+        let data: Vec<u8> = vec![0xff; 2048];
         memory_stack.write(0x7F00, &data).unwrap();
     }
 
@@ -305,7 +306,7 @@ mod tests {
         let mut memory_stack = MemoryStack::new();
         memory_stack.add_subsystem("DUMMY", 0x0000, FakeMemory::new(0x1000, 0));
         memory_stack.add_subsystem("DUMMY", 0x2000, FakeMemory::new(0x1000, 1));
-        match memory_stack.read(0x0000, 9*1024) {
+        match memory_stack.read(0x0000, 9 * 1024) {
             Err(MemoryError::Other(addr, msg)) => {
                 assert_eq!(0x0000, addr);
                 assert_eq!("trying to write in a read-only memory".to_owned(), msg);
@@ -323,8 +324,8 @@ mod tests {
                 assert_eq!(0x1000, len);
                 assert_eq!(0x1000, addr_start);
             }
-            Ok(_)   => panic!("this out of buffer read should not succeed"),
-                _   => panic!("that was not the expected error"),
+            Ok(_) => panic!("this out of buffer read should not succeed"),
+            _ => panic!("that was not the expected error"),
         }
     }
 }
