@@ -1,0 +1,13 @@
+[workspace]
+
+resolver = "2"
+
+members = [
+	"soft65c02_lib"
+]
+
+[workspace.package]
+authors = ["greg <hubert.greg@gmail.com>"]
+edition = "2021"
+license = "GPL v3"
+repository = "https://github.com/chanmix51/soft65c02"
