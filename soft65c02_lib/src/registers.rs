@@ -15,11 +15,11 @@
 //! command pointer: 16 bit address register stack pointer: 8 bits at page 0x0100, set at 0xff at
 //! start.
 //!
-//! The way the BREAK bit works is a bit puzzling but a quick read at (this forum
-//! post)[http://forum.6502.org/viewtopic.php?f=8&t=3111] explains this bit is only aimed at being
-//! saved in the stack to determine if it is a hard or soft interrupt in the interrupt service
-//! routine (see [documentation](http://6502.org/tutorials/interrupts.html)).
-//!
+//! The way the BREAK bit works is a bit puzzling but a quick read of (this forum
+//! post)[http://forum.6502.org/viewtopic.php?f=8&t=3111] explains that this bit is only aimed at
+//! being saved in the stack to determine if it is a hard or soft interrupt in the interrupt
+//! service routine (see [documentation](http://6502.org/tutorials/interrupts.html)).
+
 use super::memory::MemoryStack as Memory;
 use super::memory::{AddressableIO, MemoryError};
 use rand::random;
