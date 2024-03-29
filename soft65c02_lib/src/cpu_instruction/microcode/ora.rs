@@ -20,7 +20,7 @@ pub fn ora(
     registers.command_pointer += 1 + resolution.operands.len();
 
     Ok(LogLine::new(
-        &cpu_instruction,
+        cpu_instruction,
         resolution,
         format!(
             "[A=0x{:02x}][S={}]",

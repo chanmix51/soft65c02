@@ -11,5 +11,5 @@ pub fn nop(
             .solve(registers.command_pointer, memory, registers)?;
     registers.command_pointer += 1 + resolution.operands.len();
 
-    Ok(LogLine::new(&cpu_instruction, resolution, String::new()))
+    Ok(LogLine::new(cpu_instruction, resolution, String::new()))
 }

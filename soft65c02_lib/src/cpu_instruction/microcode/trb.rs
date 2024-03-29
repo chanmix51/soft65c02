@@ -15,8 +15,8 @@ pub fn trb(
 
     let mut byte = memory.read(target_address, 1)?[0];
     if byte & registers.accumulator != 0 {
-        byte = byte & (registers.accumulator ^ 0xff);
-        memory.write(target_address, &vec![byte])?;
+        byte &= registers.accumulator ^ 0xff;
+        memory.write(target_address, &[byte])?;
         registers.set_z_flag(false);
     } else {
         registers.set_z_flag(true);
@@ -24,7 +24,7 @@ pub fn trb(
     registers.command_pointer += 1 + resolution.operands.len();
 
     Ok(LogLine::new(
-        &cpu_instruction,
+        cpu_instruction,
         resolution,
         format!("(0x{:02x})[S={}]", byte, registers.format_status()),
     ))
@@ -43,7 +43,7 @@ mod tests {
         let cpu_instruction =
             CPUInstruction::new(0x1000, 0xca, "TRB", AddressingMode::ZeroPage([0x00]), trb);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x8a, 0x00, 0x02]);
-        memory.write(0x00, &vec![0xa6]).unwrap();
+        memory.write(0x00, &[0xa6]).unwrap();
         registers.accumulator = 0x33;
         let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
@@ -60,7 +60,7 @@ mod tests {
         let cpu_instruction =
             CPUInstruction::new(0x1000, 0xca, "TRB", AddressingMode::ZeroPage([0x00]), trb);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x8a, 0x00, 0x02]);
-        memory.write(0x00, &vec![0xa6]).unwrap();
+        memory.write(0x00, &[0xa6]).unwrap();
         registers.accumulator = 0x41;
         let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)

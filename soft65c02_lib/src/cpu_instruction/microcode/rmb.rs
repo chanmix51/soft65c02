@@ -14,15 +14,15 @@ pub fn rmb(
         .expect("RMB must have operands, crashing the application");
     let byte = memory.read(addr, 1)?[0];
     let mut bit = 0b00000001;
-    (0..cpu_instruction.opcode >> 4).for_each(|_| bit = bit << 1);
+    (0..cpu_instruction.opcode >> 4).for_each(|_| bit <<= 1);
     let bit = 0b11111111 ^ bit;
     let byte = byte & bit;
-    memory.write(addr, &vec![byte])?;
+    memory.write(addr, &[byte])?;
 
     registers.command_pointer += 1 + resolution.operands.len();
 
     Ok(LogLine::new(
-        &cpu_instruction,
+        cpu_instruction,
         resolution,
         format!("(0x{:02x})", byte),
     ))
@@ -38,7 +38,7 @@ mod tests {
         let cpu_instruction =
             CPUInstruction::new(0x1000, 0x07, "RMB0", AddressingMode::ZeroPage([0x0a]), rmb);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x07, 0x0a]);
-        memory.write(0x0a, &vec![0xff]).unwrap();
+        memory.write(0x0a, &[0xff]).unwrap();
         let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
@@ -60,7 +60,7 @@ mod tests {
         let cpu_instruction =
             CPUInstruction::new(0x1000, 0x77, "RMB7", AddressingMode::ZeroPage([0x0a]), rmb);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x77, 0x0a]);
-        memory.write(0x0a, &vec![0xff]).unwrap();
+        memory.write(0x0a, &[0xff]).unwrap();
         let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
@@ -77,4 +77,3 @@ mod tests {
         );
     }
 }
-

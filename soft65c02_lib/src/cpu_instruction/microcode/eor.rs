@@ -14,13 +14,13 @@ pub fn eor(
         .expect("No operand given to EOR instruction, crashing application.");
 
     let byte = memory.read(target_address, 1)?[0];
-    registers.accumulator = registers.accumulator ^ byte;
+    registers.accumulator ^= byte;
     registers.set_z_flag(registers.accumulator == 0);
     registers.set_n_flag(registers.accumulator & 0x80 != 0);
     registers.command_pointer += 1 + resolution.operands.len();
 
     Ok(LogLine::new(
-        &cpu_instruction,
+        cpu_instruction,
         resolution,
         format!(
             "[A=0x{:02x}][S={}]",

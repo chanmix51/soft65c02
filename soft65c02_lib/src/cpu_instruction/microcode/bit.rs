@@ -20,16 +20,16 @@ pub fn bit(
      * see http://forum.6502.org/viewtopic.php?f=2&t=2241&p=27243#p27239
      */
     match cpu_instruction.addressing_mode {
-        AddressingMode::Immediate(_) => {},
-        _   => {
+        AddressingMode::Immediate(_) => {}
+        _ => {
             registers.set_v_flag(byte & 0b01000000 != 0);
             registers.set_n_flag(byte & 0b10000000 != 0);
-        },
+        }
     };
     registers.command_pointer += 1 + resolution.operands.len();
 
     Ok(LogLine::new(
-        &cpu_instruction,
+        cpu_instruction,
         resolution,
         format!("[S={}]", registers.format_status()),
     ))
@@ -62,7 +62,7 @@ mod tests {
             CPUInstruction::new(0x1000, 0xca, "bit", AddressingMode::ZeroPage([0xa0]), bit);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xca, 0xa0, 0x02]);
         registers.accumulator = 0x03;
-        memory.write(0xa0, &vec![0xba]).unwrap();
+        memory.write(0xa0, &[0xba]).unwrap();
         let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
@@ -105,7 +105,7 @@ mod tests {
             CPUInstruction::new(0x1000, 0xca, "bit", AddressingMode::ZeroPage([0xa0]), bit);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xca, 0xa0, 0x02]);
         registers.accumulator = 0x03;
-        memory.write(0xa0, &vec![0x4d]).unwrap();
+        memory.write(0xa0, &[0x4d]).unwrap();
         let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();

@@ -21,7 +21,7 @@ pub fn dec(
 
     let outcome = match resolution.target_address {
         Some(addr) => {
-            memory.write(addr, &vec![res])?;
+            memory.write(addr, &[res])?;
             format!("0x{:02x}", res)
         }
         None => {
@@ -31,7 +31,7 @@ pub fn dec(
     };
 
     Ok(LogLine::new(
-        &cpu_instruction,
+        cpu_instruction,
         resolution,
         format!("{}[S={}]", outcome, registers.format_status()),
     ))
@@ -63,7 +63,7 @@ mod tests {
         let cpu_instruction =
             CPUInstruction::new(0x1000, 0xca, "DEC", AddressingMode::ZeroPage([0xa0]), dec);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xca, 0x0a]);
-        memory.write(0xa0, &vec![0x10]).unwrap();
+        memory.write(0xa0, &[0x10]).unwrap();
         let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();

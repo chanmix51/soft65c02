@@ -16,7 +16,7 @@ pub fn bra(
     ).expect("Could not resolve relative address for BRA");
 
     Ok(LogLine::new(
-        &cpu_instruction,
+        cpu_instruction,
         resolution,
         format!("[CP=0x{:04X}]", registers.command_pointer),
     ))

@@ -25,7 +25,7 @@ pub fn brk(
     registers.set_d_flag(false);
 
     Ok(LogLine::new(
-        &cpu_instruction,
+        cpu_instruction,
         resolution,
         format!(
             "[CP=0x{:04X}][SP=0x{:02x}]",
@@ -45,7 +45,7 @@ mod tests {
         let cpu_instruction =
             CPUInstruction::new(0x1000, 0xca, "BRK", AddressingMode::Implied, brk);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x00]);
-        memory.write(0xfffe, &vec![0x00, 0xf0]).unwrap();
+        memory.write(0xfffe, &[0x00, 0xf0]).unwrap();
         registers.stack_pointer = 0xff;
         let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)

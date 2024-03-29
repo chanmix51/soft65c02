@@ -4,13 +4,14 @@ use crate::memory::MemoryStack as Memory;
 use crate::registers::Registers;
 use std::fmt;
 
+pub type BoxedMicrocode =
+    Box<dyn Fn(&mut Memory, &mut Registers, &CPUInstruction) -> MicrocodeResult<LogLine>>;
 pub struct CPUInstruction {
     pub address: usize,
     pub opcode: u8,
     pub mnemonic: String,
     pub addressing_mode: AddressingMode,
-    pub microcode:
-        Box<dyn Fn(&mut Memory, &mut Registers, &CPUInstruction) -> MicrocodeResult<LogLine>>,
+    pub microcode: BoxedMicrocode,
 }
 
 impl CPUInstruction {
@@ -23,10 +24,10 @@ impl CPUInstruction {
             + 'static,
     ) -> CPUInstruction {
         CPUInstruction {
-            address: address,
-            opcode: opcode,
+            address,
+            opcode,
             mnemonic: mnemonic.to_owned(),
-            addressing_mode: addressing_mode,
+            addressing_mode,
             microcode: Box::new(microcode),
         }
     }
@@ -36,7 +37,7 @@ impl CPUInstruction {
         memory: &mut Memory,
         registers: &mut Registers,
     ) -> MicrocodeResult<LogLine> {
-        (self.microcode)(memory, registers, &self)
+        (self.microcode)(memory, registers, self)
     }
 }
 
@@ -82,8 +83,8 @@ impl LogLine {
             address: cpu_instruction.address,
             opcode: cpu_instruction.opcode,
             mnemonic: cpu_instruction.mnemonic.clone(),
-            resolution: resolution,
-            outcome: outcome,
+            resolution,
+            outcome,
         }
     }
 }

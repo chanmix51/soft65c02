@@ -1,3 +1,4 @@
+#[allow(clippy::module_inception)]
 mod cpu_instruction;
 pub mod microcode;
 

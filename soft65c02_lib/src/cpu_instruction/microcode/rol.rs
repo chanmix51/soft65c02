@@ -26,7 +26,7 @@ pub fn rol(
 
     let outcome = match resolution.target_address {
         Some(addr) => {
-            memory.write(addr, &vec![res])?;
+            memory.write(addr, &[res])?;
             format!("(0x{:02x})[S={}]", res, registers.format_status())
         }
         None => {
@@ -35,7 +35,7 @@ pub fn rol(
         }
     };
 
-    Ok(LogLine::new(&cpu_instruction, resolution, outcome))
+    Ok(LogLine::new(cpu_instruction, resolution, outcome))
 }
 
 #[cfg(test)]
@@ -48,7 +48,7 @@ mod tests {
         let cpu_instruction =
             CPUInstruction::new(0x1000, 0xca, "ROL", AddressingMode::ZeroPage([0x0a]), rol);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xe8, 0x0a, 0x02]);
-        memory.write(0x0a, &vec![0x28]).unwrap();
+        memory.write(0x0a, &[0x28]).unwrap();
         let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();

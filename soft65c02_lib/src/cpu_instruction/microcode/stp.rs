@@ -9,7 +9,7 @@ pub fn stp(
         cpu_instruction
             .addressing_mode
             .solve(registers.command_pointer, memory, registers)?;
-    Ok(LogLine::new(&cpu_instruction, resolution, String::new()))
+    Ok(LogLine::new(cpu_instruction, resolution, String::new()))
 }
 
 #[cfg(test)]

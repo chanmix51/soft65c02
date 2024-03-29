@@ -15,7 +15,7 @@ pub fn plp(
     registers.command_pointer += 1 + resolution.operands.len();
 
     Ok(LogLine::new(
-        &cpu_instruction,
+        cpu_instruction,
         resolution,
         format!(
             "[SP=0x{:02x}][S={}]",
@@ -41,10 +41,7 @@ mod tests {
         registers.set_c_flag(false);
         registers.set_n_flag(false);
         memory
-            .write(
-                STACK_BASE_ADDR + 0xff,
-                &vec![registers.get_status_register()],
-            )
+            .write(STACK_BASE_ADDR + 0xff, &[registers.get_status_register()])
             .unwrap();
         registers.stack_pointer = 0xfe;
         registers.set_z_flag(false);

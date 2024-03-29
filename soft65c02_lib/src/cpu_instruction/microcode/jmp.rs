@@ -16,7 +16,7 @@ pub fn jmp(
     registers.command_pointer = target_address;
 
     Ok(LogLine::new(
-        &cpu_instruction,
+        cpu_instruction,
         resolution,
         format!("[CP=0x{:04x}]", registers.command_pointer),
     ))

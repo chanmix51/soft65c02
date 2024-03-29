@@ -38,7 +38,7 @@ impl AddressableIO for Subsystem {
         self.subsystem.read(addr, len)
     }
 
-    fn write(&mut self, location: usize, data: &Vec<u8>) -> Result<(), MemoryError> {
+    fn write(&mut self, location: usize, data: &[u8]) -> Result<(), MemoryError> {
         self.subsystem.write(location, data)
     }
 
@@ -60,23 +60,16 @@ impl fmt::Debug for Subsystem {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct MemoryStack {
     stack: Vec<Subsystem>,
     address_map: BTreeMap<usize, usize>,
 }
 
 impl MemoryStack {
-    pub fn new() -> MemoryStack {
-        MemoryStack {
-            stack: vec![],
-            address_map: BTreeMap::new(),
-        }
-    }
-
-    pub fn new_with_ram() -> MemoryStack {
-        let mut memory_stack = Self::new();
-        memory_stack.add_subsystem("RAM", 0x0000, RAM::new());
+    pub fn new_with_ram() -> Self {
+        let mut memory_stack = Self::default();
+        memory_stack.add_subsystem("RAM", 0x0000, RAM::default());
 
         memory_stack
     }
@@ -98,7 +91,7 @@ impl MemoryStack {
         let mut address_map: BTreeMap<usize, usize> = BTreeMap::new();
         address_map.insert(end_address, self.stack.len());
         let mut keys: Vec<usize> = vec![];
-        self.address_map.keys().for_each(|x| keys.push(x.clone()));
+        self.address_map.keys().for_each(|x| keys.push(*x));
 
         if start_address != 0 {
             for (sub_index, sub) in self.stack.iter().enumerate() {
@@ -158,9 +151,9 @@ impl AddressableIO for MemoryStack {
         Ok(results)
     }
 
-    fn write(&mut self, addr: usize, data: &Vec<u8>) -> Result<(), MemoryError> {
+    fn write(&mut self, addr: usize, data: &[u8]) -> Result<(), MemoryError> {
         let len = data.len();
-        let mut data = data.clone();
+        let mut data = data.to_vec();
         let mut tmplen = len;
         let mut tmpaddr = addr;
         for (&addr_split, &sub_index) in &self.address_map {
@@ -214,7 +207,7 @@ mod tests {
             }
         }
 
-        fn write(&mut self, addr: usize, data: &Vec<u8>) -> Result<(), MemoryError> {
+        fn write(&mut self, addr: usize, data: &[u8]) -> Result<(), MemoryError> {
             if addr + data.len() > self.size {
                 Err(MemoryError::WriteOverflow(data.len(), addr))
             } else {
@@ -224,8 +217,8 @@ mod tests {
     }
 
     fn init_memory() -> MemoryStack {
-        let mut memory_stack = MemoryStack::new();
-        memory_stack.add_subsystem("RAM", 0x0000, RAM::new());
+        let mut memory_stack = MemoryStack::default();
+        memory_stack.add_subsystem("RAM", 0x0000, RAM::default());
         memory_stack.add_subsystem("ROM", 0xC000, ROM::new([0xAE; 16384].to_vec()));
 
         memory_stack
@@ -292,8 +285,8 @@ mod tests {
 
     #[test]
     fn test_write_over_entire_memory() {
-        let mut memory_stack = MemoryStack::new();
-        memory_stack.add_subsystem("RAM", 0x0000, RAM::new());
+        let mut memory_stack = MemoryStack::default();
+        memory_stack.add_subsystem("RAM", 0x0000, RAM::default());
         memory_stack.add_subsystem("DUMMY", 0x8000, FakeMemory::new(1024, 0));
         let _ = memory_stack.read(0x7F00, 2048).unwrap();
         let data: Vec<u8> = vec![0xff; 2048];
@@ -303,7 +296,7 @@ mod tests {
     #[test]
     #[should_panic]
     fn read_with_unallocated_memory() {
-        let mut memory_stack = MemoryStack::new();
+        let mut memory_stack = MemoryStack::default();
         memory_stack.add_subsystem("DUMMY", 0x0000, FakeMemory::new(0x1000, 0));
         memory_stack.add_subsystem("DUMMY", 0x2000, FakeMemory::new(0x1000, 1));
         match memory_stack.read(0x0000, 9 * 1024) {
@@ -317,7 +310,7 @@ mod tests {
 
     #[test]
     fn read_over_memory() {
-        let mut memory_stack = MemoryStack::new();
+        let mut memory_stack = MemoryStack::default();
         memory_stack.add_subsystem("DUMMY", 0x0000, FakeMemory::new(0x1000, 0));
         match memory_stack.read(0, 0x2000) {
             Err(MemoryError::ReadOverflow(len, addr_start)) => {

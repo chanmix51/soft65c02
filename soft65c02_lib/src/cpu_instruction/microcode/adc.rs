@@ -49,7 +49,7 @@ pub fn adc(
     registers.command_pointer += 1 + resolution.operands.len();
 
     Ok(LogLine::new(
-        &cpu_instruction,
+        cpu_instruction,
         resolution,
         format!(
             "(0x{:02x})[A=0x{:02x}][S={}]",

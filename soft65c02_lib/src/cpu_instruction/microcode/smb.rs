@@ -9,17 +9,19 @@ pub fn smb(
         cpu_instruction
             .addressing_mode
             .solve(registers.command_pointer, memory, registers)?;
-    let addr = resolution.target_address.expect("SMB expects an operand, crashing the application");
+    let addr = resolution
+        .target_address
+        .expect("SMB expects an operand, crashing the application");
     let byte = memory.read(addr, 1)?[0];
     let mut bit = 0b00000001;
-    (0..(cpu_instruction.opcode >> 4) - 8).for_each(|_| bit = bit << 1);
+    (0..(cpu_instruction.opcode >> 4) - 8).for_each(|_| bit <<= 1);
     let byte = byte | bit;
-    memory.write(addr, &vec![byte])?;
+    memory.write(addr, &[byte])?;
 
     registers.command_pointer += 1 + resolution.operands.len();
 
     Ok(LogLine::new(
-        &cpu_instruction,
+        cpu_instruction,
         resolution,
         format!("(0x{:02x})", byte),
     ))
@@ -72,5 +74,3 @@ mod tests {
         );
     }
 }
-
-

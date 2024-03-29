@@ -16,7 +16,7 @@ pub fn pla(
     registers.command_pointer += 1 + resolution.operands.len();
 
     Ok(LogLine::new(
-        &cpu_instruction,
+        cpu_instruction,
         resolution,
         format!(
             "[A=0x{:02x}][SP=0x{:02x}][S={}]",
@@ -37,7 +37,7 @@ mod tests {
         let cpu_instruction =
             CPUInstruction::new(0x1000, 0x08, "PLA", AddressingMode::Implied, pla);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x08, 0x0a]);
-        memory.write(0x01ff, &vec![0x10]).unwrap();
+        memory.write(0x01ff, &[0x10]).unwrap();
         registers.accumulator = 0x00;
         registers.stack_pointer = 0xfe;
         let log_line = cpu_instruction
@@ -62,7 +62,7 @@ mod tests {
         let cpu_instruction =
             CPUInstruction::new(0x1000, 0xca, "PLA", AddressingMode::Implied, pla);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x48, 0x0a]);
-        memory.write(0x01ff, &vec![0x00]).unwrap();
+        memory.write(0x01ff, &[0x00]).unwrap();
         registers.accumulator = 0x10;
         registers.stack_pointer = 0xfe;
         let _log_line = cpu_instruction
@@ -79,7 +79,7 @@ mod tests {
         let cpu_instruction =
             CPUInstruction::new(0x1000, 0xca, "PLA", AddressingMode::Implied, pla);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x48, 0x0a]);
-        memory.write(0x01ff, &vec![0x81]).unwrap();
+        memory.write(0x01ff, &[0x81]).unwrap();
         registers.accumulator = 0x10;
         registers.stack_pointer = 0xfe;
         let _log_line = cpu_instruction

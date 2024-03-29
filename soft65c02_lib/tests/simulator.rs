@@ -19,13 +19,13 @@ fn execute_program() {
     memory
         .write(
             init_vector,
-            &vec![
+            &[
                 0xa9, 0xc0, 0xaa, 0xe8, 0x69, 0x14, 0x00, 0x3a, 0xd5, 0x20, 0xd0, 0xfe, 0xdb,
             ],
         )
         .unwrap();
-    memory.write(0xfffe, &vec![0x00, 0x80]).unwrap();
-    memory.write(0x8000, &vec![0x95, 0x20, 0x40]).unwrap();
+    memory.write(0xfffe, &[0x00, 0x80]).unwrap();
+    memory.write(0x8000, &[0x95, 0x20, 0x40]).unwrap();
     let mut registers = Registers::new_initialized(init_vector);
     let loglines = execute(&mut memory, &mut registers).unwrap();
     let expected_output: Vec<&str> = vec![
@@ -40,14 +40,12 @@ fn execute_program() {
         "#0x080A: (d0 fe)       BNE  $080A               [CP=0x080C]",
         "#0x080C: (db)          STP",
     ];
-    let mut count: usize = 0;
-    for line in loglines {
+    loglines.iter().enumerate().for_each(|(i, line)| {
         assert_eq!(
-            format!("{}", expected_output[count]),
+            format!("{}", expected_output[i]),
             format!("{}", line).as_str().trim().to_owned()
-        );
-        count += 1;
-    }
+        )
+    });
     assert_eq!(0xc1, registers.register_x);
     assert_eq!(0xd4, registers.accumulator);
 }

@@ -19,7 +19,7 @@ pub fn lda(
     registers.command_pointer += 1 + resolution.operands.len();
 
     Ok(LogLine::new(
-        &cpu_instruction,
+        cpu_instruction,
         resolution,
         format!(
             "[A=0x{:02x}][S={}]",
@@ -40,7 +40,7 @@ mod tests {
             CPUInstruction::new(0x1000, 0xca, "LDA", AddressingMode::ZeroPage([0x0a]), lda);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xa9, 0x0a]);
         registers.accumulator = 0x10;
-        memory.write(0x000a, &vec![0x5a]).unwrap();
+        memory.write(0x000a, &[0x5a]).unwrap();
         let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
@@ -57,7 +57,7 @@ mod tests {
             CPUInstruction::new(0x1000, 0xca, "LDA", AddressingMode::ZeroPage([0x0a]), lda);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xa9, 0x0a]);
         registers.accumulator = 0x10;
-        memory.write(0x000a, &vec![0x80]).unwrap();
+        memory.write(0x000a, &[0x80]).unwrap();
         let _log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();

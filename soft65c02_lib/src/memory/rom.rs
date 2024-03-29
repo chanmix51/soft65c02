@@ -1,14 +1,12 @@
 use super::*;
 
 pub struct ROM {
-    rom: Box<Vec<u8>>,
+    rom: Vec<u8>,
 }
 
 impl ROM {
     pub fn new(data: Vec<u8>) -> ROM {
-        ROM {
-            rom: Box::new(data),
-        }
+        ROM { rom: data }
     }
 }
 
@@ -21,7 +19,7 @@ impl AddressableIO for ROM {
         }
     }
 
-    fn write(&mut self, location: usize, _data: &Vec<u8>) -> Result<(), MemoryError> {
+    fn write(&mut self, location: usize, _data: &[u8]) -> Result<(), MemoryError> {
         Err(MemoryError::Other(
             location,
             "trying to write in a read-only memory",

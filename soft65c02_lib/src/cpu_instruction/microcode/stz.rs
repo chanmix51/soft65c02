@@ -13,10 +13,10 @@ pub fn stz(
         .target_address
         .expect("STZ must have operands, crashing the application");
 
-    memory.write(target_address, &vec![0x00])?;
+    memory.write(target_address, &[0x00])?;
     registers.command_pointer += 1 + resolution.operands.len();
 
-    Ok(LogLine::new(&cpu_instruction, resolution, String::new()))
+    Ok(LogLine::new(cpu_instruction, resolution, String::new()))
 }
 
 #[cfg(test)]

@@ -20,7 +20,7 @@ pub fn bne(
     }
 
     Ok(LogLine::new(
-        &cpu_instruction,
+        cpu_instruction,
         resolution,
         format!("[CP=0x{:04X}]", registers.command_pointer),
     ))
