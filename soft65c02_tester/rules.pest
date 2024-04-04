@@ -5,7 +5,6 @@ sentence = _{ SOI ~ instruction | COMMENT ~ EOI }
 instruction = { registers_instruction |
     memory_instruction |
     run_instruction |
-    help_instruction |
     disassemble_instruction |
     assert_instruction |
     reset_instruction }
@@ -39,14 +38,6 @@ disassemble_instruction = {
     | ^"disassemble" ~ size_parameter }
 
 assert_instruction = { ^"assert" ~ boolean_condition ~ "$$" ~ description ~ "$$"}
-
-help_instruction = { help_registers | help_memory | help_run | help_disassemble | help_assert | help_global }
-help_registers = { ^"help registers" }
-help_memory = { ^"help memory" }
-help_run = { ^"help run" }
-help_disassemble = { ^"help disassemble" }
-help_assert = { ^"help assert" }
-help_global = { ^"help" }
 
 boolean_condition = { boolean | operation }
 

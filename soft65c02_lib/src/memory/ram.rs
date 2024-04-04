@@ -25,15 +25,9 @@ impl AddressableIO for RAM {
         if location + data.len() > self.ram.len() {
             Err(MemoryError::WriteOverflow(data.len(), location))
         } else {
-            self.ram
-                .iter_mut()
-                .enumerate()
-                .skip(location)
-                .for_each(|(index, value)| *value = data[index]);
-            // for offset in 0..data.len() {
-            //     self.ram[usize::from(location) + offset] = data[offset];
-            // }
-
+            for (offset, value) in data.into_iter().enumerate() {
+                self.ram[location + offset] = *value;
+            }
             Ok(())
         }
     }
@@ -44,3 +38,27 @@ impl AddressableIO for RAM {
 }
 
 impl DebugIO for RAM {}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn check_write_ram() {
+        let mut memory = RAM::default();
+        memory.write(1000, &[0x01, 0x02, 0x03]).unwrap();
+
+        assert_eq!(1, memory.ram[1000]);
+        assert_eq!(2, memory.ram[1001]);
+        assert_eq!(3, memory.ram[1002]);
+        assert_eq!(0, memory.ram[1003]);
+    }
+
+    #[test]
+    fn check_read_ram() {
+        let mut memory = RAM::default();
+        memory.ram[1000] = 0xff;
+
+        assert_eq!(vec![0x00, 0xff, 0x00], memory.read(999, 3).unwrap());
+    }
+}
