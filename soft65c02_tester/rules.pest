@@ -23,7 +23,8 @@ registers_flush = { ^"flush" }
 registers_show = { ^"show" }
 
 memory_instruction = { ^"memory" ~ memory_action }
-memory_action = _{ memory_show | memory_load | memory_write | ^"sub " ~ memory_sub_action }
+memory_action = _{ memory_show | memory_load | memory_write | memory_flush | ^"sub " ~ memory_sub_action }
+memory_flush = { ^"flush" }
 memory_show = { ^"show" ~ memory_address ~ size_parameter }
 memory_load = { ^"load" ~ memory_address ~ filename }
 memory_write = { ^"write" ~ memory_address ~ ^"0x(" ~ bytes ~ ")" }

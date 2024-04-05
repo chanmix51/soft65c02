@@ -15,6 +15,41 @@ use crate::{
 #[grammar = "../rules.pest"]
 struct PestParser;
 
+pub struct MemoryCommandParser;
+
+impl MemoryCommandParser {
+    pub fn from_pairs(pairs: Pairs<'_, Rule>) -> AppResult<MemoryCommand> {
+        let mut pairs = pairs;
+        let pair = pairs.next().unwrap();
+
+        let command = match pair.as_rule() {
+            Rule::memory_flush => MemoryCommand::Flush,
+            _ => {
+                panic!("Unexpected pair '{pair:?}'. memory_{{load,flush,write}} expected.");
+            }
+        };
+
+        Ok(command)
+    }
+}
+
+#[cfg(test)]
+mod memory_command_parser_tests {
+    use super::*;
+
+    #[test]
+    fn test_memory_flush() {
+        let input = "memory flush";
+        let pairs = PestParser::parse(Rule::memory_instruction, input)
+            .unwrap()
+            .next()
+            .unwrap()
+            .into_inner();
+        let command = MemoryCommandParser::from_pairs(pairs).unwrap();
+
+        assert!(matches!(command, MemoryCommand::Flush));
+    }
+}
 pub struct RegisterCommandParser;
 
 impl RegisterCommandParser {
@@ -182,6 +217,9 @@ impl CliCommandParser {
             Rule::registers_instruction => {
                 CliCommand::Registers(RegisterCommandParser::from_pairs(pair.into_inner())?)
             }
+            Rule::memory_instruction => {
+                CliCommand::Memory(MemoryCommandParser::from_pairs(pair.into_inner())?)
+            }
             _ => {
                 panic!(
                     "'{}' was not expected here: 'register|memory|run|assert|reset instruction'.",
@@ -228,6 +266,16 @@ mod cli_command_parser_test {
         assert!(matches!(
             cli_command,
             CliCommand::Registers(RegisterCommand::Flush)
+        ));
+    }
+
+    #[test]
+    fn test_memory_cli_flush_parser() {
+        let cli_command = CliCommandParser::from("memory flush").unwrap();
+
+        assert!(matches!(
+            cli_command,
+            CliCommand::Memory(MemoryCommand::Flush)
         ));
     }
 }

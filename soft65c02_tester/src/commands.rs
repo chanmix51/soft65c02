@@ -11,6 +11,7 @@ pub trait Command {
 pub enum CliCommand {
     Assert(AssertCommand),
     Marker(String),
+    Memory(MemoryCommand),
     None,
     Registers(RegisterCommand),
     Run(RunCommand),
@@ -21,6 +22,7 @@ impl Command for CliCommand {
         match self {
             Self::Assert(command) => command.execute(registers, memory),
             Self::Marker(comment) => Ok(vec![comment.to_owned()]),
+            Self::Memory(command) => command.execute(registers, memory),
             Self::None => Ok(Vec::new()),
             Self::Registers(command) => command.execute(registers, memory),
             Self::Run(command) => command.execute(registers, memory),
@@ -86,6 +88,24 @@ impl Command for RegisterCommand {
         registers.initialize(0x0000);
 
         Ok(Vec::new())
+    }
+}
+
+#[derive(Debug)]
+pub enum MemoryCommand {
+    Flush,
+    Load(String),
+    Write(Vec<u8>),
+}
+
+impl Command for MemoryCommand {
+    fn execute(&self, _registers: &mut Registers, memory: &mut Memory) -> AppResult<Vec<String>> {
+        match self {
+            Self::Flush => *memory = Memory::new_with_ram(),
+            _ => todo!(),
+        };
+
+        Ok(vec![])
     }
 }
 
@@ -201,5 +221,74 @@ mod register_command_tests {
 
         assert_eq!(0, output.len());
         assert_eq!(0x0000, registers.command_pointer);
+    }
+}
+
+#[cfg(test)]
+mod memory_command_tests {
+    use soft65c02_lib::AddressableIO;
+
+    use super::*;
+
+    #[test]
+    fn test_flush_command() {
+        let command = MemoryCommand::Flush;
+        let mut registers = Registers::new_initialized(0x0000);
+        let mut memory = Memory::new_with_ram();
+        memory.write(0x0000, &[0x01, 0x02, 0x03]).unwrap();
+        let output = command.execute(&mut registers, &mut memory).unwrap();
+
+        assert_eq!(vec![0x00, 0x00, 0x00], memory.read(0x000, 3).unwrap());
+        assert_eq!(0, output.len());
+    }
+}
+
+#[cfg(test)]
+mod cli_command_tests {
+    use crate::CliCommandParser;
+
+    use super::*;
+
+    #[test]
+    fn test_assertion() {
+        let mut registers = Registers::new(0x0000);
+        let mut memory = Memory::new_with_ram();
+
+        let output = CliCommandParser::from("assert #0x0000 = 0x00 $$The first byte is zero$$")
+            .unwrap()
+            .execute(&mut registers, &mut memory)
+            .unwrap();
+
+        assert_eq!("The first byte is zero".to_string(), output[0]);
+    }
+
+    #[test]
+    fn test_bad_assertion() {
+        let mut registers = Registers::new(0x0000);
+        let mut memory = Memory::new_with_ram();
+
+        let output =
+            CliCommandParser::from("assert #0x0000 = 0x01 $$The first byte is one, really?$$")
+                .unwrap()
+                .execute(&mut registers, &mut memory)
+                .unwrap_err();
+
+        assert_eq!(
+            "The first byte is one, really?".to_string(),
+            output.to_string()
+        );
+    }
+
+    #[test]
+    fn test_register_flush() {
+        let mut registers = Registers::new(0x1234);
+        let mut memory = Memory::new_with_ram();
+
+        let output = CliCommandParser::from("registers flush")
+            .unwrap()
+            .execute(&mut registers, &mut memory)
+            .unwrap();
+
+        assert_eq!(0, output.len());
     }
 }
