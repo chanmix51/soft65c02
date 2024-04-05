@@ -9,17 +9,19 @@ pub trait Command {
 
 #[derive(Debug)]
 pub enum CliCommand {
-    Run(RunCommand),
     Assert(AssertCommand),
+    Marker(String),
     None,
+    Run(RunCommand),
 }
 
 impl Command for CliCommand {
     fn execute(&self, registers: &mut Registers, memory: &mut Memory) -> AppResult<Vec<String>> {
         match self {
-            Self::Run(command) => command.execute(registers, memory),
             Self::Assert(command) => command.execute(registers, memory),
+            Self::Marker(comment) => Ok(vec![comment.to_owned()]),
             Self::None => Ok(Vec::new()),
+            Self::Run(command) => command.execute(registers, memory),
         }
     }
 }

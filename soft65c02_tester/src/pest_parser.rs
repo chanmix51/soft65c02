@@ -28,7 +28,8 @@ impl RunCommandParser {
                     start_address = Some(parse_memory(&pair.as_str()[3..])?);
                 }
                 Rule::run_until_condition => {
-                    stop_condition = parse_boolean_condition(pair.into_inner().next().unwrap().into_inner())?;
+                    stop_condition =
+                        parse_boolean_condition(pair.into_inner().next().unwrap().into_inner())?;
                 }
                 stmt => panic!("unknown node type {stmt:?}. Is the Pest grammar up to date?"),
             }
@@ -121,22 +122,30 @@ pub struct CliCommandParser;
 
 impl CliCommandParser {
     pub fn from(line: &str) -> AppResult<CliCommand> {
-        let mut pairs = PestParser::parse(Rule::sentence, line)?
+        let pair = PestParser::parse(Rule::sentence, line)?
             .next()
-            .expect("There is only one instruction per input.")
-            .into_inner();
-        let command = if let Some(pair) = pairs.next() {
-            match pair.as_rule() {
-                Rule::run_instruction => {
-                    CliCommand::Run(RunCommandParser::from_pairs(pair.into_inner())?)
-                }
-                Rule::assert_instruction => {
-                    CliCommand::Assert(AssertCommandParser::from_pairs(pair.into_inner())?)
-                }
-                _ => todo!(),
+            .expect("There is only one sentence per input.")
+            .into_inner()
+            .next()
+            .expect("There is only one instruction per sentence.");
+
+        let command = match pair.as_rule() {
+            Rule::run_instruction => {
+                CliCommand::Run(RunCommandParser::from_pairs(pair.into_inner())?)
             }
-        } else {
-            CliCommand::None
+            Rule::assert_instruction => {
+                CliCommand::Assert(AssertCommandParser::from_pairs(pair.into_inner())?)
+            }
+            Rule::marker => {
+                let marker = pair.into_inner().next().unwrap().as_str();
+                CliCommand::Marker(marker.to_owned())
+            }
+            _ => {
+                panic!(
+                    "'{}' was not expected here: 'register|memory|run|assert|reset instruction'.",
+                    pair.as_str()
+                );
+            }
         };
 
         Ok(command)
@@ -159,6 +168,15 @@ mod cli_command_parser_test {
         let cli_command = CliCommandParser::from("assert #0x0000=0x00 $$description$$").unwrap();
 
         assert!(matches!(cli_command, CliCommand::Assert(_)));
+    }
+
+    #[test]
+    fn test_comment_cli_parser() {
+        let cli_command = CliCommandParser::from("marker $$This is a comment.$$").unwrap();
+
+        assert!(
+            matches!(cli_command, CliCommand::Marker(comment) if comment == *"This is a comment.")
+        );
     }
 }
 
@@ -241,6 +259,7 @@ fn parse_source_value(node: &Pair<Rule>) -> AppResult<Source> {
     Ok(Source::Value(addr))
 }
 
+#[allow(dead_code)]
 fn parse_bytes(bytes: &str) -> Vec<u8> {
     bytes
         .split(',')
