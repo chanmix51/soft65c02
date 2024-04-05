@@ -1,5 +1,10 @@
 use super::*;
 
+/// # AND | Logical AND operation
+///
+/// Performs a AND operation between the Accumulator and the specified target.
+/// Result is stored in the Accumulator. Affects flags NC.
+///
 pub fn and(
     memory: &mut Memory,
     registers: &mut Registers,

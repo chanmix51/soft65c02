@@ -28,8 +28,7 @@ impl RunCommandParser {
                     start_address = Some(parse_memory(&pair.as_str()[3..])?);
                 }
                 Rule::run_until_condition => {
-                    stop_condition =
-                        parse_boolean_condition(pair.into_inner().next().unwrap().into_inner())?;
+                    stop_condition = parse_boolean_condition(pair.into_inner().next().unwrap().into_inner())?;
                 }
                 stmt => panic!("unknown node type {stmt:?}. Is the Pest grammar up to date?"),
             }

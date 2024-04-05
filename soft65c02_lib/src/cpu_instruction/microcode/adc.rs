@@ -1,14 +1,13 @@
 use super::*;
 
-/*
- * ADC - Add with carry
- *
- * The 65C02 has only one instruction for addition, an addition with carry.
- * Note: the formula for the oVerflow bit comes from
- * http://www.righto.com/2012/12/the-6502-overflow-flag-explained.html
- * Method to handle the decimal mode comes from
- * http://www.6502.org/tutorials/decimal_mode.html
- */
+/// # ADC - Add with carry
+///
+/// The 65C02 has only one instruction for addition, an addition with carry.
+/// Note: the formula for the oVerflow bit comes from
+/// http://www.righto.com/2012/12/the-6502-overflow-flag-explained.html
+/// Method to handle the decimal mode comes from
+/// http://www.6502.org/tutorials/decimal_mode.html
+///
 pub fn adc(
     memory: &mut Memory,
     registers: &mut Registers,

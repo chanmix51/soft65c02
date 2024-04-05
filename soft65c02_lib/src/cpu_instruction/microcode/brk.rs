@@ -1,11 +1,17 @@
 use super::*;
 
-/* BRK
- * Generate a soft interrupt
- *
- * @see http://6502.org/tutorials/interrupts.html#2.2
- */
-
+/// # BRK
+///
+/// Generate a [soft interrupt](http://6502.org/tutorials/interrupts.html#2.2).
+///
+/// When the processor encounters that instruction, it acts like a hardware
+/// interrupt occures (with subtle differences).
+///
+/// * Command Pointer register is pushed to the stack pointing 2 bytes after the
+/// BRK instruction.
+/// * Status register is pushed to the stack with the B flag set .
+/// * Status register I flag is set, D flag is cleared.
+///
 pub fn brk(
     memory: &mut Memory,
     registers: &mut Registers,

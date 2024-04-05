@@ -12,7 +12,7 @@ fn test_assertion() {
         .execute(&mut registers, &mut memory)
         .unwrap();
 
-    assert_eq!("The first byte is zero".to_string(), output);
+    assert_eq!("The first byte is zero".to_string(), output[0]);
 }
 
 #[test]
