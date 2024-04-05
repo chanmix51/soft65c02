@@ -15,7 +15,42 @@ use crate::{
 #[grammar = "../rules.pest"]
 struct PestParser;
 
-struct RunCommandParser;
+pub struct RegisterCommandParser;
+
+impl RegisterCommandParser {
+    pub fn from_pairs(pairs: Pairs<'_, Rule>) -> AppResult<RegisterCommand> {
+        let mut pairs = pairs;
+        let pair = pairs.next().unwrap();
+
+        let command = match pair.as_rule() {
+            Rule::registers_flush => RegisterCommand::Flush,
+            _ => {
+                panic!("Unexpected rule '{}', register rule was expected.", pair);
+            }
+        };
+
+        Ok(command)
+    }
+}
+
+#[cfg(test)]
+mod register_parser_tests {
+    use super::*;
+
+    #[test]
+    fn test_register_flush() {
+        let input = "registers flush";
+        let pairs = PestParser::parse(Rule::registers_instruction, input)
+            .unwrap()
+            .next()
+            .unwrap()
+            .into_inner();
+        let command = RegisterCommandParser::from_pairs(pairs).unwrap();
+
+        assert!(matches!(command, RegisterCommand::Flush));
+    }
+}
+pub struct RunCommandParser;
 
 impl RunCommandParser {
     pub fn from_pairs(pairs: Pairs<'_, Rule>) -> AppResult<RunCommand> {
@@ -49,8 +84,12 @@ mod run_command_parser_tests {
     #[test]
     fn simple_run() {
         let input = "run";
-        let mut parser = PestParser::parse(Rule::run_instruction, input).unwrap();
-        let command = RunCommandParser::from_pairs(parser.next().unwrap().into_inner()).unwrap();
+        let pairs = PestParser::parse(Rule::run_instruction, input)
+            .unwrap()
+            .next()
+            .unwrap()
+            .into_inner();
+        let command = RunCommandParser::from_pairs(pairs).unwrap();
 
         assert!(matches!(command.stop_condition, BooleanExpression::Value(v) if !v));
         assert!(command.start_address.is_none());
@@ -140,6 +179,9 @@ impl CliCommandParser {
                 let marker = pair.into_inner().next().unwrap().as_str();
                 CliCommand::Marker(marker.to_owned())
             }
+            Rule::registers_instruction => {
+                CliCommand::Registers(RegisterCommandParser::from_pairs(pair.into_inner())?)
+            }
             _ => {
                 panic!(
                     "'{}' was not expected here: 'register|memory|run|assert|reset instruction'.",
@@ -177,6 +219,16 @@ mod cli_command_parser_test {
         assert!(
             matches!(cli_command, CliCommand::Marker(comment) if comment == *"This is a comment.")
         );
+    }
+
+    #[test]
+    fn test_registers_cli_parser() {
+        let cli_command = CliCommandParser::from("registers flush").unwrap();
+
+        assert!(matches!(
+            cli_command,
+            CliCommand::Registers(RegisterCommand::Flush)
+        ));
     }
 }
 

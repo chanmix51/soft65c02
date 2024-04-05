@@ -12,6 +12,7 @@ pub enum CliCommand {
     Assert(AssertCommand),
     Marker(String),
     None,
+    Registers(RegisterCommand),
     Run(RunCommand),
 }
 
@@ -21,6 +22,7 @@ impl Command for CliCommand {
             Self::Assert(command) => command.execute(registers, memory),
             Self::Marker(comment) => Ok(vec![comment.to_owned()]),
             Self::None => Ok(Vec::new()),
+            Self::Registers(command) => command.execute(registers, memory),
             Self::Run(command) => command.execute(registers, memory),
         }
     }
@@ -71,6 +73,19 @@ impl Command for RunCommand {
         }
 
         Ok(loglines)
+    }
+}
+
+#[derive(Debug)]
+pub enum RegisterCommand {
+    Flush,
+}
+
+impl Command for RegisterCommand {
+    fn execute(&self, registers: &mut Registers, _memory: &mut Memory) -> AppResult<Vec<String>> {
+        registers.initialize(0x0000);
+
+        Ok(Vec::new())
     }
 }
 
@@ -170,5 +185,21 @@ mod run_command_tests {
         let loglines = command.execute(&mut registers, &mut memory).unwrap();
 
         assert_eq!(1, loglines.len());
+    }
+}
+
+#[cfg(test)]
+mod register_command_tests {
+    use super::*;
+
+    #[test]
+    fn test_show() {
+        let command = RegisterCommand::Flush;
+        let mut registers = Registers::new_initialized(0xffff);
+        let mut memory = Memory::new_with_ram();
+        let output = command.execute(&mut registers, &mut memory).unwrap();
+
+        assert_eq!(0, output.len());
+        assert_eq!(0x0000, registers.command_pointer);
     }
 }
