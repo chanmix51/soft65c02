@@ -25,7 +25,7 @@ impl AddressableIO for RAM {
         if location + data.len() > self.ram.len() {
             Err(MemoryError::WriteOverflow(data.len(), location))
         } else {
-            for (offset, value) in data.into_iter().enumerate() {
+            for (offset, value) in data.iter().enumerate() {
                 self.ram[location + offset] = *value;
             }
             Ok(())

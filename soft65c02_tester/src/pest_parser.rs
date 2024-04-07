@@ -24,6 +24,22 @@ impl MemoryCommandParser {
 
         let command = match pair.as_rule() {
             Rule::memory_flush => MemoryCommand::Flush,
+            Rule::memory_write => {
+                let mut pairs = pair.into_inner();
+                let address = parse_memory(
+                    &pairs
+                        .next()
+                        .expect("there shall be a memory address argument to memory write")
+                        .as_str()[3..],
+                )?;
+                let bytes = parse_bytes(
+                    pairs
+                        .next()
+                        .expect("There shall be some bytes to write to memory.")
+                        .as_str(),
+                )?;
+                MemoryCommand::Write { address, bytes }
+            }
             _ => {
                 panic!("Unexpected pair '{pair:?}'. memory_{{load,flush,write}} expected.");
             }
@@ -48,6 +64,21 @@ mod memory_command_parser_tests {
         let command = MemoryCommandParser::from_pairs(pairs).unwrap();
 
         assert!(matches!(command, MemoryCommand::Flush));
+    }
+
+    #[test]
+    fn test_memory_write() {
+        let input = "memory write #0x1234 0x(01,02,03)";
+        let pairs = PestParser::parse(Rule::memory_instruction, input)
+            .unwrap()
+            .next()
+            .unwrap()
+            .into_inner();
+        let command = MemoryCommandParser::from_pairs(pairs).unwrap();
+
+        assert!(
+            matches!(command, MemoryCommand::Write { address, bytes } if address == 0x1234 && bytes == vec![0x01, 0x02, 0x03])
+        );
     }
 }
 pub struct RegisterCommandParser;
@@ -278,6 +309,19 @@ mod cli_command_parser_test {
             CliCommand::Memory(MemoryCommand::Flush)
         ));
     }
+
+    #[test]
+    fn test_memory_write_parser() {
+        let cli_command = CliCommandParser::from("memory write #0x1234 0x(12,23,34,45)").unwrap();
+
+        assert!(matches!(
+            cli_command,
+            CliCommand::Memory(MemoryCommand::Write {
+                address,
+                bytes
+            }) if address == 0x1234 && bytes == vec![0x12, 0x23, 0x34, 0x45]
+        ));
+    }
 }
 
 fn parse_memory(addr: &str) -> AppResult<usize> {
@@ -360,10 +404,10 @@ fn parse_source_value(node: &Pair<Rule>) -> AppResult<Source> {
 }
 
 #[allow(dead_code)]
-fn parse_bytes(bytes: &str) -> Vec<u8> {
+fn parse_bytes(bytes: &str) -> AppResult<Vec<u8>> {
     bytes
         .split(',')
-        .map(|x| hex::decode(x.trim()).unwrap()[0])
+        .map(|x| hex::decode(x.trim()).map(|v| v[0]).map_err(|e| anyhow!(e)))
         .collect()
 }
 

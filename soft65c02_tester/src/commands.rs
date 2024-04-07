@@ -95,7 +95,7 @@ impl Command for RegisterCommand {
 pub enum MemoryCommand {
     Flush,
     Load(String),
-    Write { address: u16, bytes: Vec<u8> },
+    Write { address: usize, bytes: Vec<u8> },
 }
 
 impl Command for MemoryCommand {
@@ -108,12 +108,12 @@ impl Command for MemoryCommand {
             Self::Write { address, bytes } => match bytes.len() {
                 0 => vec!["nothing was written".to_string()],
                 1 => {
-                    memory.write(*address as usize, bytes)?;
+                    memory.write(*address, bytes)?;
                     vec!["1 byte written".to_string()]
                 }
-                _ => {
-                    memory.write(*address as usize, bytes)?;
-                    vec![format!("{} bytes written", bytes.len())]
+                n => {
+                    memory.write(*address, bytes)?;
+                    vec![format!("{n} bytes written")]
                 }
             },
             _ => todo!(),
