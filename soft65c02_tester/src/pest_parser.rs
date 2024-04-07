@@ -251,11 +251,11 @@ mod cli_command_parser_test {
     }
 
     #[test]
-    fn test_comment_cli_parser() {
-        let cli_command = CliCommandParser::from("marker $$This is a comment.$$").unwrap();
+    fn test_marker_cli_parser() {
+        let cli_command = CliCommandParser::from("marker $$This is a marker.$$").unwrap();
 
         assert!(
-            matches!(cli_command, CliCommand::Marker(comment) if comment == *"This is a comment.")
+            matches!(cli_command, CliCommand::Marker(comment) if comment == *"This is a marker.")
         );
     }
 

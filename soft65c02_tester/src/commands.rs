@@ -1,5 +1,5 @@
 use anyhow::anyhow;
-use soft65c02_lib::{execute_step, Memory, Registers};
+use soft65c02_lib::{execute_step, AddressableIO, Memory, Registers};
 
 use crate::{until_condition::BooleanExpression, AppResult};
 
@@ -95,17 +95,31 @@ impl Command for RegisterCommand {
 pub enum MemoryCommand {
     Flush,
     Load(String),
-    Write(Vec<u8>),
+    Write { address: u16, bytes: Vec<u8> },
 }
 
 impl Command for MemoryCommand {
     fn execute(&self, _registers: &mut Registers, memory: &mut Memory) -> AppResult<Vec<String>> {
-        match self {
-            Self::Flush => *memory = Memory::new_with_ram(),
+        let output = match self {
+            Self::Flush => {
+                *memory = Memory::new_with_ram();
+                Vec::new()
+            }
+            Self::Write { address, bytes } => match bytes.len() {
+                0 => vec!["nothing was written".to_string()],
+                1 => {
+                    memory.write(*address as usize, bytes)?;
+                    vec!["1 byte written".to_string()]
+                }
+                _ => {
+                    memory.write(*address as usize, bytes)?;
+                    vec![format!("{} bytes written", bytes.len())]
+                }
+            },
             _ => todo!(),
         };
 
-        Ok(vec![])
+        Ok(output)
     }
 }
 
@@ -240,6 +254,57 @@ mod memory_command_tests {
 
         assert_eq!(vec![0x00, 0x00, 0x00], memory.read(0x000, 3).unwrap());
         assert_eq!(0, output.len());
+    }
+
+    #[test]
+    fn test_write_command() {
+        let command = MemoryCommand::Write {
+            address: 0x1000,
+            bytes: vec![0x01, 0x02, 0x03],
+        };
+        let mut registers = Registers::new_initialized(0x0000);
+        let mut memory = Memory::new_with_ram();
+        let outputs = command.execute(&mut registers, &mut memory).unwrap();
+
+        assert_eq!("3 bytes written", (outputs[0]));
+        assert_eq!(
+            &[0x01, 0x02, 0x03],
+            memory.read(0x1000, 3).unwrap().as_slice()
+        );
+    }
+
+    #[test]
+    fn test_write_no_byte() {
+        let command = MemoryCommand::Write {
+            address: 0x1000,
+            bytes: Vec::new(),
+        };
+        let mut registers = Registers::new_initialized(0x0000);
+        let mut memory = Memory::new_with_ram();
+        let outputs = command.execute(&mut registers, &mut memory).unwrap();
+
+        assert_eq!("nothing was written", (outputs[0]));
+        assert_eq!(
+            &[0x00, 0x00, 0x00],
+            memory.read(0x1000, 3).unwrap().as_slice()
+        );
+    }
+
+    #[test]
+    fn test_write_one_byte() {
+        let command = MemoryCommand::Write {
+            address: 0x1000,
+            bytes: vec![0x01],
+        };
+        let mut registers = Registers::new_initialized(0x0000);
+        let mut memory = Memory::new_with_ram();
+        let outputs = command.execute(&mut registers, &mut memory).unwrap();
+
+        assert_eq!("1 byte written", (outputs[0]));
+        assert_eq!(
+            &[0x01, 0x00, 0x00],
+            memory.read(0x1000, 3).unwrap().as_slice()
+        );
     }
 }
 
