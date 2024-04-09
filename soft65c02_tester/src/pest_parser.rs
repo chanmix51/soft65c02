@@ -121,7 +121,7 @@ pub struct RunCommandParser;
 impl RunCommandParser {
     pub fn from_pairs(pairs: Pairs<'_, Rule>) -> AppResult<RunCommand> {
         let mut start_address = None;
-        let mut stop_condition = BooleanExpression::Value(false);
+        let mut stop_condition = BooleanExpression::Value(true);
 
         for pair in pairs {
             match pair.as_rule() {
@@ -157,7 +157,7 @@ mod run_command_parser_tests {
             .into_inner();
         let command = RunCommandParser::from_pairs(pairs).unwrap();
 
-        assert!(matches!(command.stop_condition, BooleanExpression::Value(v) if !v));
+        assert!(matches!(command.stop_condition, BooleanExpression::Value(v) if v));
         assert!(command.start_address.is_none());
     }
 
@@ -167,7 +167,7 @@ mod run_command_parser_tests {
         let mut parser = PestParser::parse(Rule::run_instruction, input).unwrap();
         let command = RunCommandParser::from_pairs(parser.next().unwrap().into_inner()).unwrap();
 
-        assert!(matches!(command.stop_condition, BooleanExpression::Value(v) if !v));
+        assert!(matches!(command.stop_condition, BooleanExpression::Value(v) if v));
         assert!(matches!(command.start_address, Some(addr) if addr == 0x1234));
     }
 
@@ -227,9 +227,22 @@ pub struct CliCommandParser;
 
 impl CliCommandParser {
     pub fn from(line: &str) -> AppResult<CliCommand> {
+        let line = line.trim();
+
+        if line.is_empty() {
+            return Ok(CliCommand::None);
+        }
+
         let pair = PestParser::parse(Rule::sentence, line)?
             .next()
-            .expect("There is only one sentence per input.")
+            .expect("There is only one sentence per input.");
+
+        // comments are ignored
+        if pair.as_rule() == Rule::EOI {
+            return Ok(CliCommand::None);
+        }
+
+        let pair = pair
             .into_inner()
             .next()
             .expect("There is only one instruction per sentence.");
@@ -266,6 +279,15 @@ impl CliCommandParser {
 #[cfg(test)]
 mod cli_command_parser_test {
     use super::*;
+
+    #[test]
+    fn test_empty_input() {
+        let cli_command = CliCommandParser::from("").unwrap();
+        assert!(matches!(cli_command, CliCommand::None));
+
+        let cli_command = CliCommandParser::from("      ").unwrap();
+        assert!(matches!(cli_command, CliCommand::None));
+    }
 
     #[test]
     fn test_run_cli_parser() {
@@ -321,6 +343,13 @@ mod cli_command_parser_test {
                 bytes
             }) if address == 0x1234 && bytes == vec![0x12, 0x23, 0x34, 0x45]
         ));
+    }
+
+    #[test]
+    fn test_code_comments() {
+        let cli_command = CliCommandParser::from("// This is a comment").unwrap();
+
+        assert!(matches!(cli_command, CliCommand::None));
     }
 }
 

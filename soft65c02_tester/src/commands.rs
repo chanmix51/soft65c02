@@ -1,10 +1,18 @@
-use anyhow::anyhow;
-use soft65c02_lib::{execute_step, AddressableIO, Memory, Registers};
+use soft65c02_lib::{execute_step, AddressableIO, LogLine, Memory, Registers};
 
 use crate::{until_condition::BooleanExpression, AppResult};
 
+#[derive(Debug)]
+pub enum OutputToken {
+    Assertion { success: bool, description: String },
+    Marker { description: String },
+    None,
+    Run { loglines: Vec<LogLine> },
+    Setup(Vec<String>),
+}
+
 pub trait Command {
-    fn execute(&self, registers: &mut Registers, memory: &mut Memory) -> AppResult<Vec<String>>;
+    fn execute(&self, registers: &mut Registers, memory: &mut Memory) -> AppResult<OutputToken>;
 }
 
 #[derive(Debug)]
@@ -18,12 +26,14 @@ pub enum CliCommand {
 }
 
 impl Command for CliCommand {
-    fn execute(&self, registers: &mut Registers, memory: &mut Memory) -> AppResult<Vec<String>> {
+    fn execute(&self, registers: &mut Registers, memory: &mut Memory) -> AppResult<OutputToken> {
         match self {
             Self::Assert(command) => command.execute(registers, memory),
-            Self::Marker(comment) => Ok(vec![comment.to_owned()]),
+            Self::Marker(comment) => Ok(OutputToken::Marker {
+                description: comment.to_owned(),
+            }),
             Self::Memory(command) => command.execute(registers, memory),
-            Self::None => Ok(Vec::new()),
+            Self::None => Ok(OutputToken::None),
             Self::Registers(command) => command.execute(registers, memory),
             Self::Run(command) => command.execute(registers, memory),
         }
@@ -37,12 +47,13 @@ pub struct AssertCommand {
 }
 
 impl Command for AssertCommand {
-    fn execute(&self, registers: &mut Registers, memory: &mut Memory) -> AppResult<Vec<String>> {
-        if self.condition.solve(registers, memory) {
-            Ok(vec![self.comment.clone()])
-        } else {
-            Err(anyhow!(self.comment.clone()))
-        }
+    fn execute(&self, registers: &mut Registers, memory: &mut Memory) -> AppResult<OutputToken> {
+        let token = OutputToken::Assertion {
+            success: self.condition.solve(registers, memory),
+            description: self.comment.to_owned(),
+        };
+
+        Ok(token)
     }
 }
 
@@ -53,20 +64,16 @@ pub struct RunCommand {
 }
 
 impl Command for RunCommand {
-    fn execute(&self, registers: &mut Registers, memory: &mut Memory) -> AppResult<Vec<String>> {
+    fn execute(&self, registers: &mut Registers, memory: &mut Memory) -> AppResult<OutputToken> {
         if let Some(addr) = self.start_address {
             registers.command_pointer = addr;
         }
 
-        let mut loglines: Vec<String> = Vec::new();
+        let mut loglines: Vec<LogLine> = Vec::new();
         let mut cp = registers.command_pointer;
 
         loop {
-            loglines.push(
-                execute_step(registers, memory)
-                    .map(|l| l.to_string())
-                    .map_err(|e| anyhow!(e))?,
-            );
+            loglines.push(execute_step(registers, memory)?);
 
             if registers.command_pointer == cp || self.stop_condition.solve(registers, memory) {
                 break;
@@ -74,7 +81,9 @@ impl Command for RunCommand {
             cp = registers.command_pointer;
         }
 
-        Ok(loglines)
+        let token = OutputToken::Run { loglines };
+
+        Ok(token)
     }
 }
 
@@ -84,10 +93,10 @@ pub enum RegisterCommand {
 }
 
 impl Command for RegisterCommand {
-    fn execute(&self, registers: &mut Registers, _memory: &mut Memory) -> AppResult<Vec<String>> {
+    fn execute(&self, registers: &mut Registers, _memory: &mut Memory) -> AppResult<OutputToken> {
         registers.initialize(0x0000);
 
-        Ok(Vec::new())
+        Ok(OutputToken::Setup(vec!["registers flushed".to_string()]))
     }
 }
 
@@ -99,7 +108,7 @@ pub enum MemoryCommand {
 }
 
 impl Command for MemoryCommand {
-    fn execute(&self, _registers: &mut Registers, memory: &mut Memory) -> AppResult<Vec<String>> {
+    fn execute(&self, _registers: &mut Registers, memory: &mut Memory) -> AppResult<OutputToken> {
         let output = match self {
             Self::Flush => {
                 *memory = Memory::new_with_ram();
@@ -119,7 +128,7 @@ impl Command for MemoryCommand {
             _ => todo!(),
         };
 
-        Ok(output)
+        Ok(OutputToken::Setup(output))
     }
 }
 
@@ -135,25 +144,27 @@ mod assert_command_tests {
         };
         let mut registers = Registers::new(0x0000);
         let mut memory = Memory::new_with_ram();
+        let token = command.execute(&mut registers, &mut memory).unwrap();
 
-        match command.execute(&mut registers, &mut memory) {
-            Ok(s) => assert_eq!("nice comment", s[0]),
-            Err(_) => panic!("This condition must be valid."),
-        };
+        assert!(
+            matches!(token, OutputToken::Assertion { success, description } if success && description == *"nice comment")
+        );
     }
 
     #[test]
     fn test_assert_command_fails() {
         let command = AssertCommand {
             condition: BooleanExpression::Value(false),
-            comment: "nice comment".to_string(),
+            comment: "failing assertion".to_string(),
         };
         let mut registers = Registers::new(0x0000);
         let mut memory = Memory::new_with_ram();
 
-        command
-            .execute(&mut registers, &mut memory)
-            .expect_err("This condition must fail.");
+        let token = command.execute(&mut registers, &mut memory).unwrap();
+
+        assert!(
+            matches!(token, OutputToken::Assertion { success, description } if ! success && description == *"failing assertion")
+        );
     }
 }
 
@@ -174,9 +185,9 @@ mod run_command_tests {
         let mut registers = Registers::new_initialized(0x1000);
         let mut memory = Memory::new_with_ram();
         memory.write(0x1000, &[0xa9, 0xc0]).unwrap(); // LDA #0xc0
-        let loglines = command.execute(&mut registers, &mut memory).unwrap();
+        let token = command.execute(&mut registers, &mut memory).unwrap();
 
-        assert_eq!(1, loglines.len());
+        assert!(matches!(token, OutputToken::Run { loglines } if loglines.len() == 1));
     }
 
     #[test]
@@ -188,9 +199,9 @@ mod run_command_tests {
         let mut registers = Registers::new_initialized(0x0000);
         let mut memory = Memory::new_with_ram();
         memory.write(0x1234, &[0xa9, 0xc0]).unwrap(); // LDA #0xc0
-        let loglines = command.execute(&mut registers, &mut memory).unwrap();
+        let token = command.execute(&mut registers, &mut memory).unwrap();
 
-        assert_eq!(1, loglines.len());
+        assert!(matches!(token, OutputToken::Run { loglines } if loglines.len() == 1));
     }
 
     #[test]
@@ -201,10 +212,10 @@ mod run_command_tests {
         };
         let mut registers = Registers::new_initialized(0x1000);
         let mut memory = Memory::new_with_ram();
-        //memory.write(0x1234, &[0xa9, 0xc0, 0xaa]).unwrap(); // LDA #0xc0; TXA
-        let loglines = command.execute(&mut registers, &mut memory).unwrap();
+        memory.write(0x1234, &[0xa9, 0xc0, 0xaa]).unwrap(); // LDA #0xc0; TXA
+        let token = command.execute(&mut registers, &mut memory).unwrap();
 
-        assert_eq!(2, loglines.len());
+        assert!(matches!(token, OutputToken::Run { loglines } if loglines.len() == 2));
     }
 
     #[test]
@@ -216,9 +227,9 @@ mod run_command_tests {
         let mut registers = Registers::new_initialized(0x1000);
         let mut memory = Memory::new_with_ram();
         memory.write(0x1000, &[0xd0, 0b11111110]).unwrap(); // BNE -1
-        let loglines = command.execute(&mut registers, &mut memory).unwrap();
+        let token = command.execute(&mut registers, &mut memory).unwrap();
 
-        assert_eq!(1, loglines.len());
+        assert!(matches!(token, OutputToken::Run { loglines } if loglines.len() == 1))
     }
 }
 
@@ -227,13 +238,13 @@ mod register_command_tests {
     use super::*;
 
     #[test]
-    fn test_show() {
+    fn test_flush() {
         let command = RegisterCommand::Flush;
         let mut registers = Registers::new_initialized(0xffff);
         let mut memory = Memory::new_with_ram();
-        let output = command.execute(&mut registers, &mut memory).unwrap();
+        let token = command.execute(&mut registers, &mut memory).unwrap();
 
-        assert_eq!(0, output.len());
+        assert!(matches!(token, OutputToken::Setup(s) if s[0] == *"registers flushed"));
         assert_eq!(0x0000, registers.command_pointer);
     }
 }
@@ -250,10 +261,10 @@ mod memory_command_tests {
         let mut registers = Registers::new_initialized(0x0000);
         let mut memory = Memory::new_with_ram();
         memory.write(0x0000, &[0x01, 0x02, 0x03]).unwrap();
-        let output = command.execute(&mut registers, &mut memory).unwrap();
+        let token = command.execute(&mut registers, &mut memory).unwrap();
 
         assert_eq!(vec![0x00, 0x00, 0x00], memory.read(0x000, 3).unwrap());
-        assert_eq!(0, output.len());
+        assert!(matches!(token, OutputToken::Setup(s) if s.len() == 0));
     }
 
     #[test]
@@ -264,9 +275,9 @@ mod memory_command_tests {
         };
         let mut registers = Registers::new_initialized(0x0000);
         let mut memory = Memory::new_with_ram();
-        let outputs = command.execute(&mut registers, &mut memory).unwrap();
+        let token = command.execute(&mut registers, &mut memory).unwrap();
 
-        assert_eq!("3 bytes written", (outputs[0]));
+        assert!(matches!(token, OutputToken::Setup(v) if v[0] == *"3 bytes written"));
         assert_eq!(
             &[0x01, 0x02, 0x03],
             memory.read(0x1000, 3).unwrap().as_slice()
@@ -281,9 +292,9 @@ mod memory_command_tests {
         };
         let mut registers = Registers::new_initialized(0x0000);
         let mut memory = Memory::new_with_ram();
-        let outputs = command.execute(&mut registers, &mut memory).unwrap();
+        let token = command.execute(&mut registers, &mut memory).unwrap();
 
-        assert_eq!("nothing was written", (outputs[0]));
+        assert!(matches!(token, OutputToken::Setup(s) if s[0] == *"nothing was written"));
         assert_eq!(
             &[0x00, 0x00, 0x00],
             memory.read(0x1000, 3).unwrap().as_slice()
@@ -298,9 +309,9 @@ mod memory_command_tests {
         };
         let mut registers = Registers::new_initialized(0x0000);
         let mut memory = Memory::new_with_ram();
-        let outputs = command.execute(&mut registers, &mut memory).unwrap();
+        let token = command.execute(&mut registers, &mut memory).unwrap();
 
-        assert_eq!("1 byte written", (outputs[0]));
+        assert!(matches!(token, OutputToken::Setup(s) if s[0] == *"1 byte written"));
         assert_eq!(
             &[0x01, 0x00, 0x00],
             memory.read(0x1000, 3).unwrap().as_slice()
@@ -319,12 +330,14 @@ mod cli_command_tests {
         let mut registers = Registers::new(0x0000);
         let mut memory = Memory::new_with_ram();
 
-        let output = CliCommandParser::from("assert #0x0000 = 0x00 $$The first byte is zero$$")
+        let token = CliCommandParser::from("assert #0x0000 = 0x00 $$The first byte is zero$$")
             .unwrap()
             .execute(&mut registers, &mut memory)
             .unwrap();
 
-        assert_eq!("The first byte is zero".to_string(), output[0]);
+        assert!(
+            matches!(token, OutputToken::Assertion { success, description } if success && description == *"The first byte is zero")
+        );
     }
 
     #[test]
@@ -332,28 +345,14 @@ mod cli_command_tests {
         let mut registers = Registers::new(0x0000);
         let mut memory = Memory::new_with_ram();
 
-        let output =
+        let token =
             CliCommandParser::from("assert #0x0000 = 0x01 $$The first byte is one, really?$$")
                 .unwrap()
                 .execute(&mut registers, &mut memory)
-                .unwrap_err();
+                .unwrap();
 
-        assert_eq!(
-            "The first byte is one, really?".to_string(),
-            output.to_string()
+        assert!(
+            matches!(token, OutputToken::Assertion { success, description } if !success && description == *"The first byte is one, really?")
         );
-    }
-
-    #[test]
-    fn test_register_flush() {
-        let mut registers = Registers::new(0x1234);
-        let mut memory = Memory::new_with_ram();
-
-        let output = CliCommandParser::from("registers flush")
-            .unwrap()
-            .execute(&mut registers, &mut memory)
-            .unwrap();
-
-        assert_eq!(0, output.len());
     }
 }
