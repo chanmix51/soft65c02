@@ -1,4 +1,7 @@
-use std::sync::mpsc::Sender;
+use std::{
+    io::{BufRead, Lines},
+    sync::mpsc::Sender,
+};
 
 use anyhow::anyhow;
 use soft65c02_lib::{Memory, Registers};
@@ -26,28 +29,71 @@ impl ExecutionRound {
     }
 }
 
+#[derive(Debug)]
+struct CommandIterator<B>
+where
+    B: BufRead,
+{
+    iterator: Lines<B>,
+}
+
+impl<B> CommandIterator<B>
+where
+    B: BufRead,
+{
+    pub fn new(iterator: Lines<B>) -> Self {
+        Self { iterator }
+    }
+}
+
+impl<B> Iterator for CommandIterator<B>
+where
+    B: BufRead,
+{
+    type Item = AppResult<CliCommand>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iterator.next().map(|result| {
+            result
+                .map_err(|e| anyhow!(e))
+                .and_then(|line| CliCommandParser::from(&line))
+        })
+    }
+}
+
+#[derive(Debug)]
+pub struct ExecutorConfiguration {
+    stop_on_failure: bool,
+}
+
+impl Default for ExecutorConfiguration {
+    fn default() -> Self {
+        Self {
+            stop_on_failure: true,
+        }
+    }
+}
+
 #[derive(Debug, Default)]
 pub struct Executor {
-    commands: Vec<CliCommand>,
+    configuration: ExecutorConfiguration,
 }
 
 impl Executor {
-    /// Constructor
-    pub fn new(lines: &[&str]) -> AppResult<Self> {
-        let commands: Vec<CliCommand> = lines
-            .iter()
-            .map(|line| CliCommandParser::from(line).map_err(|e| anyhow!(e)))
-            .collect::<AppResult<Vec<CliCommand>>>()?;
-
-        let myself = Self { commands };
-
-        Ok(myself)
+    pub fn new(configuration: ExecutorConfiguration) -> Self {
+        Self { configuration }
     }
 
-    pub fn run(self, sender: Sender<OutputToken>) -> AppResult<()> {
+    pub fn run<T: BufRead>(self, buffer: T, sender: Sender<OutputToken>) -> AppResult<()> {
         let mut round = ExecutionRound::default();
 
-        for command in self.commands {
+        for result in CommandIterator::new(buffer.lines()) {
+            let command = match result {
+                Err(e) if self.configuration.stop_on_failure => return Err(anyhow!(e)),
+                Err(_) => continue,
+                Ok(c) => c,
+            };
+
             if matches!(command, CliCommand::None) {
                 continue;
             }
@@ -72,18 +118,30 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_constructor_err() {
-        let lines = &["marker $$first thing$$", "azerty"];
-        let message = Executor::new(lines).unwrap_err().to_string();
+    fn test_halt_on_error() {
+        let configuration = ExecutorConfiguration::default();
+        let executor = Executor::new(configuration);
+        let buffer = "marker $$first thing$$\nazerty".as_bytes();
+        let (sender, _receiver) = channel::<OutputToken>();
 
-        assert!(message.contains("azerty"));
+        let error = executor.run(buffer, sender).unwrap_err();
+
+        assert!(error.to_string().contains("azerty"));
     }
 
     #[test]
-    fn test_constructor_ok() {
-        let lines = &["marker $$first thing$$", "registers flush"];
+    fn test_on_error_continue() {
+        let configuration = ExecutorConfiguration {
+            stop_on_failure: false,
+        };
+        let executor = Executor::new(configuration);
+        let buffer =
+            "marker $$first thing$$\nazerty\nassert A=0x00 $$accumulator is zero$$".as_bytes();
+        let (sender, receiver) = channel::<OutputToken>();
 
-        let _executor = Executor::new(lines).unwrap();
+        executor.run(buffer, sender).unwrap();
+
+        assert_eq!(2, receiver.iter().count());
     }
 
     #[test]
@@ -92,10 +150,12 @@ mod tests {
             "memory write #0x0800 0x(a9,c0)", // LDA $c0
             "run #0x0800",
             "assert A=0xc0 $$accumulator is loaded$$",
-        ];
+        ]
+        .join("\n");
         let (sender, receiver) = channel::<OutputToken>();
-        let executor = Executor::new(lines).unwrap();
-        executor.run(sender).unwrap();
+        let executor = Executor::new(ExecutorConfiguration::default());
+
+        executor.run(lines.as_bytes(), sender).unwrap();
 
         let output = receiver.recv().unwrap();
         assert!(matches!(output, OutputToken::Setup(_)));
@@ -118,10 +178,11 @@ mod tests {
             "memory write #0x0800 0x(a9,c0)", // LDA $c0
             "run #0x0800",
             "assert A=0xc0 $$accumulator is loaded$$",
-        ];
+        ]
+        .join("\n");
         let (sender, receiver) = channel::<OutputToken>();
-        let executor = Executor::new(lines).unwrap();
-        executor.run(sender).unwrap();
+        let executor = Executor::new(ExecutorConfiguration::default());
+        executor.run(lines.as_bytes(), sender).unwrap();
 
         let output = receiver.recv().unwrap();
         assert!(
@@ -150,11 +211,34 @@ mod tests {
             "run #0x0800",
             "   ",
             "assert A=0xc0 $$accumulator is loaded$$",
-        ];
+        ]
+        .join("\n");
         let (sender, receiver) = channel::<OutputToken>();
-        let executor = Executor::new(lines).unwrap();
-        executor.run(sender).unwrap();
+        let executor = Executor::new(ExecutorConfiguration::default());
+
+        executor.run(lines.as_bytes(), sender).unwrap();
 
         assert_eq!(3, receiver.iter().count());
+    }
+
+    #[test]
+    fn test_several_plans() {
+        let lines = &[
+            "memory write #0x0800 0x(a9,c0)", // LDA $c0
+            "assert A=0xc0 $$accumulator is loaded$$",
+            "marker $$second test plan$$",
+            "assert A=0x00 $$accumulator is zero$$",
+        ]
+        .join("\n");
+        let (sender, receiver) = channel::<OutputToken>();
+        let executor = Executor::new(ExecutorConfiguration::default());
+
+        executor.run(lines.as_bytes(), sender).unwrap();
+
+        let output = receiver.iter().nth(3).expect("there shall be a 4th output");
+
+        assert!(
+            matches!(output, OutputToken::Assertion { success, description } if success && description.contains("zero"))
+        );
     }
 }

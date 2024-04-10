@@ -23,8 +23,7 @@ assert A=0xc0 $$accumulator is loaded$$
 run until CP=0x080A
 run
 assert CP=0x080C $$command pointer points at EOP$$"#;
-    let lines: Vec<&str> = script.split('\n').collect();
-    let executor = Executor::new(&lines).unwrap();
+    let executor = Executor::default();
     let (sender, receiver) = channel::<OutputToken>();
     let handler = spawn(move || {
         let mut i: u32 = 0;
@@ -48,6 +47,6 @@ assert CP=0x080C $$command pointer points at EOP$$"#;
             }
         }
     });
-    executor.run(sender).unwrap();
+    executor.run(script.as_bytes(), sender).unwrap();
     handler.join().unwrap();
 }
