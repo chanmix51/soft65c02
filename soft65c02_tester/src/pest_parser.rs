@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use anyhow::anyhow;
 use pest::{
     iterators::{Pair, Pairs},
@@ -40,6 +42,22 @@ impl MemoryCommandParser {
                 )?;
                 MemoryCommand::Write { address, bytes }
             }
+            Rule::memory_load => {
+                let mut pairs = pair.into_inner();
+                let address = parse_memory(
+                    &pairs
+                        .next()
+                        .expect("there shall be a memory address argument to memory load")
+                        .as_str()[3..],
+                )?;
+                let filename = pairs
+                    .next()
+                    .expect("there shall be a filename argumentto memory load")
+                    .as_str();
+                let filepath = PathBuf::from(&filename[1..filename.len() - 1]);
+
+                MemoryCommand::Load { address, filepath }
+            }
             _ => {
                 panic!("Unexpected pair '{pair:?}'. memory_{{load,flush,write}} expected.");
             }
@@ -78,6 +96,21 @@ mod memory_command_parser_tests {
 
         assert!(
             matches!(command, MemoryCommand::Write { address, bytes } if address == 0x1234 && bytes == vec![0x01, 0x02, 0x03])
+        );
+    }
+
+    #[test]
+    fn test_memory_load() {
+        let input = "memory load #0x1000 \"script.txt\"";
+        let pairs = PestParser::parse(Rule::memory_instruction, input)
+            .unwrap()
+            .next()
+            .unwrap()
+            .into_inner();
+        let command = MemoryCommandParser::from_pairs(pairs).unwrap();
+
+        assert!(
+            matches!(command, MemoryCommand::Load { address, filepath } if address == 0x1000 && filepath == PathBuf::from("script.txt"))
         );
     }
 }
@@ -342,6 +375,19 @@ mod cli_command_parser_test {
                 address,
                 bytes
             }) if address == 0x1234 && bytes == vec![0x12, 0x23, 0x34, 0x45]
+        ));
+    }
+
+    #[test]
+    fn test_memory_load_parser() {
+        let cli_command = CliCommandParser::from("memory load #0x1234 \"file.test\"").unwrap();
+
+        assert!(matches!(
+            cli_command,
+            CliCommand::Memory(MemoryCommand::Load {
+                address,
+                filepath
+            }) if address == 0x1234 && filepath == PathBuf::from("file.test")
         ));
     }
 

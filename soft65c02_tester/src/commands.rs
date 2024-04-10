@@ -1,3 +1,5 @@
+use std::{fs::File, io::Read, path::PathBuf};
+
 use soft65c02_lib::{execute_step, AddressableIO, LogLine, Memory, Registers};
 
 use crate::{until_condition::BooleanExpression, AppResult};
@@ -103,7 +105,7 @@ impl Command for RegisterCommand {
 #[derive(Debug)]
 pub enum MemoryCommand {
     Flush,
-    Load(String),
+    Load { address: usize, filepath: PathBuf },
     Write { address: usize, bytes: Vec<u8> },
 }
 
@@ -125,7 +127,23 @@ impl Command for MemoryCommand {
                     vec![format!("{n} bytes written")]
                 }
             },
-            _ => todo!(),
+            Self::Load { address, filepath } => {
+                let vec = {
+                    let mut f = File::open(filepath)?;
+                    let mut buffer: Vec<u8> = vec![];
+                    f.read_to_end(&mut buffer)?;
+
+                    buffer
+                };
+                let buffer = vec;
+                memory.write(*address, &buffer).unwrap();
+
+                vec![format!(
+                    "{} bytes loaded from '{}' at #0x{address:04X}.",
+                    buffer.len(),
+                    filepath.display()
+                )]
+            }
         };
 
         Ok(OutputToken::Setup(output))
@@ -316,6 +334,21 @@ mod memory_command_tests {
             &[0x01, 0x00, 0x00],
             memory.read(0x1000, 3).unwrap().as_slice()
         );
+    }
+
+    #[test]
+    fn test_load() {
+        let filepath = PathBuf::new().join("../Cargo.toml");
+        let command = MemoryCommand::Load {
+            address: 0x1000,
+            filepath,
+        };
+        let mut registers = Registers::new_initialized(0x0000);
+        let mut memory = Memory::new_with_ram();
+        let token = command.execute(&mut registers, &mut memory).unwrap();
+
+        let expected = "bytes loaded from '../Cargo.toml' at #0x1000.".to_owned();
+        assert!(matches!(token, OutputToken::Setup(s) if s[0].contains(&expected)));
     }
 }
 
