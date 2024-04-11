@@ -9,7 +9,7 @@ use pest_derive::Parser;
 
 use crate::{
     commands::*,
-    until_condition::{BooleanExpression, Source},
+    until_condition::{BooleanExpression, RegisterSource, Source},
     AppResult,
 };
 
@@ -178,6 +178,8 @@ impl RunCommandParser {
 
 #[cfg(test)]
 mod run_command_parser_tests {
+    use crate::until_condition::RegisterSource;
+
     use super::*;
 
     #[test]
@@ -211,7 +213,7 @@ mod run_command_parser_tests {
         let command = RunCommandParser::from_pairs(parser.next().unwrap().into_inner()).unwrap();
 
         if let BooleanExpression::StrictlyGreater(lt, rt) = command.stop_condition {
-            assert!(matches!(lt, Source::Accumulator));
+            assert!(matches!(lt, Source::Register(RegisterSource::Accumulator)));
             assert!(matches!(rt, Source::Value(data) if data == 0x12));
         } else {
             panic!(
@@ -418,14 +420,14 @@ pub fn parse_boolean_condition(mut nodes: Pairs<Rule>) -> AppResult<BooleanExpre
     let node = nodes.next().unwrap();
     let expression = match node.as_rule() {
         Rule::boolean => BooleanExpression::Value(node.as_str() == "true"),
-        Rule::operation => parse_operation(node.into_inner())?,
+        Rule::comparison => parse_comparison(node.into_inner())?,
         smt => panic!("unknown node type '{smt:?}'. Is the Pest grammar up to date?"),
     };
 
     Ok(expression)
 }
 
-fn parse_operation(mut nodes: Pairs<Rule>) -> AppResult<BooleanExpression> {
+fn parse_comparison(mut nodes: Pairs<Rule>) -> AppResult<BooleanExpression> {
     let node = nodes.next().unwrap();
     let lh = match node.as_rule() {
         Rule::register8 | Rule::register16 => parse_source_register(&node),
@@ -456,12 +458,12 @@ fn parse_operation(mut nodes: Pairs<Rule>) -> AppResult<BooleanExpression> {
 
 fn parse_source_register(node: &Pair<Rule>) -> Source {
     match node.as_str() {
-        "A" => Source::Accumulator,
-        "X" => Source::RegisterX,
-        "Y" => Source::RegisterY,
-        "S" => Source::RegisterS,
-        "SP" => Source::RegisterSP,
-        "CP" => Source::RegisterCP,
+        "A" => Source::Register(RegisterSource::Accumulator),
+        "X" => Source::Register(RegisterSource::RegisterX),
+        "Y" => Source::Register(RegisterSource::RegisterY),
+        "S" => Source::Register(RegisterSource::Status),
+        "SP" => Source::Register(RegisterSource::StackPointer),
+        "CP" => Source::Register(RegisterSource::CommandPointer),
         v => panic!("unknown register type '{:?}'.", v),
     }
 }
@@ -502,7 +504,10 @@ mod tests {
 
         assert!(matches!(
             output,
-            BooleanExpression::Different(Source::Accumulator, Source::Value(0xff))
+            BooleanExpression::Different(
+                Source::Register(RegisterSource::Accumulator),
+                Source::Value(0xff)
+            )
         ));
     }
 

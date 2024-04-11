@@ -5,50 +5,38 @@ sentence = _{ SOI ~ instruction | COMMENT ~ EOI }
 instruction = { registers_instruction |
     memory_instruction |
     run_instruction |
-    disassemble_instruction |
     assert_instruction |
-    reset_instruction |
     marker }
 
 marker = {^"marker" ~ "$$" ~ description ~ "$$" }
 
-reset_instruction = { ^"reset" ~  reset_memory_target | reset_registers_target | reset_all_target  }
-reset_memory_target = { ^"memory" }
-reset_registers_target = { ^"registers" }
-reset_all_target = { ^"all" }
-
 registers_instruction = { ^"registers" ~ registers_action }
-registers_action = _{ registers_show | registers_flush }
+registers_action = _{ registers_set | registers_flush }
 registers_flush = { ^"flush" }
-registers_show = { ^"show" }
+registers_set = { ^"set" ~ register_assignment }
+
+register_assignment = { assignment8 | assignment16 }
+
+assignment8 = _{ register8 ~ "=" ~ value8 }
+assignment16 = _{ register16 ~ "=" ~ value16 }
 
 memory_instruction = { ^"memory" ~ memory_action }
-memory_action = _{ memory_show | memory_load | memory_write | memory_flush | ^"sub " ~ memory_sub_action }
+memory_action = _{ memory_load | memory_write | memory_flush }
 memory_flush = { ^"flush" }
-memory_show = { ^"show" ~ memory_address ~ size_parameter }
 memory_load = { ^"load" ~ memory_address ~ filename }
 memory_write = { ^"write" ~ memory_address ~ ^"0x(" ~ bytes ~ ")" }
-
-memory_sub_action = _{ memory_sub_list | memory_sub_add }
-memory_sub_list = { ^"list" }
-memory_sub_add = { ^"add" ~  memory_address ~ memory_sub_name }
-memory_sub_name = { ASCII_ALPHANUMERIC+ }
 
 run_instruction = { ^"run" ~ (memory_address)? ~ (run_until_condition)?  }
 run_until_condition = { ^"until" ~ boolean_condition }
 
-disassemble_instruction = {
-    ^"disassemble" ~ memory_address ~ size_parameter
-    | ^"disassemble" ~ size_parameter }
-
 assert_instruction = { ^"assert" ~ boolean_condition ~ "$$" ~ description ~ "$$"}
 
-boolean_condition = { boolean | operation }
+boolean_condition = { boolean | comparison }
 
 boolean = { ^"true" | ^"false" }
-operation = { operation16 | operation8 }
-operation16 = _{ location16 ~ operator ~ value16 }
-operation8 = _{ location8 ~ operator ~ value8 }
+comparison = { comparison16 | comparison8 }
+comparison16 = _{ location16 ~ comparison_operator ~ value16 }
+comparison8 = _{ location8 ~ comparison_operator ~ value8 }
 
 location16 = _{ register16 }
 location8 = _{ memory_address | register8 }
@@ -61,7 +49,7 @@ value8 = { "0x" ~ ASCII_HEX_DIGIT{2} | "0b" ~ ASCII_BIN_DIGIT{8} }
 bytes = @{ ASCII_HEX_DIGIT{2} ~ ("," ~ ASCII_HEX_DIGIT{2})* }
 size_parameter = { ASCII_DIGIT+ }
 
-operator = { ">=" | "<=" | "!=" | "=" | ">" | "<" }
+comparison_operator = { ">=" | "<=" | "!=" | "=" | ">" | "<" }
 filename = { "\"" ~ filechar+ ~ "\"" }
 filechar = _{ ASCII_ALPHANUMERIC | "." | "_" | "/" }
 description = { ((!"$$") ~ ANY)* }

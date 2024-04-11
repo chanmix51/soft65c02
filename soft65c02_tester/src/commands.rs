@@ -2,7 +2,10 @@ use std::{fs::File, io::Read, path::PathBuf};
 
 use soft65c02_lib::{execute_step, AddressableIO, LogLine, Memory, Registers};
 
-use crate::{until_condition::BooleanExpression, AppResult};
+use crate::{
+    until_condition::{Assignment, BooleanExpression},
+    AppResult,
+};
 
 #[derive(Debug)]
 pub enum OutputToken {
@@ -92,13 +95,23 @@ impl Command for RunCommand {
 #[derive(Debug)]
 pub enum RegisterCommand {
     Flush,
+    Set { assignment: Assignment },
 }
 
 impl Command for RegisterCommand {
-    fn execute(&self, registers: &mut Registers, _memory: &mut Memory) -> AppResult<OutputToken> {
-        registers.initialize(0x0000);
+    fn execute(&self, registers: &mut Registers, memory: &mut Memory) -> AppResult<OutputToken> {
+        let outputs = match self {
+            Self::Flush => {
+                registers.initialize(0x0000);
 
-        Ok(OutputToken::Setup(vec!["registers flushed".to_string()]))
+                vec!["registers flushed".to_string()]
+            }
+            Self::Set { assignment } => assignment.execute(registers, memory)?,
+        };
+
+        let token = OutputToken::Setup(outputs);
+
+        Ok(token)
     }
 }
 
@@ -190,7 +203,7 @@ mod assert_command_tests {
 mod run_command_tests {
     use soft65c02_lib::AddressableIO;
 
-    use crate::until_condition::Source;
+    use crate::until_condition::{RegisterSource, Source};
 
     use super::*;
 
@@ -225,7 +238,10 @@ mod run_command_tests {
     #[test]
     fn run_with_condition() {
         let command = RunCommand {
-            stop_condition: BooleanExpression::StrictlyGreater(Source::RegisterX, Source::Value(0)),
+            stop_condition: BooleanExpression::StrictlyGreater(
+                Source::Register(RegisterSource::RegisterX),
+                Source::Value(0),
+            ),
             start_address: Some(0x1234),
         };
         let mut registers = Registers::new_initialized(0x1000);
@@ -253,6 +269,8 @@ mod run_command_tests {
 
 #[cfg(test)]
 mod register_command_tests {
+    use crate::until_condition::{RegisterSource, Source};
+
     use super::*;
 
     #[test]
@@ -264,6 +282,20 @@ mod register_command_tests {
 
         assert!(matches!(token, OutputToken::Setup(s) if s[0] == *"registers flushed"));
         assert_eq!(0x0000, registers.command_pointer);
+    }
+
+    #[test]
+    fn test_set() {
+        let command = RegisterCommand::Set {
+            assignment: Assignment::new(Source::Value(0xff), RegisterSource::RegisterX),
+        };
+        let mut registers = Registers::new_initialized(0xffff);
+        let mut memory = Memory::new_with_ram();
+        let token = command.execute(&mut registers, &mut memory).unwrap();
+
+        eprintln!("token => {token:?}");
+        assert!(matches!(token, OutputToken::Setup(s) if s[0] == *"register X set to 0xff"));
+        assert_eq!(0xff, registers.register_x);
     }
 }
 
@@ -282,7 +314,7 @@ mod memory_command_tests {
         let token = command.execute(&mut registers, &mut memory).unwrap();
 
         assert_eq!(vec![0x00, 0x00, 0x00], memory.read(0x000, 3).unwrap());
-        assert!(matches!(token, OutputToken::Setup(s) if s.len() == 0));
+        assert!(matches!(token, OutputToken::Setup(s) if s.is_empty()));
     }
 
     #[test]
@@ -349,43 +381,5 @@ mod memory_command_tests {
 
         let expected = "bytes loaded from '../Cargo.toml' at #0x1000.".to_owned();
         assert!(matches!(token, OutputToken::Setup(s) if s[0].contains(&expected)));
-    }
-}
-
-#[cfg(test)]
-mod cli_command_tests {
-    use crate::CliCommandParser;
-
-    use super::*;
-
-    #[test]
-    fn test_assertion() {
-        let mut registers = Registers::new(0x0000);
-        let mut memory = Memory::new_with_ram();
-
-        let token = CliCommandParser::from("assert #0x0000 = 0x00 $$The first byte is zero$$")
-            .unwrap()
-            .execute(&mut registers, &mut memory)
-            .unwrap();
-
-        assert!(
-            matches!(token, OutputToken::Assertion { success, description } if success && description == *"The first byte is zero")
-        );
-    }
-
-    #[test]
-    fn test_bad_assertion() {
-        let mut registers = Registers::new(0x0000);
-        let mut memory = Memory::new_with_ram();
-
-        let token =
-            CliCommandParser::from("assert #0x0000 = 0x01 $$The first byte is one, really?$$")
-                .unwrap()
-                .execute(&mut registers, &mut memory)
-                .unwrap();
-
-        assert!(
-            matches!(token, OutputToken::Assertion { success, description } if !success && description == *"The first byte is one, really?")
-        );
     }
 }
