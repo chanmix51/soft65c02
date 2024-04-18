@@ -9,7 +9,7 @@ use pest_derive::Parser;
 
 use crate::{
     commands::*,
-    until_condition::{BooleanExpression, RegisterSource, Source},
+    until_condition::{Assignment, BooleanExpression, RegisterSource, Source},
     AppResult,
 };
 
@@ -123,12 +123,55 @@ impl RegisterCommandParser {
 
         let command = match pair.as_rule() {
             Rule::registers_flush => RegisterCommand::Flush,
+            Rule::registers_set => Self::parse_register_set(pair.into_inner())?,
             _ => {
                 panic!("Unexpected rule '{}', register rule was expected.", pair);
             }
         };
 
         Ok(command)
+    }
+
+    fn parse_register_set(pairs: Pairs<'_, Rule>) -> AppResult<RegisterCommand> {
+        let mut pairs = pairs;
+        let assignment = pairs.next().unwrap();
+        let mut assignment = assignment.into_inner();
+        let destination_node = assignment
+            .next()
+            .ok_or_else(|| anyhow!("expected a destination for register assignment"))?;
+        let destination = match destination_node.as_rule() {
+            Rule::register8 => match destination_node.as_str() {
+                "A" => RegisterSource::Accumulator,
+                "X" => RegisterSource::RegisterX,
+                "Y" => RegisterSource::RegisterY,
+                "S" => RegisterSource::Status,
+                "SP" => RegisterSource::StackPointer,
+                "CP" => RegisterSource::CommandPointer,
+                v => panic!("unknown destination register type '{:?}'.", v),
+            },
+            v => panic!("unexpected node '{:?}' here.", v),
+        };
+        let source_node = assignment.next().unwrap();
+        let source = match source_node.as_rule() {
+            Rule::register8 => match source_node.as_str() {
+                "A" => Source::Register(RegisterSource::Accumulator),
+                "X" => Source::Register(RegisterSource::RegisterX),
+                "Y" => Source::Register(RegisterSource::RegisterY),
+                "S" => Source::Register(RegisterSource::Status),
+                "SP" => Source::Register(RegisterSource::StackPointer),
+                "CP" => Source::Register(RegisterSource::CommandPointer),
+                v => panic!("unknown source register type '{:?}'.", v),
+            },
+            Rule::value8 => parse_source_value(&source_node)?,
+            v => panic!("unexpected node '{:?}' here.", v),
+        };
+
+        Ok(RegisterCommand::Set {
+            assignment: Assignment {
+                destination,
+                source,
+            },
+        })
     }
 }
 
@@ -137,7 +180,7 @@ mod register_parser_tests {
     use super::*;
 
     #[test]
-    fn test_register_flush() {
+    fn test_registers_flush() {
         let input = "registers flush";
         let pairs = PestParser::parse(Rule::registers_instruction, input)
             .unwrap()
@@ -147,6 +190,24 @@ mod register_parser_tests {
         let command = RegisterCommandParser::from_pairs(pairs).unwrap();
 
         assert!(matches!(command, RegisterCommand::Flush));
+    }
+
+    #[test]
+    fn test_registers_set_value() {
+        let input = "registers set A=0xc0";
+        let pairs = PestParser::parse(Rule::registers_instruction, input)
+            .unwrap()
+            .next()
+            .unwrap()
+            .into_inner();
+        let command = RegisterCommandParser::from_pairs(pairs).unwrap();
+
+        assert!(matches!(
+        command,
+        RegisterCommand::Set {assignment}
+        if matches!(assignment.destination, RegisterSource::Accumulator)
+            && matches!(assignment.source, Source::Value(d) if d == 0xc0)
+        ));
     }
 }
 pub struct RunCommandParser;

@@ -1,4 +1,4 @@
-use std::{sync::mpsc::channel, thread::spawn};
+use std::{io::Cursor, sync::mpsc::channel};
 
 use soft65c02_tester::{Executor, OutputToken};
 
@@ -18,35 +18,48 @@ memory write #0xfffc 0x(00,08)
 memory write #0xfffe 0x(00,80)
 
 // test
-run #0x1000 until CP=0x8000
+run init until CP=0x8000
 assert A=0xc0 $$accumulator is loaded$$
 run until CP=0x080A
 run
 assert CP=0x080C $$command pointer points at EOP$$"#;
     let executor = Executor::default();
     let (sender, receiver) = channel::<OutputToken>();
-    let handler = spawn(move || {
-        let mut i: u32 = 0;
+    executor.run(Cursor::new(script), sender).unwrap();
 
-        while let Ok(token) = receiver.recv() {
-            match token {
-                OutputToken::Assertion {
-                    success,
-                    description,
-                } => {
-                    i += 1;
-                    println!(
-                        "{i:02} → {description} {}",
-                        if success { "✅" } else { "❌" }
-                    );
-                }
-                OutputToken::Marker { description } => {
-                    println!("♯ {description}")
-                }
-                _ => {}
-            }
-        }
-    });
-    executor.run(script.as_bytes(), sender).unwrap();
-    handler.join().unwrap();
+    let token = receiver.recv().unwrap();
+    assert!(matches!(
+        token,
+        OutputToken::Marker {
+            description } if description == *"first test"
+    ));
+    let token = receiver.recv().unwrap();
+    assert!(matches!(
+        token,
+        OutputToken::Setup(lines) if lines == vec!["13 bytes written"]
+    ));
+    let token = receiver.recv().unwrap();
+    assert!(matches!(
+        token,
+        OutputToken::Setup(lines) if lines == vec!["3 bytes written"]
+    ));
+    let token = receiver.recv().unwrap();
+    assert!(matches!(
+        token,
+        OutputToken::Setup(lines) if lines == vec!["2 bytes written"]
+    ));
+    let token = receiver.recv().unwrap();
+    assert!(matches!(
+        token,
+        OutputToken::Setup(lines) if lines == vec!["2 bytes written"]
+    ));
+    let token = receiver.recv().unwrap();
+    assert!(matches!(token, OutputToken::Run { loglines: _logs }));
+    let token = receiver.recv().unwrap();
+
+    assert!(
+        matches!(token, OutputToken::Assertion { success, description } if !success && description == *"accumulator is loaded")
+    );
+
+    let _ = receiver.recv().unwrap_err();
 }
