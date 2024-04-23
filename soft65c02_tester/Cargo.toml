@@ -1,6 +1,6 @@
 [package]
 name = "soft65c02_tester"
-version = "0.1.0"
+version = "0.2.0"
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
