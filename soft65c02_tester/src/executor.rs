@@ -65,10 +65,10 @@ where
 #[derive(Debug)]
 pub struct ExecutorConfiguration {
     /// If true, the executor stops when a command cannot be parsed.
-    stop_on_parse_error: bool,
+    pub stop_on_parse_error: bool,
 
     /// If true, the executor stops when an assertion fails.
-    stop_on_failed_assertion: bool,
+    pub stop_on_failed_assertion: bool,
 }
 
 impl Default for ExecutorConfiguration {
@@ -110,14 +110,14 @@ impl Executor {
             }
             let (registers, memory) = round.get_mut();
             let token = command.execute(registers, memory)?;
-            eprintln!("{:?}", token);
 
             if matches!(token, OutputToken::Marker { description: _ }) {
                 round = ExecutionRound::default();
             } else if matches!(token, OutputToken::Assertion { success, description: _ } if self.configuration.stop_on_failed_assertion && !success)
             {
                 sender.send(token)?;
-                return Ok(());
+
+                return Err(anyhow!("Assertion failed"));
             }
 
             sender.send(token)?;

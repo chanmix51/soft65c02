@@ -1,0 +1,26 @@
+marker $$first test plan$$
+// 0x0800: LDA #$c0
+// 0x0802: TAX
+// 0x0803: INX
+// 0x0804: ADC #$14
+// 0x0806: DEC A
+// 0x0807: CMP #$20, X
+// 0x0809: BNE $08O2
+// 0x080A: STP
+memory write #0x0800 0x(a9,c0,aa,e8,69,14,3a,d5,20,d0,f7,db)
+// will compare A against this zero-page memory value
+memory write #0x00f4 0x(e7)
+
+run #0x0800 until X>0x00
+assert X=0xc0 $$X got loaded from A$$
+assert CP=0x0803 $$program goes on$$
+run until CP=0x0809
+assert X!=0xf4 $$X should be no 0xf4 at this point$$
+run
+assert CP=0x0802 $$BNE should branch to #0x0802$$
+run
+assert X=0xd3 $$accumulator got transfered to X$$
+run until X>0xd0
+run until CP=0x0809
+run
+assert CP=0x080B $$BNE should branch to #0x080B now$$

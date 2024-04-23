@@ -26,7 +26,7 @@ where
 
 impl<T> Displayer for CliDisplayer<T>
 where
-    T: Write,
+    T: Write + Sync + Send,
 {
     fn display(&mut self, receiver: Receiver<OutputToken>) -> AppResult<()> {
         let mut i: u32 = 0;
@@ -40,7 +40,7 @@ where
                     i += 1;
                     self.output.write_all(
                         format!(
-                            "{i:02} → {description} {}\n",
+                            "⚡ {i:02} → {description} {}\n",
                             if success { "✅" } else { "❌" }
                         )
                         .as_bytes(),
@@ -48,19 +48,20 @@ where
                 }
                 OutputToken::Marker { description } => {
                     self.output
-                        .write_all(format!("♯ {description}\n").as_bytes())?;
+                        .write_all(format!("📄 {description}\n").as_bytes())?;
                 }
                 OutputToken::Run { loglines } if self.verbose => {
                     let mut content = loglines
                         .iter()
-                        .map(|l| format!("⚡ {l}"))
+                        .map(|l| format!("🚀 {l}"))
                         .collect::<Vec<_>>()
                         .join("\n");
                     content.push('\n');
                     self.output.write_all(content.as_bytes())?;
                 }
-                OutputToken::Setup(_lines) if self.verbose => {
-                    todo!()
+                OutputToken::Setup(lines) if self.verbose => {
+                    self.output
+                        .write_all(format!("🔧 Setup: {}\n", lines[0]).as_bytes())?;
                 }
                 _ => (),
             }
