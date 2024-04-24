@@ -17,8 +17,8 @@ pub fn txs(
         cpu_instruction,
         resolution,
         format!(
-            "[X=0x{:02x}][S={}]",
-            registers.register_x,
+            "[SP=0x{:02x}][S={}]",
+            registers.stack_pointer,
             registers.format_status()
         ),
     ))

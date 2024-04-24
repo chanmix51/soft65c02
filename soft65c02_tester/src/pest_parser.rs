@@ -147,7 +147,11 @@ impl RegisterCommandParser {
                 "S" => RegisterSource::Status,
                 "SP" => RegisterSource::StackPointer,
                 "CP" => RegisterSource::CommandPointer,
-                v => panic!("unknown destination register type '{:?}'.", v),
+                v => panic!("unknown destination 8 bits register type '{:?}'.", v),
+            },
+            Rule::register16 => match destination_node.as_str() {
+                "CP" => RegisterSource::CommandPointer,
+                v => panic!("unknown destination 16 bits register type '{:?}'.", v),
             },
             v => panic!("unexpected node '{:?}' here.", v),
         };
@@ -163,6 +167,7 @@ impl RegisterCommandParser {
                 v => panic!("unknown source register type '{:?}'.", v),
             },
             Rule::value8 => parse_source_value(&source_node)?,
+            Rule::value16 => parse_source_value(&source_node)?,
             v => panic!("unexpected node '{:?}' here.", v),
         };
 
@@ -193,7 +198,7 @@ mod register_parser_tests {
     }
 
     #[test]
-    fn test_registers_set_value() {
+    fn test_registers_set_value8() {
         let input = "registers set A=0xc0";
         let pairs = PestParser::parse(Rule::registers_instruction, input)
             .unwrap()
@@ -209,6 +214,25 @@ mod register_parser_tests {
             && matches!(assignment.source, Source::Value(d) if d == 0xc0)
         ));
     }
+
+    #[test]
+    fn test_registers_set_value16() {
+        let input = "registers set CP=0xc0ff";
+        let pairs = PestParser::parse(Rule::registers_instruction, input)
+            .unwrap()
+            .next()
+            .unwrap()
+            .into_inner();
+        let command = RegisterCommandParser::from_pairs(pairs).unwrap();
+        println!("{command:?}");
+
+        assert!(matches!(
+        command,
+        RegisterCommand::Set {assignment}
+        if matches!(assignment.destination, RegisterSource::CommandPointer)
+            && matches!(assignment.source, Source::Value(d) if d == 0xc0ff)
+        ));
+    }
 }
 pub struct RunCommandParser;
 
@@ -219,8 +243,13 @@ impl RunCommandParser {
 
         for pair in pairs {
             match pair.as_rule() {
-                Rule::memory_address => {
-                    start_address = Some(parse_memory(&pair.as_str()[3..])?);
+                Rule::run_address => {
+                    if pair.as_str() == "init" {
+                        start_address = Some(RunAddress::InitVector);
+                    } else {
+                        start_address =
+                            Some(RunAddress::Memory(parse_memory(&pair.as_str()[3..])?));
+                    };
                 }
                 Rule::run_until_condition => {
                     stop_condition =
@@ -264,7 +293,7 @@ mod run_command_parser_tests {
         let command = RunCommandParser::from_pairs(parser.next().unwrap().into_inner()).unwrap();
 
         assert!(matches!(command.stop_condition, BooleanExpression::Value(v) if v));
-        assert!(matches!(command.start_address, Some(addr) if addr == 0x1234));
+        assert!(matches!(command.start_address, Some(RunAddress::Memory(addr)) if addr == 0x1234));
     }
 
     #[test]
@@ -283,6 +312,18 @@ mod run_command_parser_tests {
             );
         }
         assert!(command.start_address.is_none());
+    }
+
+    #[test]
+    fn run_init() {
+        let input = "run init";
+        let mut parser = PestParser::parse(Rule::run_instruction, input).unwrap();
+        let command = RunCommandParser::from_pairs(parser.next().unwrap().into_inner()).unwrap();
+
+        assert!(matches!(
+            command.start_address,
+            Some(RunAddress::InitVector)
+        ));
     }
 }
 

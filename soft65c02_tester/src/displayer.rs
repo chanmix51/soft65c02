@@ -34,14 +34,17 @@ where
         while let Ok(token) = receiver.recv() {
             match token {
                 OutputToken::Assertion {
-                    success,
+                    failure,
                     description,
                 } => {
                     i += 1;
                     self.output.write_all(
                         format!(
                             "⚡ {i:02} → {description} {}\n",
-                            if success { "✅" } else { "❌" }
+                            match failure {
+                                None => "✅".to_string(),
+                                Some(msg) => format!("❌ ({msg})"),
+                            }
                         )
                         .as_bytes(),
                     )?;

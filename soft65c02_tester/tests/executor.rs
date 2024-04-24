@@ -25,7 +25,7 @@ run
 assert CP=0x080C $$command pointer points at EOP$$"#;
     let executor = Executor::default();
     let (sender, receiver) = channel::<OutputToken>();
-    executor.run(Cursor::new(script), sender).unwrap();
+    executor.run(Cursor::new(script), sender).unwrap_err();
 
     let token = receiver.recv().unwrap();
     assert!(matches!(
@@ -58,7 +58,7 @@ assert CP=0x080C $$command pointer points at EOP$$"#;
     let token = receiver.recv().unwrap();
 
     assert!(
-        matches!(token, OutputToken::Assertion { success, description } if !success && description == *"accumulator is loaded")
+        matches!(token, OutputToken::Assertion { failure, description } if failure.is_some() && description == *"accumulator is loaded")
     );
 
     let _ = receiver.recv().unwrap_err();

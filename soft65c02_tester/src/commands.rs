@@ -9,10 +9,17 @@ use crate::{
 
 #[derive(Debug)]
 pub enum OutputToken {
-    Assertion { success: bool, description: String },
-    Marker { description: String },
+    Assertion {
+        failure: Option<String>,
+        description: String,
+    },
+    Marker {
+        description: String,
+    },
     None,
-    Run { loglines: Vec<LogLine> },
+    Run {
+        loglines: Vec<LogLine>,
+    },
     Setup(Vec<String>),
 }
 
@@ -54,7 +61,7 @@ pub struct AssertCommand {
 impl Command for AssertCommand {
     fn execute(&self, registers: &mut Registers, memory: &mut Memory) -> AppResult<OutputToken> {
         let token = OutputToken::Assertion {
-            success: self.condition.solve(registers, memory),
+            failure: self.condition.solve(registers, memory),
             description: self.comment.to_owned(),
         };
 
@@ -63,15 +70,28 @@ impl Command for AssertCommand {
 }
 
 #[derive(Debug)]
+pub enum RunAddress {
+    Memory(usize),
+    InitVector,
+}
+
+#[derive(Debug)]
 pub struct RunCommand {
     pub stop_condition: BooleanExpression,
-    pub start_address: Option<usize>,
+    pub start_address: Option<RunAddress>,
 }
 
 impl Command for RunCommand {
     fn execute(&self, registers: &mut Registers, memory: &mut Memory) -> AppResult<OutputToken> {
-        if let Some(addr) = self.start_address {
-            registers.command_pointer = addr;
+        if let Some(addr) = &self.start_address {
+            match addr {
+                RunAddress::InitVector => {
+                    let lo = memory.read(0xfffc, 1)?[0] as u16;
+                    let hi = memory.read(0xfffd, 1)?[0] as u16;
+                    registers.command_pointer = ((hi << 8) | lo) as usize;
+                }
+                RunAddress::Memory(addr) => registers.command_pointer = *addr,
+            };
         }
 
         let mut loglines: Vec<LogLine> = Vec::new();
@@ -80,7 +100,9 @@ impl Command for RunCommand {
         loop {
             loglines.push(execute_step(registers, memory)?);
 
-            if registers.command_pointer == cp || self.stop_condition.solve(registers, memory) {
+            if registers.command_pointer == cp
+                || self.stop_condition.solve(registers, memory).is_none()
+            {
                 break;
             }
             cp = registers.command_pointer;
@@ -178,7 +200,7 @@ mod assert_command_tests {
         let token = command.execute(&mut registers, &mut memory).unwrap();
 
         assert!(
-            matches!(token, OutputToken::Assertion { success, description } if success && description == *"nice comment")
+            matches!(token, OutputToken::Assertion { failure, description } if failure.is_none() && description == *"nice comment")
         );
     }
 
@@ -194,7 +216,7 @@ mod assert_command_tests {
         let token = command.execute(&mut registers, &mut memory).unwrap();
 
         assert!(
-            matches!(token, OutputToken::Assertion { success, description } if ! success && description == *"failing assertion")
+            matches!(token, OutputToken::Assertion { failure, description } if failure.is_some() && description == *"failing assertion")
         );
     }
 }
@@ -225,7 +247,7 @@ mod run_command_tests {
     fn run_from_addr() {
         let command = RunCommand {
             stop_condition: BooleanExpression::Value(true),
-            start_address: Some(0x1234),
+            start_address: Some(RunAddress::Memory(0x1234)),
         };
         let mut registers = Registers::new_initialized(0x0000);
         let mut memory = Memory::new_with_ram();
@@ -236,13 +258,30 @@ mod run_command_tests {
     }
 
     #[test]
+    fn run_init_vector() {
+        let command = RunCommand {
+            stop_condition: BooleanExpression::Value(true),
+            start_address: Some(RunAddress::InitVector),
+        };
+        let mut registers = Registers::new_initialized(0x0000);
+        let mut memory = Memory::new_with_ram();
+        memory.write(0xfffc, &[0x34, 0x12]).unwrap(); // init vector
+        memory.write(0x1234, &[0xa9, 0xc0]).unwrap(); // LDA #0xc0
+        let token = command.execute(&mut registers, &mut memory).unwrap();
+
+        assert!(matches!(token, OutputToken::Run { loglines } if loglines.len() == 1));
+        assert_eq!(0x1236, registers.command_pointer);
+        assert_eq!(0xc0, registers.accumulator);
+    }
+
+    #[test]
     fn run_with_condition() {
         let command = RunCommand {
             stop_condition: BooleanExpression::StrictlyGreater(
                 Source::Register(RegisterSource::RegisterX),
                 Source::Value(0),
             ),
-            start_address: Some(0x1234),
+            start_address: Some(RunAddress::Memory(0x1234)),
         };
         let mut registers = Registers::new_initialized(0x1000);
         let mut memory = Memory::new_with_ram();

@@ -8,31 +8,36 @@ use std::{
 use anyhow::{anyhow, Result};
 use clap::Parser;
 use soft65c02_tester::{
-    AppResult, CliDisplayer, Displayer, Executor, ExecutorConfiguration, OutputToken,
+    AppResult, CliCommand, CliDisplayer, CommandIterator, Displayer, Executor,
+    ExecutorConfiguration, OutputToken,
 };
 
 /// 65C02 code tester
-/// This program allows step by step execution of 65C02 processor and assertions
-/// on memory or registers.
-/// It takes script as parameter (or standard input) to execute tests.
+///
+/// This program allows step by step execution of 65C02 processor and performs
+/// assertions on memory or registers.
 #[derive(Debug, Parser)]
 #[command(version, about, long_about = None)]
 pub struct CommandLineArguments {
-    /// Test script file location , "-" to read from standard input (default)
+    /// Test script file location , "-" to read from standard input (default).
     #[arg(short, long, default_value = "-")]
     input_filepath: PathBuf,
 
-    /// Test output filepath, "-" to write to standard output (default)
+    /// Test output filepath, "-" to write to standard output (default).
     #[arg(short, long, default_value = "-")]
     output_filepath: PathBuf,
 
-    /// Do not stop execution when an assertion fails
+    /// Do not stop execution when an assertion fails.
     #[arg(short, long)]
     continue_on_failure: bool,
 
-    /// Display not only assertion results but also setup commands output
+    /// Display not only assertion results but also setup commands output.
     #[arg(short, long)]
     verbose: bool,
+
+    /// Just parse the file without executing the tests.
+    #[arg(short, long, default_value = "false")]
+    parse: bool,
 }
 
 impl CommandLineArguments {
@@ -59,6 +64,7 @@ impl CommandLineArguments {
 }
 fn main() -> Result<()> {
     let parameters = CommandLineArguments::parse();
+
     let input_buffer: Box<dyn BufRead> = if parameters.read_from_standard_input() {
         Box::new(std::io::stdin().lock())
     } else {
@@ -66,6 +72,13 @@ fn main() -> Result<()> {
             parameters.get_input_file_path()?,
         )?))
     };
+    if parameters.parse {
+        let result: AppResult<Vec<CliCommand>> = CommandIterator::new(input_buffer.lines())
+            .map(|result| result.map_err(anyhow::Error::from))
+            .collect();
+
+        return result.map(|_| ());
+    }
     let output_buffer: Box<dyn Write + Sync + Send> = if parameters.write_to_standard_output() {
         Box::new(std::io::stdout())
     } else {

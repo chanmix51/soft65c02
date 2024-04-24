@@ -54,7 +54,7 @@ fn test_displayer() {
             .unwrap();
         sender
             .send(OutputToken::Assertion {
-                success: true,
+                failure: Some("this is a failure".to_string()),
                 description: "assertion".to_string(),
             })
             .unwrap();

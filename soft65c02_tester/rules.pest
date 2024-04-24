@@ -26,8 +26,9 @@ memory_flush = { ^"flush" }
 memory_load = { ^"load" ~ memory_address ~ filename }
 memory_write = { ^"write" ~ memory_address ~ ^"0x(" ~ bytes ~ ")" }
 
-run_instruction = { ^"run" ~ (memory_address)? ~ (run_until_condition)?  }
+run_instruction = { ^"run" ~ (run_address)? ~ (run_until_condition)? }
 run_until_condition = { ^"until" ~ boolean_condition }
+run_address = { ^"init" | memory_address }
 
 assert_instruction = { ^"assert" ~ boolean_condition ~ "$$" ~ description ~ "$$"}
 
@@ -43,7 +44,7 @@ location8 = _{ memory_address | register8 }
 
 memory_address = { "#0x" ~ ASCII_HEX_DIGIT{4} }
 register16 = { "CP" }
-register8 = { "A" | "X" | "Y" | "S" }
+register8 = { "A" | "X" | "Y" | "SP" | "S" }
 value16 = { "0x" ~ ASCII_HEX_DIGIT{4} }
 value8 = { "0x" ~ ASCII_HEX_DIGIT{2} | "0b" ~ ASCII_BIN_DIGIT{8} }
 bytes = @{ ASCII_HEX_DIGIT{2} ~ ("," ~ ASCII_HEX_DIGIT{2})* }

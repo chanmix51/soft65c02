@@ -30,7 +30,7 @@ impl ExecutionRound {
 }
 
 #[derive(Debug)]
-struct CommandIterator<B>
+pub struct CommandIterator<B>
 where
     B: BufRead,
 {
@@ -80,7 +80,7 @@ impl Default for ExecutorConfiguration {
     }
 }
 
-/// The executor is responsible of running a test plan. It sets up memory and
+/// The executor is responsible of running a test file. It sets up memory and
 /// registers and maintain them during the execution of the plan. It ensures
 /// that the process stops if the Command Pointer register is unchanged after a
 /// command execution (if the configuration allows it) or when an error occures.
@@ -95,6 +95,10 @@ impl Executor {
         Self { configuration }
     }
 
+    /// Execute the commands from the buffer and send the outputs to the sender.
+    /// The execution stops if an error occurs if the configuration requires it.
+    /// The execution stops if an assertion fails the configuration requires it.
+    /// The execution stops if the buffer is exhausted.
     pub fn run<T: BufRead>(self, buffer: T, sender: Sender<OutputToken>) -> AppResult<()> {
         let mut round = ExecutionRound::default();
 
@@ -113,7 +117,7 @@ impl Executor {
 
             if matches!(token, OutputToken::Marker { description: _ }) {
                 round = ExecutionRound::default();
-            } else if matches!(token, OutputToken::Assertion { success, description: _ } if self.configuration.stop_on_failed_assertion && !success)
+            } else if matches!(token, OutputToken::Assertion { ref failure, description: _ } if self.configuration.stop_on_failed_assertion && failure.is_some())
             {
                 sender.send(token)?;
 
@@ -169,11 +173,11 @@ mod tests {
         let buffer = "assert A=0x01 $$first test$$\nassert X=0x00 $$second test$$\n".as_bytes();
         let (sender, receiver) = channel::<OutputToken>();
 
-        executor.run(buffer, sender).unwrap();
+        executor.run(buffer, sender).unwrap_err();
 
         let output = receiver.recv().unwrap();
         assert!(
-            matches!(output, OutputToken::Assertion { success, description } if !success && description == *"first test")
+            matches!(output, OutputToken::Assertion { failure, description } if failure.is_some() && description == *"first test")
         );
 
         // second test is not executed
@@ -228,7 +232,7 @@ mod tests {
 
         let output = receiver.recv().unwrap();
         assert!(
-            matches!(output, OutputToken::Assertion { success, description } if success && description == *"accumulator is loaded")
+            matches!(output, OutputToken::Assertion { failure, description } if failure.is_none() && description == *"accumulator is loaded")
         );
 
         assert!(receiver.recv().is_err());
@@ -260,7 +264,7 @@ mod tests {
 
         let output = receiver.recv().unwrap();
         assert!(
-            matches!(output, OutputToken::Assertion { success, description } if success && description == *"accumulator is loaded")
+            matches!(output, OutputToken::Assertion { failure, description } if failure.is_none() && description == *"accumulator is loaded")
         );
 
         assert!(receiver.recv().is_err());
@@ -304,7 +308,7 @@ mod tests {
             .expect("there shall be a 4th output token");
 
         assert!(
-            matches!(output, OutputToken::Assertion { success, description } if success && description.contains("zero"))
+            matches!(output, OutputToken::Assertion { failure, description } if failure.is_none() && description.contains("zero"))
         );
     }
 }

@@ -1,0 +1,24 @@
+marker                      $$test initialization$$
+// load program in memory
+memory load #0x8000 "tests/whatever.bin"
+// check init vector
+assert #0xfffc=0x00           $$low byte of init vector is set$$
+assert #0xfffd=0x80           $$high byte of init vector is set$$
+
+// set registers to wrong state to ensure initialization works
+registers set A=0xff
+registers set X=0xff
+registers set Y=0xff
+registers set SP=0xff
+registers set CP=0x0000
+
+// run and check initialization
+run init until CP=0x8007    $$run the init vector until end of initialization$$
+assert A=0x00               $$accumulator is initialized$$
+assert X=0x00               $$register X is initialized$$
+assert Y=0x00               $$register Y is initialized$$
+assert SP=0xfe              $$stack pointer is initialized$$
+// ↓ this should fail
+assert false                $$failing test$$
+// ↓ hence this test is not executed
+assert false                $$should not be executed$$

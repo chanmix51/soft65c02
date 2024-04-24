@@ -1,6 +1,6 @@
 use anyhow::anyhow;
 use soft65c02_lib::{AddressableIO, Memory, Registers};
-use std::fmt;
+use std::fmt::{self};
 
 use crate::AppResult;
 
@@ -164,33 +164,101 @@ pub enum BooleanExpression {
 }
 
 impl BooleanExpression {
-    pub fn solve(&self, registers: &Registers, memory: &Memory) -> bool {
+    /// Solve the boolean expression with the given registers and memory.
+    /// If the expression is true, None is returned. Otherwise, the failure message is returned.
+    pub fn solve(&self, registers: &Registers, memory: &Memory) -> Option<String> {
         match self {
             BooleanExpression::Equal(left, right) => {
-                left.get_value(registers, memory) == right.get_value(registers, memory)
+                let left_value = left.get_value(registers, memory);
+                let right_value = right.get_value(registers, memory);
+
+                if left_value != right_value {
+                    Some(format!(
+                        "({self})  0x{:02x} is not equal to 0x{:02x}",
+                        left_value, right_value
+                    ))
+                } else {
+                    None
+                }
             }
             BooleanExpression::GreaterOrEqual(left, right) => {
-                left.get_value(registers, memory) >= right.get_value(registers, memory)
+                let left_value = left.get_value(registers, memory);
+                let right_value = right.get_value(registers, memory);
+
+                if left_value < right_value {
+                    Some(format!(
+                        "({self}) 0x{:02x} is not greater than or equal to 0x{:02x}",
+                        left_value, right_value
+                    ))
+                } else {
+                    None
+                }
             }
             BooleanExpression::StrictlyGreater(left, right) => {
-                left.get_value(registers, memory) > right.get_value(registers, memory)
+                let left_value = left.get_value(registers, memory);
+                let right_value = right.get_value(registers, memory);
+
+                if left_value <= right_value {
+                    Some(format!(
+                        "({self}) 0x{:02x} is not strictly greater than 0x{:02x}",
+                        left_value, right_value
+                    ))
+                } else {
+                    None
+                }
             }
             BooleanExpression::LesserOrEqual(left, right) => {
-                left.get_value(registers, memory) <= right.get_value(registers, memory)
+                let left_value = left.get_value(registers, memory);
+                let right_value = right.get_value(registers, memory);
+
+                if left_value > right_value {
+                    Some(format!(
+                        "({self}) 0x{:02x} is not lesser than or equal to 0x{:02x}",
+                        left_value, right_value
+                    ))
+                } else {
+                    None
+                }
             }
             BooleanExpression::StrictlyLesser(left, right) => {
-                left.get_value(registers, memory) > right.get_value(registers, memory)
+                let left_value = left.get_value(registers, memory);
+                let right_value = right.get_value(registers, memory);
+
+                if left_value >= right_value {
+                    Some(format!(
+                        "({self}) 0x{:02x} is not strictly lesser than 0x{:02x}",
+                        left_value, right_value
+                    ))
+                } else {
+                    None
+                }
             }
             BooleanExpression::Different(left, right) => {
-                left.get_value(registers, memory) != right.get_value(registers, memory)
+                let left_value = left.get_value(registers, memory);
+                let right_value = right.get_value(registers, memory);
+
+                if left_value == right_value {
+                    Some(format!(
+                        "({self}) 0x{:02x} is not different than 0x{:02x}",
+                        left_value, right_value
+                    ))
+                } else {
+                    None
+                }
             }
-            BooleanExpression::Value(val) => *val,
-            BooleanExpression::And(expr1, expr2) => {
-                expr1.solve(registers, memory) && expr2.solve(registers, memory)
+            BooleanExpression::Value(val) => {
+                if !*val {
+                    Some("value is false".to_string())
+                } else {
+                    None
+                }
             }
-            BooleanExpression::Or(expr1, expr2) => {
-                expr1.solve(registers, memory) || expr2.solve(registers, memory)
-            }
+            BooleanExpression::And(expr1, expr2) => expr1
+                .solve(registers, memory)
+                .and(expr2.solve(registers, memory)),
+            BooleanExpression::Or(expr1, expr2) => expr1
+                .solve(registers, memory)
+                .or(expr2.solve(registers, memory)),
         }
     }
 }
@@ -224,5 +292,22 @@ impl fmt::Display for BooleanExpression {
                 write!(f, "({expr1} OR {expr2})")
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests_boolean_expression {
+    use super::*;
+
+    #[test]
+    fn test_equal() {
+        let boolex = BooleanExpression::Equal(
+            Source::Register(RegisterSource::StackPointer),
+            Source::Value(0x2a),
+        );
+        let mut registers = Registers::new_initialized(0x0000);
+        registers.stack_pointer = 0x2a;
+        let memory = Memory::new_with_ram();
+        assert!(boolex.solve(&registers, &memory).is_none());
     }
 }
