@@ -12,20 +12,34 @@ use crate::{AppResult, CliCommand, CliCommandParser, Command, OutputToken};
 struct ExecutionRound {
     registers: Registers,
     memory: Memory,
+    failed: bool,
 }
 
 impl Default for ExecutionRound {
     fn default() -> Self {
-        let registers = Registers::new_initialized(0);
+        let registers = Registers::new(0x0000);
         let memory = Memory::new_with_ram();
+        let failed = false;
 
-        Self { registers, memory }
+        Self {
+            registers,
+            memory,
+            failed,
+        }
     }
 }
 
 impl ExecutionRound {
     fn get_mut(&mut self) -> (&mut Registers, &mut Memory) {
         (&mut self.registers, &mut self.memory)
+    }
+
+    fn is_ok(&self) -> bool {
+        !self.failed
+    }
+
+    fn set_failed(&mut self) {
+        self.failed = true;
     }
 }
 
@@ -65,7 +79,7 @@ where
 #[derive(Debug)]
 pub struct ExecutorConfiguration {
     /// If true, the executor stops when a command cannot be parsed.
-    pub stop_on_parse_error: bool,
+    pub ignore_parse_error: bool,
 
     /// If true, the executor stops when an assertion fails.
     pub stop_on_failed_assertion: bool,
@@ -74,7 +88,7 @@ pub struct ExecutorConfiguration {
 impl Default for ExecutorConfiguration {
     fn default() -> Self {
         Self {
-            stop_on_parse_error: true,
+            ignore_parse_error: false,
             stop_on_failed_assertion: true,
         }
     }
@@ -97,38 +111,45 @@ impl Executor {
 
     /// Execute the commands from the buffer and send the outputs to the sender.
     /// The execution stops if an error occurs if the configuration requires it.
-    /// The execution stops if an assertion fails the configuration requires it.
-    /// The execution stops if the buffer is exhausted.
+    /// The execution stops if the buffer is exhausted. If an assertion fails
+    /// and the configuration allows it, the execution stops until the next
+    /// marker.
     pub fn run<T: BufRead>(self, buffer: T, sender: Sender<OutputToken>) -> AppResult<()> {
         let mut round = ExecutionRound::default();
+        let mut failed: usize = 0;
 
         for result in CommandIterator::new(buffer.lines()) {
             let command = match result {
-                Err(e) if self.configuration.stop_on_parse_error => return Err(anyhow!(e)),
+                Err(e) if !self.configuration.ignore_parse_error => return Err(anyhow!(e)),
                 Err(_) => continue,
                 Ok(c) => c,
             };
 
             if matches!(command, CliCommand::None) {
                 continue;
+            } else if matches!(command, CliCommand::Marker(_)) {
+                round = ExecutionRound::default();
+            } else if !round.is_ok() && self.configuration.stop_on_failed_assertion {
+                continue;
             }
             let (registers, memory) = round.get_mut();
             let token = command.execute(registers, memory)?;
 
-            if matches!(token, OutputToken::Marker { description: _ }) {
-                round = ExecutionRound::default();
-            } else if matches!(token, OutputToken::Assertion { ref failure, description: _ } if self.configuration.stop_on_failed_assertion && failure.is_some())
+            if matches!(token, OutputToken::Assertion { ref failure, description: _ } if failure.is_some())
             {
-                sender.send(token)?;
-
-                return Err(anyhow!("Assertion failed"));
+                failed += 1;
+                round.set_failed();
             }
 
             sender.send(token)?;
         }
 
         // buffer is exhausted
-        Ok(())
+        if failed > 0 {
+            Err(anyhow!("{failed} assertions failed!"))
+        } else {
+            Ok(())
+        }
     }
 }
 
@@ -142,23 +163,23 @@ mod tests {
     fn test_halt_on_error() {
         let configuration = ExecutorConfiguration::default();
         let executor = Executor::new(configuration);
-        let buffer = "marker $$first thing$$\nazerty".as_bytes();
-        let (sender, _receiver) = channel::<OutputToken>();
+        let buffer = "marker $$first thing$$\nazerty\nassert true $$not executed$$".as_bytes();
+        let (sender, receiver) = channel::<OutputToken>();
 
         let error = executor.run(buffer, sender).unwrap_err();
 
         assert!(error.to_string().contains("azerty"));
+        assert_eq!(1, receiver.iter().count());
     }
 
     #[test]
     fn test_on_error_continue() {
         let configuration = ExecutorConfiguration {
-            stop_on_parse_error: false,
+            ignore_parse_error: true,
             ..ExecutorConfiguration::default()
         };
         let executor = Executor::new(configuration);
-        let buffer =
-            "marker $$first thing$$\nazerty\nassert A=0x00 $$accumulator is zero$$".as_bytes();
+        let buffer = "marker $$first thing$$\nazerty\nassert true $$shall pass$$".as_bytes();
         let (sender, receiver) = channel::<OutputToken>();
 
         executor.run(buffer, sender).unwrap();
@@ -170,7 +191,7 @@ mod tests {
     fn test_halt_on_assertion_failed() {
         let configuration = ExecutorConfiguration::default();
         let executor = Executor::new(configuration);
-        let buffer = "assert A=0x01 $$first test$$\nassert X=0x00 $$second test$$\n".as_bytes();
+        let buffer = "assert false $$first test$$\nassert true $$second test$$\n".as_bytes();
         let (sender, receiver) = channel::<OutputToken>();
 
         executor.run(buffer, sender).unwrap_err();
@@ -188,7 +209,7 @@ mod tests {
     fn test_continue_when_assertion_succeed() {
         let configuration = ExecutorConfiguration::default();
         let executor = Executor::new(configuration);
-        let buffer = "assert A=0x00 $$first test$$\nassert X=0x00 $$second test$$\n".as_bytes();
+        let buffer = "assert true $$first test$$\nassert true $$second test$$\n".as_bytes();
         let (sender, receiver) = channel::<OutputToken>();
 
         executor.run(buffer, sender).unwrap();
@@ -203,10 +224,10 @@ mod tests {
             ..Default::default()
         };
         let executor = Executor::new(configuration);
-        let buffer = "assert A=0x01 $$first test$$\nassert X=0x00 $$second test$$\n".as_bytes();
+        let buffer = "assert false $$first test$$\nassert true $$second test$$\n".as_bytes();
         let (sender, receiver) = channel::<OutputToken>();
 
-        executor.run(buffer, sender).unwrap();
+        executor.run(buffer, sender).unwrap_err();
 
         assert_eq!(2, receiver.into_iter().count());
     }
@@ -294,21 +315,52 @@ mod tests {
             "registers set A=0xc0",
             "assert A=0xc0 $$accumulator is loaded$$",
             "marker $$second test plan$$",
-            "assert A=0x00 $$accumulator is zero$$",
+            "assert A!=0xc0 $$accumulator is random$$",
         ]
         .join("\n");
         let (sender, receiver) = channel::<OutputToken>();
         let executor = Executor::new(ExecutorConfiguration::default());
 
-        executor.run(lines.as_bytes(), sender).unwrap();
+        let _ = executor.run(lines.as_bytes(), sender);
 
-        let output = receiver
+        let _output = receiver
             .iter()
             .nth(3)
             .expect("there shall be a 4th output token");
+    }
+
+    #[test]
+    fn several_plans_with_one_failing() {
+        let lines = &[
+            "marker $$first plan$$",
+            "assert false $$failing test$$",
+            "assert true  $$must not be executed$$",
+            "marker $$second plan$$",
+            "assert true  $$must be executed$$",
+            "assert false $$failing test$$",
+            "marker $$third plan$$",
+            "assert true $$must be executed$$",
+        ]
+        .join("\n");
+        let (sender, receiver) = channel::<OutputToken>();
+        let executor = Executor::new(ExecutorConfiguration::default());
+
+        executor.run(lines.as_bytes(), sender).unwrap_err();
+        let output = receiver
+            .iter()
+            .nth(2)
+            .expect("there shall be a 3th output token");
 
         assert!(
-            matches!(output, OutputToken::Assertion { failure, description } if failure.is_none() && description.contains("zero"))
+            matches!(output, OutputToken::Marker { description } if description == *"second plan")
+        );
+        let output = receiver
+            .iter()
+            .nth(2)
+            .expect("there shall be a 3th output token");
+
+        assert!(
+            matches!(output, OutputToken::Marker { description } if description == *"third plan")
         );
     }
 }
