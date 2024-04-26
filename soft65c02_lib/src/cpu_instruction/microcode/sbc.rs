@@ -26,7 +26,7 @@ pub fn sbc(
         let carry = if registers.c_flag_is_set() { 0 } else { 1 };
         let low1 = a & 0x0F;
         let low2 = byte & 0x0F;
-        let (sublow, carry ) = if low1 >= (low2 + carry) {
+        let (sublow, carry) = if low1 >= (low2 + carry) {
             (low1 - (low2 + carry), 0)
         } else {
             (10 + low1 - (low2 + carry), 1)

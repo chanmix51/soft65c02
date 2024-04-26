@@ -13,8 +13,9 @@ pub fn bmi(
     if registers.n_flag_is_set() {
         registers.command_pointer = resolve_relative(
             cpu_instruction.address,
-            cpu_instruction.addressing_mode.get_operands()[0]
-        ).expect("Could not resolve relative address for BMI");
+            cpu_instruction.addressing_mode.get_operands()[0],
+        )
+        .expect("Could not resolve relative address for BMI");
     } else {
         registers.command_pointer += 2;
     }
@@ -33,8 +34,13 @@ mod tests {
 
     #[test]
     fn test_bmi_branch() {
-        let cpu_instruction =
-            CPUInstruction::new(0x1000, 0xca, "BMI", AddressingMode::Relative(0x1000, [0x0a]), bmi);
+        let cpu_instruction = CPUInstruction::new(
+            0x1000,
+            0xca,
+            "BMI",
+            AddressingMode::Relative(0x1000, [0x0a]),
+            bmi,
+        );
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xca, 0x0a, 0x02]);
         registers.set_n_flag(true);
         let log_line = cpu_instruction
@@ -46,8 +52,13 @@ mod tests {
 
     #[test]
     fn test_bmi_no_branch() {
-        let cpu_instruction =
-            CPUInstruction::new(0x1000, 0xca, "BMI", AddressingMode::Relative(0x1000, [0x0a]), bmi);
+        let cpu_instruction = CPUInstruction::new(
+            0x1000,
+            0xca,
+            "BMI",
+            AddressingMode::Relative(0x1000, [0x0a]),
+            bmi,
+        );
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xca, 0x0a, 0x02]);
         registers.set_n_flag(false);
         let _log_line = cpu_instruction

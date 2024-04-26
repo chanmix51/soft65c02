@@ -3,9 +3,9 @@ use std::fmt;
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone, Hash)]
 pub enum MemoryError {
-    ReadOverflow(usize, usize), // read len, address
+    ReadOverflow(usize, usize),  // read len, address
     WriteOverflow(usize, usize), // write len, address
-    Other(usize, &'static str),        // address, error message
+    Other(usize, &'static str),  // address, error message
 }
 
 impl fmt::Display for MemoryError {

@@ -13,8 +13,9 @@ pub fn bvs(
     if registers.v_flag_is_set() {
         registers.command_pointer = resolve_relative(
             cpu_instruction.address,
-            cpu_instruction.addressing_mode.get_operands()[0]
-        ).expect("Could not resolve relative address for BVS");
+            cpu_instruction.addressing_mode.get_operands()[0],
+        )
+        .expect("Could not resolve relative address for BVS");
     } else {
         registers.command_pointer += 1 + resolution.operands.len();
     }
@@ -33,8 +34,13 @@ mod tests {
 
     #[test]
     fn test_bvs() {
-        let cpu_instruction =
-            CPUInstruction::new(0x1000, 0xca, "BVS", AddressingMode::Relative(0x1000, [0x0a]), bvs);
+        let cpu_instruction = CPUInstruction::new(
+            0x1000,
+            0xca,
+            "BVS",
+            AddressingMode::Relative(0x1000, [0x0a]),
+            bvs,
+        );
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xe8, 0x0a, 0x02]);
         registers.set_v_flag(true);
         let log_line = cpu_instruction
@@ -47,8 +53,13 @@ mod tests {
 
     #[test]
     fn test_bvs_with_v_clear() {
-        let cpu_instruction =
-            CPUInstruction::new(0x1000, 0xca, "BVS", AddressingMode::Relative(0x1000, [0x0a]), bvs);
+        let cpu_instruction = CPUInstruction::new(
+            0x1000,
+            0xca,
+            "BVS",
+            AddressingMode::Relative(0x1000, [0x0a]),
+            bvs,
+        );
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xe8, 0x0a, 0x02]);
         registers.set_v_flag(false);
         let _log_line = cpu_instruction

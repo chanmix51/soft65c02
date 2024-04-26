@@ -13,8 +13,9 @@ pub fn bcs(
     if registers.c_flag_is_set() {
         registers.command_pointer = resolve_relative(
             cpu_instruction.address,
-            cpu_instruction.addressing_mode.get_operands()[0]
-        ).expect("Could not resolve relative address for BCS");
+            cpu_instruction.addressing_mode.get_operands()[0],
+        )
+        .expect("Could not resolve relative address for BCS");
     } else {
         registers.command_pointer += 1 + resolution.operands.len();
     }
@@ -33,8 +34,13 @@ mod tests {
 
     #[test]
     fn test_bcs() {
-        let cpu_instruction =
-            CPUInstruction::new(0x1000, 0xca, "BCS", AddressingMode::Relative(0x1000, [0x0a]), bcs);
+        let cpu_instruction = CPUInstruction::new(
+            0x1000,
+            0xca,
+            "BCS",
+            AddressingMode::Relative(0x1000, [0x0a]),
+            bcs,
+        );
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xe8, 0x0a, 0x02]);
         registers.set_c_flag(true);
         let log_line = cpu_instruction
@@ -47,8 +53,13 @@ mod tests {
 
     #[test]
     fn test_bcs_with_c_clear() {
-        let cpu_instruction =
-            CPUInstruction::new(0x1000, 0xca, "BCS", AddressingMode::Relative(0x1000, [0x0a]), bcs);
+        let cpu_instruction = CPUInstruction::new(
+            0x1000,
+            0xca,
+            "BCS",
+            AddressingMode::Relative(0x1000, [0x0a]),
+            bcs,
+        );
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xe8, 0x0a, 0x02]);
         registers.set_c_flag(false);
         let _log_line = cpu_instruction

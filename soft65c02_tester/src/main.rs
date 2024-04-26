@@ -27,7 +27,7 @@ pub struct CommandLineArguments {
     #[arg(short, long, default_value = "-")]
     output_filepath: PathBuf,
 
-    /// Do not stop execution when an assertion fails.
+    /// Do not stop execution of a plan when an assertion fails.
     #[arg(short, long)]
     continue_on_failure: bool,
 

@@ -12,8 +12,9 @@ pub fn bra(
 
     registers.command_pointer = resolve_relative(
         cpu_instruction.address,
-        cpu_instruction.addressing_mode.get_operands()[0]
-    ).expect("Could not resolve relative address for BRA");
+        cpu_instruction.addressing_mode.get_operands()[0],
+    )
+    .expect("Could not resolve relative address for BRA");
 
     Ok(LogLine::new(
         cpu_instruction,
@@ -29,8 +30,13 @@ mod tests {
 
     #[test]
     fn test_bra_branch() {
-        let cpu_instruction =
-            CPUInstruction::new(0x1000, 0xca, "BRA", AddressingMode::Relative(0x1000, [0x0a]), bra);
+        let cpu_instruction = CPUInstruction::new(
+            0x1000,
+            0xca,
+            "BRA",
+            AddressingMode::Relative(0x1000, [0x0a]),
+            bra,
+        );
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xca, 0x0a, 0x02]);
         let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
