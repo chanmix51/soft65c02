@@ -138,9 +138,16 @@ impl Command for RegisterCommand {
 }
 
 #[derive(Debug)]
+pub struct MemorySegment {
+    pub address: usize,
+    pub data: Vec<u8>,
+}
+
+#[derive(Debug)]
 pub enum MemoryCommand {
     Flush,
     Load { address: usize, filepath: PathBuf },
+    LoadSegments { segments: Vec<MemorySegment> },
     Write { address: usize, bytes: Vec<u8> },
 }
 
@@ -178,6 +185,12 @@ impl Command for MemoryCommand {
                     buffer.len(),
                     filepath.display()
                 )]
+            }
+            Self::LoadSegments { segments } => {
+                for segment in segments {
+                    memory.write(segment.address, &segment.data)?;
+                }
+                vec![format!("{} segments loaded.", segments.len())]
             }
         };
 
@@ -420,5 +433,81 @@ mod memory_command_tests {
 
         let expected = "bytes loaded from '../Cargo.toml' at #0x1000.".to_owned();
         assert!(matches!(token, OutputToken::Setup(s) if s[0].contains(&expected)));
+    }
+
+    #[test]
+    fn test_load_segments_empty() {
+        let command = MemoryCommand::LoadSegments { 
+            segments: Vec::new() 
+        };
+        let mut registers = Registers::new_initialized(0x0000);
+        let mut memory = Memory::new_with_ram();
+        let token = command.execute(&mut registers, &mut memory).unwrap();
+
+        assert!(matches!(token, OutputToken::Setup(s) if s[0] == *"0 segments loaded."));
+    }
+
+    #[test]
+    fn test_load_segments_single() {
+        let command = MemoryCommand::LoadSegments { 
+            segments: vec![
+                MemorySegment {
+                    address: 0x2000,
+                    data: vec![0x01, 0x02, 0x03],
+                }
+            ] 
+        };
+        let mut registers = Registers::new_initialized(0x0000);
+        let mut memory = Memory::new_with_ram();
+        let token = command.execute(&mut registers, &mut memory).unwrap();
+
+        // Verify the output token
+        assert!(matches!(token, OutputToken::Setup(s) if s[0] == *"1 segments loaded."));
+        
+        // Verify the memory contents
+        assert_eq!(
+            &[0x01, 0x02, 0x03],
+            memory.read(0x2000, 3).unwrap().as_slice()
+        );
+    }
+
+    #[test]
+    fn test_load_segments_multiple() {
+        let command = MemoryCommand::LoadSegments { 
+            segments: vec![
+                MemorySegment {
+                    address: 0x2000,
+                    data: vec![0x01, 0x02, 0x03],
+                },
+                MemorySegment {
+                    address: 0x3000,
+                    data: vec![0xFF, 0xFE],
+                },
+                MemorySegment {
+                    address: 0x02E0,
+                    data: vec![0x34, 0x12],
+                }
+            ] 
+        };
+        let mut registers = Registers::new_initialized(0x0000);
+        let mut memory = Memory::new_with_ram();
+        let token = command.execute(&mut registers, &mut memory).unwrap();
+
+        // Verify the output token
+        assert!(matches!(token, OutputToken::Setup(s) if s[0] == *"3 segments loaded."));
+        
+        // Verify each segment was written correctly
+        assert_eq!(
+            &[0x01, 0x02, 0x03],
+            memory.read(0x2000, 3).unwrap().as_slice()
+        );
+        assert_eq!(
+            &[0xFF, 0xFE],
+            memory.read(0x3000, 2).unwrap().as_slice()
+        );
+        assert_eq!(
+            &[0x34, 0x12],
+            memory.read(0x02E0, 2).unwrap().as_slice()
+        );
     }
 }

@@ -21,10 +21,11 @@ assignment8 = _{ register8 ~ "=" ~ value8 }
 assignment16 = _{ register16 ~ "=" ~ value16 }
 
 memory_instruction = { ^"memory" ~ memory_action }
-memory_action = _{ memory_load | memory_write | memory_flush }
+memory_action = _{ memory_load | memory_write | memory_flush | memory_load_atari }
 memory_flush = { ^"flush" }
 memory_load = { ^"load" ~ memory_address ~ filename }
 memory_write = { ^"write" ~ memory_address ~ ^"0x(" ~ bytes ~ ")" }
+memory_load_atari = { ^"load_atari" ~ memory_address ~ filename }
 
 run_instruction = { ^"run" ~ (run_address)? ~ (run_until_condition)? }
 run_until_condition = { ^"until" ~ boolean_condition }

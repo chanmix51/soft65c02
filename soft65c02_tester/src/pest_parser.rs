@@ -10,6 +10,7 @@ use pest_derive::Parser;
 use crate::{
     commands::*,
     until_condition::{Assignment, BooleanExpression, RegisterSource, Source},
+    atari_binary::AtariBinary,
     AppResult,
 };
 
@@ -52,14 +53,35 @@ impl MemoryCommandParser {
                 )?;
                 let filename = pairs
                     .next()
-                    .expect("there shall be a filename argumentto memory load")
+                    .expect("there shall be a filename argument to memory load")
                     .as_str();
                 let filepath = PathBuf::from(&filename[1..filename.len() - 1]);
 
                 MemoryCommand::Load { address, filepath }
             }
+            Rule::memory_load_atari => {
+                let mut pairs = pair.into_inner();
+                let _address = parse_memory(
+                    &pairs
+                        .next()
+                        .expect("there shall be a memory address argument to memory load_atari")
+                        .as_str()[3..],
+                )?;
+                let filename = pairs
+                    .next()
+                    .expect("there shall be a filename argument to memory load_atari")
+                    .as_str();
+                let filepath = PathBuf::from(&filename[1..filename.len() - 1]);
+                
+                // Use AtariBinary::from_file helper
+                let binary = AtariBinary::from_file(&filepath)?;
+
+                // Convert to memory segments
+                let segments = binary.into_memory_segments();
+                MemoryCommand::LoadSegments { segments }
+            }
             _ => {
-                panic!("Unexpected pair '{pair:?}'. memory_{{load,flush,write}} expected.");
+                panic!("Unexpected pair '{pair:?}'. memory_{{load,flush,write,load_atari}} expected.");
             }
         };
 
@@ -112,6 +134,27 @@ mod memory_command_parser_tests {
         assert!(
             matches!(command, MemoryCommand::Load { address, filepath } if address == 0x1000 && filepath == PathBuf::from("script.txt"))
         );
+    }
+
+    #[test]
+    fn test_memory_load_atari_command_parsing() {
+        let input = "memory load_atari #0x1000 \"test.com\"";
+        let pairs = PestParser::parse(Rule::memory_instruction, input)
+            .unwrap()
+            .next()
+            .unwrap()
+            .into_inner();
+        let pair = pairs.into_iter().next().unwrap();
+
+        // Verify it's the correct rule type
+        assert!(matches!(pair.as_rule(), Rule::memory_load_atari));
+
+        // Verify the inner parts (address and filename)
+        let mut inner = pair.into_inner();
+        let addr = inner.next().unwrap();
+        assert_eq!(addr.as_str(), "#0x1000");
+        let filename = inner.next().unwrap();
+        assert_eq!(filename.as_str(), "\"test.com\"");
     }
 }
 pub struct RegisterCommandParser;
