@@ -1,0 +1,63 @@
+marker $$loading atari binaries$$
+
+// This is a cc65 generated atari binary format file.
+// The load address is embed in the binary, so no need to set an address to load it into.
+memory load_atari "tests/atari.bin"
+
+// hex bytes in file:
+// 000000 ff ff 00 20 0b 20 a9 42 8d c6 02 60 a2 00 8e c8
+// 000010 02 60 e2 02 e3 02 06 20 e0 02 e1 02 00 20
+
+// first 2 bytes: ff ff              = header
+// next  4 bytes: 00 20 0b 20        = load address $2000 and end address of data bytes $200b
+//          data: a9 42 8d c6 02 60 a2 00 8e c8 02 60
+// next  6 bytes: e2 02 e3 02 06 20  = INIT address (goes into $02e2-$02e3) to run initialisation code after block loaded. address is $2006
+// final 6 bytes: e0 02 e1 02 00 20  = RUN address (goes into $02e0-$02e1) to start execution at $2000
+
+// check the file loaded, and into correct memory locations.
+// There are 3 segments loaded, DATA, INIT, RUN
+
+// asm code from above:
+//        * = $2000
+// main:
+// 2000   A9 42                LDA #$42
+// 2002   8D C6 02             STA $02C6
+// 2005   60                   RTS
+// init:
+// 2006   A2 00                LDX #$00
+// 2008   8E C8 02             STX $02C8
+// 200B   60                   RTS
+
+// setup initial state of registers
+registers flush
+
+// The following illustrate using the testing framework
+// but you would not normally check every instruction so closely, but rather
+// the results of running a routine, etc.
+
+// test file was loaded into correct locations
+// 0x02e0: 00 20 06 20
+assert #0x02e0=0x00     $$RUNADR = 0x2000 low byte$$
+assert #0x02e1=0x20     $$RUNADR = 0x2000 high byte$$
+assert #0x02e2=0x06     $$INITADR = 0x2006 low byte$$
+assert #0x02e3=0x20     $$INITADR = 0x2006 high byte$$
+
+assert #0x2000=0xa9     $$first byte of code is LDA (0xa9)$$
+
+// validate the code sets X register and transfers to SP
+run #0x2000
+assert A=0x42           $$A is $42$$
+assert #0x02C6=0x00     $$Target location is 0 before changed$$
+run
+assert #0x02C6=0x42     $$Changes to value in A$$
+run
+assert CP=0x0001        $$Exit function$$
+
+registers set X=0xFF
+memory write #0x02C8 0x(ff)
+run #0x2006
+assert X=0x00           $$X is set to 00$$
+run
+assert #0x02C8=0x00     $$Changes to value in X$$
+run
+assert CP=0x0001        $$Exit function$$

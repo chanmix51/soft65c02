@@ -4,6 +4,7 @@ mod executor;
 mod pest_parser;
 mod until_condition;
 pub mod atari_binary;
+pub mod apple_single;
 
 pub use commands::*;
 pub use displayer::*;

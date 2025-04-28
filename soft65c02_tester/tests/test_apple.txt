@@ -1,0 +1,32 @@
+marker $$loading apple single binaries$$
+
+// This is a cc65 generated apple-single format file in prodos format.
+// The load address is embed in the binary, so no need to set an address to load it into.
+memory load_as "tests/apple.bin"
+
+// check the file loaded, and into correct memory location.
+// Then load first couple of instructions and test status flags etc.
+// The apple single file initial bytes in apple.bin are:
+//
+//                             * = $0803
+// 0803   A2 FF                LDX #$FF
+// 0805   9A                   TXS
+
+// setup initial state of registers, force SP to 00 so we can verify it changed
+registers flush
+registers set SP=0x00
+
+// testing registers and memory
+assert X=0x00           $$X is flushed before running$$
+assert #0x0803=0xa2     $$first byte of code is LDX (0x42)$$
+
+// validate the code sets X register and transfers to SP
+run #0x0803 until X!=0x00
+assert X=0xff           $$register X was set in first instruction to $FF$$
+assert CP=0x0805        $$only 1 instruction was performed$$
+assert SP=0x00          $$stack pointer is still $00$$
+
+run until SP!=0x00
+assert CP=0x0806        $$only TXS was performed$$
+assert SP=0xff          $$x is moved into sp$$
+

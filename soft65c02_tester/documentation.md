@@ -35,6 +35,25 @@ memory load #0x1234 "filename"
 Load the given file into memory at the given address. If the file overflows the memory, an error is raised and the program stops.
 This is the preferred way to load programs to be tested into the tester environment.
 
+#### memory load_atari
+
+```
+memory load_atari "filename.xex"
+```
+
+Loads the given file into memory, as an Atari binary, honouring segments indicating their loading
+locations.
+
+#### memory load_as (Apple Single Format)
+
+```
+memory load_as "filename.com"
+```
+
+Loads the given file into memory, as an Apple Single ProDos file.
+The loading address is read from the file.
+
+
 #### memory write
 
 ```
@@ -153,3 +172,33 @@ Each assertion has a text description that is displayed when evaluated.
 ```
 assert false    $$this assertion always fails$$
 assert true     $$although always ok, this assertion is not evaluated$$
+
+## Examples
+
+```shell
+$ cargo build
+$ ../target/debug/soft65c02_tester -v -i tests/test_atari.txt
+📄 loading atari binaries
+🔧 Setup: 3 segments loaded.
+🔧 Setup: registers flushed
+⚡ 01 → RUNADR = 0x2000 low byte ✅
+⚡ 02 → RUNADR = 0x2000 high byte ✅
+⚡ 03 → INITADR = 0x2006 low byte ✅
+⚡ 04 → INITADR = 0x2006 high byte ✅
+⚡ 05 → first byte of code is LDA (0xa9) ✅
+🚀 #0x2000: (a9 42)       LDA  #$42     (#0x2001)  [A=0x42][S=nv-Bdizc]
+⚡ 06 → A is $42 ✅
+⚡ 07 → Target location is 0 before changed ✅
+🚀 #0x2002: (8d c6 02)    STA  $02C6    (#0x02C6)  (0x42)
+⚡ 08 → Changes to value in A ✅
+🚀 #0x2005: (60)          RTS                      [CP=0x0001]
+⚡ 09 → Exit function ✅
+🔧 Setup: register X set to 0xff
+🔧 Setup: 1 byte written
+🚀 #0x2006: (a2 00)       LDX  #$00     (#0x2007)  [X=0x00][S=nv-BdiZc]
+⚡ 10 → X is set to 00 ✅
+🚀 #0x2008: (8e c8 02)    STX  $02C8    (#0x02C8)  (0x00)
+⚡ 11 → Changes to value in X ✅
+🚀 #0x200B: (60)          RTS                      [CP=0x0001]
+⚡ 12 → Exit function ✅
+```

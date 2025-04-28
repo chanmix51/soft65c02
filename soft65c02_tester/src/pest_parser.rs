@@ -11,6 +11,7 @@ use crate::{
     commands::*,
     until_condition::{Assignment, BooleanExpression, RegisterSource, Source},
     atari_binary::AtariBinary,
+    apple_single::AppleSingle,
     AppResult,
 };
 
@@ -61,27 +62,32 @@ impl MemoryCommandParser {
             }
             Rule::memory_load_atari => {
                 let mut pairs = pair.into_inner();
-                let _address = parse_memory(
-                    &pairs
-                        .next()
-                        .expect("there shall be a memory address argument to memory load_atari")
-                        .as_str()[3..],
-                )?;
                 let filename = pairs
                     .next()
                     .expect("there shall be a filename argument to memory load_atari")
                     .as_str();
                 let filepath = PathBuf::from(&filename[1..filename.len() - 1]);
-                
-                // Use AtariBinary::from_file helper
                 let binary = AtariBinary::from_file(&filepath)?;
+                let segments = binary.into_memory_segments();
+                MemoryCommand::LoadSegments { segments }
+            }
+            Rule::memory_load_apple_single => {
+                let mut pairs = pair.into_inner();
+                let filename = pairs
+                    .next()
+                    .expect("there shall be a filename argument to memory load_as")
+                    .as_str();
+                let filepath = PathBuf::from(&filename[1..filename.len() - 1]);
+                
+                // Use AppleSingle::from_file helper
+                let binary = AppleSingle::from_file(&filepath)?;
 
                 // Convert to memory segments
                 let segments = binary.into_memory_segments();
                 MemoryCommand::LoadSegments { segments }
             }
             _ => {
-                panic!("Unexpected pair '{pair:?}'. memory_{{load,flush,write,load_atari}} expected.");
+                panic!("Unexpected pair '{pair:?}'. memory_{{load,flush,write,load_atari,load_as}} expected.");
             }
         };
 
@@ -138,7 +144,7 @@ mod memory_command_parser_tests {
 
     #[test]
     fn test_memory_load_atari_command_parsing() {
-        let input = "memory load_atari #0x1000 \"test.com\"";
+        let input = "memory load_atari \"test.com\"";
         let pairs = PestParser::parse(Rule::memory_instruction, input)
             .unwrap()
             .next()
@@ -151,10 +157,27 @@ mod memory_command_parser_tests {
 
         // Verify the inner parts (address and filename)
         let mut inner = pair.into_inner();
-        let addr = inner.next().unwrap();
-        assert_eq!(addr.as_str(), "#0x1000");
         let filename = inner.next().unwrap();
         assert_eq!(filename.as_str(), "\"test.com\"");
+    }
+
+    #[test]
+    fn test_memory_load_apple_single_command_parsing() {
+        let input = "memory load_as \"test.as\"";
+        let pairs = PestParser::parse(Rule::memory_instruction, input)
+            .unwrap()
+            .next()
+            .unwrap()
+            .into_inner();
+        let pair = pairs.into_iter().next().unwrap();
+
+        // Verify it's the correct rule type
+        assert!(matches!(pair.as_rule(), Rule::memory_load_apple_single));
+
+        // Verify the inner parts (address and filename)
+        let mut inner = pair.into_inner();
+        let filename = inner.next().unwrap();
+        assert_eq!(filename.as_str(), "\"test.as\"");
     }
 }
 pub struct RegisterCommandParser;
