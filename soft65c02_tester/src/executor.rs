@@ -6,12 +6,13 @@ use std::{
 use anyhow::anyhow;
 use soft65c02_lib::{Memory, Registers};
 
-use crate::{AppResult, CliCommand, CliCommandParser, Command, OutputToken};
+use crate::{AppResult, CliCommand, CliCommandParser, Command, OutputToken, symbols::SymbolTable};
 
 #[derive(Debug)]
 struct ExecutionRound {
     registers: Registers,
     memory: Memory,
+    symbols: Option<SymbolTable>,
     failed: bool,
 }
 
@@ -24,14 +25,15 @@ impl Default for ExecutionRound {
         Self {
             registers,
             memory,
+            symbols: None,
             failed,
         }
     }
 }
 
 impl ExecutionRound {
-    fn get_mut(&mut self) -> (&mut Registers, &mut Memory) {
-        (&mut self.registers, &mut self.memory)
+    fn get_mut(&mut self) -> (&mut Registers, &mut Memory, &mut Option<SymbolTable>) {
+        (&mut self.registers, &mut self.memory, &mut self.symbols)
     }
 
     fn is_ok(&self) -> bool {
@@ -49,6 +51,7 @@ where
     B: BufRead,
 {
     iterator: Lines<B>,
+    symbols: Option<SymbolTable>,
 }
 
 impl<B> CommandIterator<B>
@@ -56,7 +59,10 @@ where
     B: BufRead,
 {
     pub fn new(iterator: Lines<B>) -> Self {
-        Self { iterator }
+        Self { 
+            iterator,
+            symbols: None,
+        }
     }
 }
 
@@ -70,7 +76,22 @@ where
         self.iterator.next().map(|result| {
             result
                 .map_err(|e| anyhow!(e))
-                .and_then(|line| CliCommandParser::from(&line))
+                .and_then(|line| {
+                    let cmd = CliCommandParser::from_with_context(&line, crate::pest_parser::ParserContext::new(self.symbols.as_ref()))?;
+                    // If this command loaded or added symbols, update our state
+                    match &cmd {
+                        CliCommand::Memory(crate::commands::MemoryCommand::LoadSymbols { symbols }) => {
+                            self.symbols = Some(symbols.clone());
+                        }
+                        CliCommand::Memory(crate::commands::MemoryCommand::AddSymbol { name, value }) => {
+                            if let Some(symtable) = &mut self.symbols {
+                                symtable.add_symbol(*value, name.clone());
+                            }
+                        }
+                        _ => {}
+                    }
+                    Ok(cmd)
+                })
         })
     }
 }
@@ -132,8 +153,8 @@ impl Executor {
             } else if !round.is_ok() && self.configuration.stop_on_failed_assertion {
                 continue;
             }
-            let (registers, memory) = round.get_mut();
-            let token = command.execute(registers, memory)?;
+            let (registers, memory, symbols) = round.get_mut();
+            let token = command.execute(registers, memory, symbols)?;
 
             if matches!(token, OutputToken::Assertion { ref failure, description: _ } if failure.is_some())
             {

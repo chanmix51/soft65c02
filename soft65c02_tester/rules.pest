@@ -6,7 +6,8 @@ instruction = { registers_instruction |
     memory_instruction |
     run_instruction |
     assert_instruction |
-    marker }
+    marker |
+    symbols_instruction }
 
 marker = {^"marker" ~ "$$" ~ description ~ "$$" }
 
@@ -17,8 +18,8 @@ registers_set = { ^"set" ~ register_assignment }
 
 register_assignment = { assignment8 | assignment16 }
 
-assignment8 = _{ register8 ~ "=" ~ value8 }
-assignment16 = _{ register16 ~ "=" ~ value16 }
+assignment8 = _{ register8 ~ "=" ~ (value8 | memory_address) }
+assignment16 = _{ register16 ~ "=" ~ (value16 | memory_address) }
 
 memory_instruction = { ^"memory" ~ memory_action }
 memory_action = _{ memory_load | memory_write | memory_flush }
@@ -44,7 +45,11 @@ comparison8 = _{ location8 ~ comparison_operator ~ value8 }
 location16 = _{ register16 }
 location8 = _{ memory_address | register8 }
 
-memory_address = { "#0x" ~ ASCII_HEX_DIGIT{4} }
+memory_address = { hex_address | symbol_reference }
+hex_address = { "#0x" ~ ASCII_HEX_DIGIT{4} }
+symbol_reference = { "$" ~ symbol_name }
+symbol_name = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
+
 register16 = { "CP" }
 register8 = { "A" | "X" | "Y" | "SP" | "S" }
 value16 = { "0x" ~ ASCII_HEX_DIGIT{4} }
@@ -56,3 +61,9 @@ comparison_operator = { ">=" | "<=" | "!=" | "=" | ">" | "<" }
 filename = { "\"" ~ filechar+ ~ "\"" }
 filechar = _{ ASCII_ALPHANUMERIC | "." | "_" | "/" }
 description = { ((!"$$") ~ ANY)* }
+
+symbols_instruction = { ^"symbols" ~ symbol_action }
+symbol_action = _{ symbol_load | symbol_add }
+symbol_load = { "load" ~ filename }
+symbol_add = { "add" ~ symbol_name ~ "=" ~ symbol_add_value }
+symbol_add_value = { value16 | value8 | symbol_reference }

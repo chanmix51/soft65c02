@@ -15,3 +15,6 @@ hex = "0.4.3"
 pest = "2.7.8"
 pest_derive = "2.7.8"
 soft65c02_lib = { path = "../soft65c02_lib" }
+
+[dev-dependencies]
+tempfile = "3.19.1"

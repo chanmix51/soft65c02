@@ -4,6 +4,15 @@ marker $$loading atari binaries$$
 // The load address is embed in the binary, so no need to set an address to load it into.
 memory load atari "tests/atari.bin"
 
+// load the symbols table
+symbols load "tests/symbols.txt"
+
+// define some convenience symbols
+symbols add RUNADL=0x02e0
+symbols add RUNADH=0x02e1
+symbols add INITADL=0x02e2
+symbols add INITADH=0x02e3
+
 // hex bytes in file:
 // 000000 ff ff 00 20 0b 20 a9 42 8d c6 02 60 a2 00 8e c8
 // 000010 02 60 e2 02 e3 02 06 20 e0 02 e1 02 00 20
@@ -35,14 +44,15 @@ registers flush
 // but you would not normally check every instruction so closely, but rather
 // the results of running a routine, etc.
 
-// test file was loaded into correct locations
+// test file was loaded into correct locations, using our custom symbols
 // 0x02e0: 00 20 06 20
-assert #0x02e0=0x00     $$RUNADR = 0x2000 low byte$$
-assert #0x02e1=0x20     $$RUNADR = 0x2000 high byte$$
-assert #0x02e2=0x06     $$INITADR = 0x2006 low byte$$
-assert #0x02e3=0x20     $$INITADR = 0x2006 high byte$$
+assert $RUNADL=0x00     $$RUNADR = 0x2000 low byte$$
+assert $RUNADH=0x20     $$RUNADR = 0x2000 high byte$$
+assert $INITADL=0x06    $$INITADR = 0x2006 low byte$$
+assert $INITADH=0x20    $$INITADR = 0x2006 high byte$$
 
 assert #0x2000=0xa9     $$first byte of code is LDA (0xa9)$$
+assert $main=0xa9       $$symbol main is loaded from table$$
 
 // validate the code sets X register and transfers to SP
 run #0x2000
@@ -55,7 +65,7 @@ assert CP=0x0001        $$Exit function$$
 
 registers set X=0xFF
 memory write #0x02C8 0x(ff)
-run #0x2006
+run $cust_init
 assert X=0x00           $$X is set to 00$$
 run
 assert #0x02C8=0x00     $$Changes to value in X$$

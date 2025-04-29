@@ -12,6 +12,7 @@ use crate::{
     until_condition::{Assignment, BooleanExpression, RegisterSource, Source},
     atari_binary::AtariBinary,
     apple_single::AppleSingle,
+    symbols::SymbolTable,
     AppResult,
 };
 
@@ -19,17 +20,160 @@ use crate::{
 #[grammar = "../rules.pest"]
 struct PestParser;
 
-pub struct MemoryCommandParser;
+pub struct ParserContext<'a> {
+    symbols: Option<&'a SymbolTable>,
+}
 
-impl MemoryCommandParser {
-    pub fn from_pairs(pairs: Pairs<'_, Rule>) -> AppResult<MemoryCommand> {
-        let mut pairs = pairs;
+impl<'a> ParserContext<'a> {
+    pub fn new(symbols: Option<&'a SymbolTable>) -> Self {
+        Self { symbols }
+    }
+
+    fn parse_hex(&self, hex_str: &str) -> AppResult<usize> {
+        if hex_str.is_empty() {
+            return Err(anyhow!("Empty string is not a valid Hexadecimal."));
+        }
+        let bytes = hex::decode(hex_str)?;
+        let mut addr: usize = 0;
+        for byte in bytes.iter() {
+            addr = addr << 8 | (*byte as usize);
+        }
+        Ok(addr)
+    }
+
+    pub fn parse_memory(&self, pair: &Pair<Rule>) -> AppResult<usize> {
+        match pair.as_rule() {
+            Rule::memory_address => {
+                let inner = pair.clone().into_inner().next().unwrap();
+                self.parse_memory(&inner)
+            }
+            Rule::hex_address => {
+                let hex_str = &pair.as_str()[3..]; // Skip the "#0x" prefix
+                self.parse_hex(hex_str)
+            }
+            Rule::symbol_reference => {
+                let symbol_name = &pair.as_str()[1..]; // Skip the "$" prefix
+                if let Some(symbols) = &self.symbols {
+                    if let Some(addr) = symbols.get_address(symbol_name) {
+                        return Ok(addr as usize);
+                    }
+                    return Err(anyhow!("Symbol '{}' not found", symbol_name));
+                }
+                Err(anyhow!("Symbol table not available for resolving '{}'", symbol_name))
+            }
+            _ => panic!("Unexpected rule in parse_memory: {:?}", pair.as_rule()),
+        }
+    }
+
+    pub fn parse_boolean_condition(&self, mut nodes: Pairs<Rule>) -> AppResult<BooleanExpression> {
+        let node = nodes.next().unwrap();
+        let expression = match node.as_rule() {
+            Rule::boolean => BooleanExpression::Value(node.as_str() == "true"),
+            Rule::comparison => self.parse_comparison(node.into_inner())?,
+            smt => panic!("unknown node type '{smt:?}'. Is the Pest grammar up to date?"),
+        };
+
+        Ok(expression)
+    }
+
+    fn parse_comparison(&self, mut nodes: Pairs<Rule>) -> AppResult<BooleanExpression> {
+        let node = nodes.next().unwrap();
+        let lh = match node.as_rule() {
+            Rule::register8 | Rule::register16 => self.parse_source_register(&node),
+            Rule::memory_address => self.parse_source_memory(&node)?,
+            Rule::value8 | Rule::value16 => self.parse_source_value(&node)?,
+            v => panic!("unexpected node '{:?}' here.", v),
+        };
+        let middle_node = nodes.next().unwrap();
+        let node = nodes.next().unwrap();
+        let rh = match node.as_rule() {
+            Rule::register8 | Rule::register16 => self.parse_source_register(&node),
+            Rule::memory_address => self.parse_source_memory(&node)?,
+            Rule::value8 | Rule::value16 => self.parse_source_value(&node)?,
+            v => panic!("unexpected node '{:?}' here.", v),
+        };
+        let expression = match middle_node.as_str() {
+            "=" => BooleanExpression::Equal(lh, rh),
+            ">=" => BooleanExpression::GreaterOrEqual(lh, rh),
+            ">" => BooleanExpression::StrictlyGreater(lh, rh),
+            "<=" => BooleanExpression::LesserOrEqual(lh, rh),
+            "<" => BooleanExpression::StrictlyLesser(lh, rh),
+            "!=" => BooleanExpression::Different(lh, rh),
+            v => panic!("unknown 8 bits provider {:?}", v),
+        };
+
+        Ok(expression)
+    }
+
+    fn parse_source_register(&self, node: &Pair<Rule>) -> Source {
+        match node.as_str() {
+            "A" => Source::Register(RegisterSource::Accumulator),
+            "X" => Source::Register(RegisterSource::RegisterX),
+            "Y" => Source::Register(RegisterSource::RegisterY),
+            "S" => Source::Register(RegisterSource::Status),
+            "SP" => Source::Register(RegisterSource::StackPointer),
+            "CP" => Source::Register(RegisterSource::CommandPointer),
+            v => panic!("unknown register type '{:?}'.", v),
+        }
+    }
+
+    fn parse_source_memory(&self, node: &Pair<Rule>) -> AppResult<Source> {
+        Ok(Source::Memory(self.parse_memory(node)?))
+    }
+
+    fn parse_source_value(&self, node: &Pair<Rule>) -> AppResult<Source> {
+        let value_str = &node.as_str()[2..]; // Skip the "0x" prefix
+        let value = self.parse_hex(value_str)?;
+        
+        // Validate the value size matches the rule type
+        match node.as_rule() {
+            Rule::value8 => {
+                if value > 0xFF {
+                    return Err(anyhow!("Value 0x{:X} is too large for 8-bit value", value));
+                }
+            }
+            Rule::value16 => {
+                if value > 0xFFFF {
+                    return Err(anyhow!("Value 0x{:X} is too large for 16-bit value", value));
+                }
+            }
+            _ => panic!("Unexpected rule in parse_source_value: {:?}", node.as_rule()),
+        }
+        
+        Ok(Source::Value(value))
+    }
+
+    fn parse_bytes(&self, bytes: &str) -> AppResult<Vec<u8>> {
+        bytes
+            .split(',')
+            .map(|x| hex::decode(x.trim()).map(|v| v[0]).map_err(|e| anyhow!(e)))
+            .collect()
+    }
+}
+
+pub struct MemoryCommandParser<'a> {
+    context: &'a ParserContext<'a>,
+}
+
+impl<'a> MemoryCommandParser<'a> {
+    pub fn new(context: &'a ParserContext<'a>) -> Self {
+        Self { context }
+    }
+
+    pub fn from_pairs(pairs: Pairs<'_, Rule>, context: &'a ParserContext<'a>) -> AppResult<MemoryCommand> {
+        let parser = Self::new(context);
+        parser.parse_pairs(pairs)
+    }
+
+    fn parse_pairs(&self, mut pairs: Pairs<'_, Rule>) -> AppResult<MemoryCommand> {
         let pair = pairs.next().unwrap();
 
         let command = match pair.as_rule() {
             Rule::memory_flush => MemoryCommand::Flush,
-            Rule::memory_write => Self::handle_memory_write(pair.into_inner())?,
-            Rule::memory_load => Self::handle_memory_load(pair.into_inner())?,
+            Rule::memory_write => self.handle_memory_write(pair.into_inner())?,
+            Rule::memory_load => self.handle_memory_load(pair.into_inner())?,
+            Rule::symbol_load => self.handle_symbol_load(pair.into_inner())?,
+            Rule::symbol_add => self.handle_symbol_add(pair.into_inner())?,
             _ => {
                 panic!("Unexpected pair '{pair:?}'. memory_{{load,flush,write}} expected.");
             }
@@ -38,14 +182,12 @@ impl MemoryCommandParser {
         Ok(command)
     }
 
-    fn handle_memory_write(mut pairs: Pairs<'_, Rule>) -> AppResult<MemoryCommand> {
-        let address = parse_memory(
-            &pairs
-                .next()
-                .expect("there shall be a memory address argument to memory write")
-                .as_str()[3..],
-        )?;
-        let bytes = parse_bytes(
+    fn handle_memory_write(&self, mut pairs: Pairs<'_, Rule>) -> AppResult<MemoryCommand> {
+        let addr_pair = pairs
+            .next()
+            .expect("there shall be a memory address argument to memory write");
+        let address = self.context.parse_memory(&addr_pair)?;
+        let bytes = self.context.parse_bytes(
             pairs
                 .next()
                 .expect("There shall be some bytes to write to memory.")
@@ -54,20 +196,20 @@ impl MemoryCommandParser {
         Ok(MemoryCommand::Write { address, bytes })
     }
 
-    fn handle_memory_load(mut pairs: Pairs<'_, Rule>) -> AppResult<MemoryCommand> {
+    fn handle_memory_load(&self, mut pairs: Pairs<'_, Rule>) -> AppResult<MemoryCommand> {
         let first_arg = pairs
             .next()
             .expect("there shall be a memory address or target argument to memory load");
 
         match first_arg.as_rule() {
-            Rule::target_name => Self::handle_target_load(first_arg, pairs.next()),
-            Rule::memory_address => Self::handle_address_load(first_arg, pairs.next()),
+            Rule::target_name => self.handle_target_load(first_arg, pairs.next()),
+            Rule::memory_address => self.handle_address_load(first_arg, pairs.next()),
             _ => panic!("Unexpected first argument to memory load"),
         }
     }
 
-    fn handle_address_load(address_pair: Pair<'_, Rule>, filename_pair: Option<Pair<'_, Rule>>) -> AppResult<MemoryCommand> {
-        let address = parse_memory(&address_pair.as_str()[3..])?;
+    fn handle_address_load(&self, address_pair: Pair<'_, Rule>, filename_pair: Option<Pair<'_, Rule>>) -> AppResult<MemoryCommand> {
+        let address = self.context.parse_memory(&address_pair)?;
         let filename = filename_pair
             .expect("there shall be a filename argument to memory load")
             .as_str();
@@ -76,7 +218,7 @@ impl MemoryCommandParser {
         Ok(MemoryCommand::Load { address, filepath })
     }
 
-    fn handle_target_load(target_pair: Pair<'_, Rule>, filename_pair: Option<Pair<'_, Rule>>) -> AppResult<MemoryCommand> {
+    fn handle_target_load(&self, target_pair: Pair<'_, Rule>, filename_pair: Option<Pair<'_, Rule>>) -> AppResult<MemoryCommand> {
         let target = target_pair.as_str();
         let filename = filename_pair
             .expect("there shall be a filename argument to memory load")
@@ -94,10 +236,60 @@ impl MemoryCommandParser {
                 let segments = binary.into_memory_segments();
                 MemoryCommand::LoadSegments { segments }
             }
+            // This case is unreachable because the grammar only allows "atari" or "apple"
             _ => unreachable!("Grammar ensures only 'atari' or 'apple' can be targets"),
         };
 
         Ok(command)
+    }
+
+    fn handle_symbol_load(&self, mut pairs: Pairs<'_, Rule>) -> AppResult<MemoryCommand> {
+        let filename = pairs
+            .next()
+            .expect("there shall be a filename argument to symbols load")
+            .as_str();
+        let filepath = PathBuf::from(&filename[1..filename.len() - 1]);
+        
+        let mut symbols = SymbolTable::new();
+        symbols.load_vice_labels(&filepath)?;
+        Ok(MemoryCommand::LoadSymbols { symbols })
+    }
+
+    fn handle_symbol_add(&self, mut pairs: Pairs<'_, Rule>) -> AppResult<MemoryCommand> {
+        let name = pairs.next().unwrap().as_str().to_string();
+        let value_node = pairs.next().unwrap();
+        
+        // First get the inner value from symbol_add_value
+        let value_inner = value_node.into_inner().next().unwrap();
+
+        let value = match value_inner.as_rule() {
+            Rule::value8 | Rule::value16 => {
+                let value_str = &value_inner.as_str()[2..]; // Skip "0x"
+                self.context.parse_hex(value_str)?
+            }
+            Rule::symbol_reference => {
+                self.context.parse_memory(&value_inner)?
+            }
+            _ => panic!("Unexpected value type in symbol_add: {:?}", value_inner.as_rule()),
+        };
+
+        Ok(MemoryCommand::AddSymbol { 
+            name, 
+            value: value as u16 
+        })
+    }
+}
+
+#[cfg(test)]
+mod test_utils {
+    use super::*;
+
+    pub fn setup_test_symbols() -> SymbolTable {
+        let mut symbols = SymbolTable::new();
+        symbols.add_symbol(0x34, "byte_var".to_string());    // 8-bit value
+        symbols.add_symbol(0x1234, "word_var".to_string());  // 16-bit value
+        symbols.add_symbol(0x2000, "counter".to_string());
+        symbols
     }
 }
 
@@ -105,15 +297,20 @@ impl MemoryCommandParser {
 mod memory_command_parser_tests {
     use super::*;
 
+    fn create_test_context<'a>() -> ParserContext<'a> {
+        ParserContext::new(None)
+    }
+
     #[test]
     fn test_memory_flush() {
         let input = "memory flush";
+        let context = create_test_context();
         let pairs = PestParser::parse(Rule::memory_instruction, input)
             .unwrap()
             .next()
             .unwrap()
             .into_inner();
-        let command = MemoryCommandParser::from_pairs(pairs).unwrap();
+        let command = MemoryCommandParser::from_pairs(pairs, &context).unwrap();
 
         assert!(matches!(command, MemoryCommand::Flush));
     }
@@ -121,12 +318,13 @@ mod memory_command_parser_tests {
     #[test]
     fn test_memory_write() {
         let input = "memory write #0x1234 0x(01,02,03)";
+        let context = create_test_context();
         let pairs = PestParser::parse(Rule::memory_instruction, input)
             .unwrap()
             .next()
             .unwrap()
             .into_inner();
-        let command = MemoryCommandParser::from_pairs(pairs).unwrap();
+        let command = MemoryCommandParser::from_pairs(pairs, &context).unwrap();
 
         assert!(
             matches!(command, MemoryCommand::Write { address, bytes } if address == 0x1234 && bytes == vec![0x01, 0x02, 0x03])
@@ -134,14 +332,33 @@ mod memory_command_parser_tests {
     }
 
     #[test]
-    fn test_memory_load() {
-        let input = "memory load #0x1000 \"script.txt\"";
+    fn test_memory_write_with_symbols() {
+        let symbols = test_utils::setup_test_symbols();
+        let context = ParserContext::new(Some(&symbols));
+        let input = "memory write $word_var 0x(a9,c0)";
         let pairs = PestParser::parse(Rule::memory_instruction, input)
             .unwrap()
             .next()
             .unwrap()
             .into_inner();
-        let command = MemoryCommandParser::from_pairs(pairs).unwrap();
+        let command = MemoryCommandParser::from_pairs(pairs, &context).unwrap();
+
+        assert!(
+            matches!(command, MemoryCommand::Write { address, bytes } 
+                if address == 0x1234 && bytes == vec![0xa9, 0xc0])
+        );
+    }
+
+    #[test]
+    fn test_memory_load() {
+        let input = "memory load #0x1000 \"script.txt\"";
+        let context = create_test_context();
+        let pairs = PestParser::parse(Rule::memory_instruction, input)
+            .unwrap()
+            .next()
+            .unwrap()
+            .into_inner();
+        let command = MemoryCommandParser::from_pairs(pairs, &context).unwrap();
 
         assert!(
             matches!(command, MemoryCommand::Load { address, filepath } if address == 0x1000 && filepath == PathBuf::from("script.txt"))
@@ -149,7 +366,25 @@ mod memory_command_parser_tests {
     }
 
     #[test]
+    fn test_memory_load_with_symbols() {
+        let symbols = test_utils::setup_test_symbols();
+        let context = ParserContext::new(Some(&symbols));
+        let input = "memory load $word_var \"script.txt\"";
+        let pairs = PestParser::parse(Rule::memory_instruction, input)
+            .unwrap()
+            .next()
+            .unwrap()
+            .into_inner();
+        let command = MemoryCommandParser::from_pairs(pairs, &context).unwrap();
+
+        assert!(
+            matches!(command, MemoryCommand::Load { address, filepath } if address == 0x1234 && filepath == PathBuf::from("script.txt"))
+        );
+    }
+
+    #[test]
     fn test_memory_load_target_parsing() {
+
         // Test Atari target loading
         let pairs = PestParser::parse(Rule::memory_instruction, "memory load atari \"test.com\"")
             .unwrap()
@@ -188,6 +423,8 @@ mod memory_command_parser_tests {
         let filename = inner.next().unwrap();
         assert_eq!(filename.as_str(), "\"test.as\"");
 
+        // Also verify that invalid targets are rejected by the grammar
+        assert!(PestParser::parse(Rule::memory_instruction, "memory load invalid_target \"test.txt\"").is_err());
     }
 
     #[test]
@@ -199,16 +436,108 @@ mod memory_command_parser_tests {
     }
 }
 
-pub struct RegisterCommandParser;
+#[cfg(test)]
+mod symbol_command_parser_tests {
+    use super::*;
 
-impl RegisterCommandParser {
-    pub fn from_pairs(pairs: Pairs<'_, Rule>) -> AppResult<RegisterCommand> {
-        let mut pairs = pairs;
+    #[test]
+    fn test_symbol_load_command_parsing() {
+        let input = "symbols load \"test.sym\"";
+        let pairs = PestParser::parse(Rule::symbols_instruction, input)
+            .unwrap()
+            .next()
+            .unwrap()
+            .into_inner();
+        let pair = pairs.into_iter().next().unwrap();
+
+        // Verify it's the correct rule type
+        assert!(matches!(pair.as_rule(), Rule::symbol_load));
+
+        // Verify the filename
+        let mut inner = pair.into_inner();
+        let filename = inner.next().unwrap();
+        assert_eq!(filename.as_str(), "\"test.sym\"");
+    }
+
+    #[test]
+    fn test_symbol_add_with_value8() {
+        let input = "symbols add foo=0x12";
+        let context = ParserContext::new(None);
+        let pairs = PestParser::parse(Rule::symbols_instruction, input)
+            .unwrap()
+            .next()
+            .unwrap()
+            .into_inner();
+        let command = MemoryCommandParser::from_pairs(pairs, &context).unwrap();
+
+        assert!(matches!(
+            command,
+            MemoryCommand::AddSymbol { name, value }
+            if name == "foo" && value == 0x12
+        ));
+    }
+
+    #[test]
+    fn test_symbol_add_with_value16() {
+        let input = "symbols add bar=0x1234";
+        let context = ParserContext::new(None);
+        let pairs = PestParser::parse(Rule::symbols_instruction, input)
+            .unwrap()
+            .next()
+            .unwrap()
+            .into_inner();
+        let command = MemoryCommandParser::from_pairs(pairs, &context).unwrap();
+
+        assert!(matches!(
+            command,
+            MemoryCommand::AddSymbol { name, value }
+            if name == "bar" && value == 0x1234
+        ));
+    }
+
+    #[test]
+    fn test_symbol_add_with_reference() {
+        // First create a context with the referenced symbol
+        let mut symbols = SymbolTable::new();
+        symbols.add_symbol(0x12, "foo".to_string());
+        let context = ParserContext::new(Some(&symbols));
+
+        let input = "symbols add baz=$foo";
+        let pairs = PestParser::parse(Rule::symbols_instruction, input)
+            .unwrap()
+            .next()
+            .unwrap()
+            .into_inner();
+        let command = MemoryCommandParser::from_pairs(pairs, &context).unwrap();
+
+        assert!(matches!(
+            command,
+            MemoryCommand::AddSymbol { name, value }
+            if name == "baz" && value == 0x12
+        ));
+    }
+}
+
+pub struct RegisterCommandParser<'a> {
+    context: &'a ParserContext<'a>,
+}
+
+impl<'a> RegisterCommandParser<'a> {
+    pub fn new(context: &'a ParserContext<'a>) -> Self {
+        Self { context }
+    }
+
+    pub fn from_pairs(pairs: Pairs<'_, Rule>, context: &'a ParserContext<'a>) -> AppResult<RegisterCommand> {
+        let parser = Self::new(context);
+        parser.parse_pairs(pairs)
+    }
+
+    fn parse_pairs(&self, mut pairs: Pairs<'_, Rule>) -> AppResult<RegisterCommand> {
         let pair = pairs.next().unwrap();
 
         let command = match pair.as_rule() {
             Rule::registers_flush => RegisterCommand::Flush,
-            Rule::registers_set => Self::parse_register_set(pair.into_inner())?,
+            Rule::registers_set => self.parse_register_set(pair.into_inner())?,
             _ => {
                 panic!("Unexpected rule '{}', register rule was expected.", pair);
             }
@@ -217,29 +546,29 @@ impl RegisterCommandParser {
         Ok(command)
     }
 
-    fn parse_register_set(pairs: Pairs<'_, Rule>) -> AppResult<RegisterCommand> {
-        let mut pairs = pairs;
+    fn parse_register_set(&self, mut pairs: Pairs<'_, Rule>) -> AppResult<RegisterCommand> {
         let assignment = pairs.next().unwrap();
         let mut assignment = assignment.into_inner();
         let destination_node = assignment
             .next()
             .ok_or_else(|| anyhow!("expected a destination for register assignment"))?;
-        let destination = match destination_node.as_rule() {
-            Rule::register8 => match destination_node.as_str() {
+        
+        let (destination, is_16bit) = match destination_node.as_rule() {
+            Rule::register8 => (match destination_node.as_str() {
                 "A" => RegisterSource::Accumulator,
                 "X" => RegisterSource::RegisterX,
                 "Y" => RegisterSource::RegisterY,
                 "S" => RegisterSource::Status,
                 "SP" => RegisterSource::StackPointer,
-                "CP" => RegisterSource::CommandPointer,
                 v => panic!("unknown destination 8 bits register type '{:?}'.", v),
-            },
-            Rule::register16 => match destination_node.as_str() {
+            }, false),
+            Rule::register16 => (match destination_node.as_str() {
                 "CP" => RegisterSource::CommandPointer,
                 v => panic!("unknown destination 16 bits register type '{:?}'.", v),
-            },
+            }, true),
             v => panic!("unexpected node '{:?}' here.", v),
         };
+
         let source_node = assignment.next().unwrap();
         let source = match source_node.as_rule() {
             Rule::register8 => match source_node.as_str() {
@@ -251,8 +580,19 @@ impl RegisterCommandParser {
                 "CP" => Source::Register(RegisterSource::CommandPointer),
                 v => panic!("unknown source register type '{:?}'.", v),
             },
-            Rule::value8 => parse_source_value(&source_node)?,
-            Rule::value16 => parse_source_value(&source_node)?,
+            Rule::value8 | Rule::value16 => {
+                let value = self.context.parse_source_value(&source_node)?;
+                // Value size validation is handled in parse_source_value
+                value
+            },
+            Rule::memory_address => {
+                // For symbols, get the value and validate it against register size
+                let value = self.context.parse_memory(&source_node)?;
+                if !is_16bit && value > 0xFF {
+                    return Err(anyhow!("Value 0x{:X} is too large for 8-bit register", value));
+                }
+                Source::Value(value)
+            },
             v => panic!("unexpected node '{:?}' here.", v),
         };
 
@@ -269,15 +609,20 @@ impl RegisterCommandParser {
 mod register_parser_tests {
     use super::*;
 
+    fn create_test_context<'a>() -> ParserContext<'a> {
+        ParserContext::new(None)
+    }
+
     #[test]
     fn test_registers_flush() {
         let input = "registers flush";
+        let context = create_test_context();
         let pairs = PestParser::parse(Rule::registers_instruction, input)
             .unwrap()
             .next()
             .unwrap()
             .into_inner();
-        let command = RegisterCommandParser::from_pairs(pairs).unwrap();
+        let command = RegisterCommandParser::from_pairs(pairs, &context).unwrap();
 
         assert!(matches!(command, RegisterCommand::Flush));
     }
@@ -285,44 +630,123 @@ mod register_parser_tests {
     #[test]
     fn test_registers_set_value8() {
         let input = "registers set A=0xc0";
+        let context = create_test_context();
         let pairs = PestParser::parse(Rule::registers_instruction, input)
             .unwrap()
             .next()
             .unwrap()
             .into_inner();
-        let command = RegisterCommandParser::from_pairs(pairs).unwrap();
+        let command = RegisterCommandParser::from_pairs(pairs, &context).unwrap();
 
-        assert!(matches!(
-        command,
-        RegisterCommand::Set {assignment}
-        if matches!(assignment.destination, RegisterSource::Accumulator)
-            && matches!(assignment.source, Source::Value(d) if d == 0xc0)
-        ));
+        assert!(
+            matches!(command,
+                RegisterCommand::Set { assignment }
+                if matches!(assignment.destination, RegisterSource::Accumulator)
+                && matches!(assignment.source, Source::Value(d) if d == 0xc0)
+            )
+        );
+    }
+
+    #[test]
+    fn test_registers_set_value8_with_symbol_value() {
+        let mut symbols = SymbolTable::new();
+        symbols.add_symbol(0x12, "test_var".to_string());
+        let context = ParserContext::new(Some(&symbols));
+        
+        let input = "registers set A=$test_var";
+        let pairs = PestParser::parse(Rule::registers_instruction, input)
+            .unwrap()
+            .next()
+            .unwrap()
+            .into_inner();
+        let command = RegisterCommandParser::from_pairs(pairs, &context).unwrap();
+
+        assert!(
+            matches!(command,
+                RegisterCommand::Set { assignment }
+                if matches!(assignment.destination, RegisterSource::Accumulator)
+                && matches!(assignment.source, Source::Value(d) if d == 0x12)
+            )
+        );
+    }
+
+    #[test]
+    fn test_registers_set_value8_with_symbol_value_too_large() {
+        let mut symbols = SymbolTable::new();
+        symbols.add_symbol(0x1234, "test_var".to_string());
+        let context = ParserContext::new(Some(&symbols));
+        
+        let input = "registers set A=$test_var";
+        let pairs = PestParser::parse(Rule::registers_instruction, input)
+            .unwrap()
+            .next()
+            .unwrap()
+            .into_inner();
+        let result = RegisterCommandParser::from_pairs(pairs, &context);
+
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("too large for 8-bit register"));
     }
 
     #[test]
     fn test_registers_set_value16() {
         let input = "registers set CP=0xc0ff";
+        let context = create_test_context();
         let pairs = PestParser::parse(Rule::registers_instruction, input)
             .unwrap()
             .next()
             .unwrap()
             .into_inner();
-        let command = RegisterCommandParser::from_pairs(pairs).unwrap();
-        println!("{command:?}");
+        let command = RegisterCommandParser::from_pairs(pairs, &context).unwrap();
 
-        assert!(matches!(
-        command,
-        RegisterCommand::Set {assignment}
-        if matches!(assignment.destination, RegisterSource::CommandPointer)
-            && matches!(assignment.source, Source::Value(d) if d == 0xc0ff)
-        ));
+        assert!(
+            matches!(command,
+                RegisterCommand::Set { assignment }
+                if matches!(assignment.destination, RegisterSource::CommandPointer)
+                && matches!(assignment.source, Source::Value(d) if d == 0xc0ff)
+            )
+        );
+    }
+
+    #[test]
+    fn test_registers_set_value16_with_symbol_value() {
+        let mut symbols = SymbolTable::new();
+        symbols.add_symbol(0x1234, "test_var".to_string());  // Valid 16-bit value
+        let context = ParserContext::new(Some(&symbols));
+        
+        let input = "registers set CP=$test_var";
+        let pairs = PestParser::parse(Rule::registers_instruction, input)
+            .unwrap()
+            .next()
+            .unwrap()
+            .into_inner();
+        let command = RegisterCommandParser::from_pairs(pairs, &context).unwrap();
+
+        assert!(
+            matches!(command,
+                RegisterCommand::Set { assignment }
+                if matches!(assignment.destination, RegisterSource::CommandPointer)
+                && matches!(assignment.source, Source::Value(0x1234))
+            )
+        );
     }
 }
-pub struct RunCommandParser;
 
-impl RunCommandParser {
-    pub fn from_pairs(pairs: Pairs<'_, Rule>) -> AppResult<RunCommand> {
+pub struct RunCommandParser<'a> {
+    context: &'a ParserContext<'a>,
+}
+
+impl<'a> RunCommandParser<'a> {
+    pub fn new(context: &'a ParserContext<'a>) -> Self {
+        Self { context }
+    }
+
+    pub fn from_pairs(pairs: Pairs<'_, Rule>, context: &'a ParserContext<'a>) -> AppResult<RunCommand> {
+        let parser = Self::new(context);
+        parser.parse_pairs(pairs)
+    }
+
+    fn parse_pairs(&self, pairs: Pairs<'_, Rule>) -> AppResult<RunCommand> {
         let mut start_address = None;
         let mut stop_condition = BooleanExpression::Value(true);
 
@@ -332,13 +756,12 @@ impl RunCommandParser {
                     if pair.as_str() == "init" {
                         start_address = Some(RunAddress::InitVector);
                     } else {
-                        start_address =
-                            Some(RunAddress::Memory(parse_memory(&pair.as_str()[3..])?));
+                        let addr_pair = pair.into_inner().next().unwrap();
+                        start_address = Some(RunAddress::Memory(self.context.parse_memory(&addr_pair)?));
                     };
                 }
                 Rule::run_until_condition => {
-                    stop_condition =
-                        parse_boolean_condition(pair.into_inner().next().unwrap().into_inner())?;
+                    stop_condition = self.context.parse_boolean_condition(pair.into_inner().next().unwrap().into_inner())?;
                 }
                 stmt => panic!("unknown node type {stmt:?}. Is the Pest grammar up to date?"),
             }
@@ -353,19 +776,24 @@ impl RunCommandParser {
 
 #[cfg(test)]
 mod run_command_parser_tests {
-    use crate::until_condition::RegisterSource;
-
     use super::*;
+    use super::test_utils::setup_test_symbols;
+    use crate::until_condition::{RegisterSource, Source};
+
+    fn create_test_context<'a>() -> ParserContext<'a> {
+        ParserContext::new(None)
+    }
 
     #[test]
     fn simple_run() {
         let input = "run";
+        let context = create_test_context();
         let pairs = PestParser::parse(Rule::run_instruction, input)
             .unwrap()
             .next()
             .unwrap()
             .into_inner();
-        let command = RunCommandParser::from_pairs(pairs).unwrap();
+        let command = RunCommandParser::from_pairs(pairs, &context).unwrap();
 
         assert!(matches!(command.stop_condition, BooleanExpression::Value(v) if v));
         assert!(command.start_address.is_none());
@@ -374,8 +802,9 @@ mod run_command_parser_tests {
     #[test]
     fn run_with_start_address() {
         let input = "run #0x1234";
+        let context = create_test_context();
         let mut parser = PestParser::parse(Rule::run_instruction, input).unwrap();
-        let command = RunCommandParser::from_pairs(parser.next().unwrap().into_inner()).unwrap();
+        let command = RunCommandParser::from_pairs(parser.next().unwrap().into_inner(), &context).unwrap();
 
         assert!(matches!(command.stop_condition, BooleanExpression::Value(v) if v));
         assert!(matches!(command.start_address, Some(RunAddress::Memory(addr)) if addr == 0x1234));
@@ -384,8 +813,9 @@ mod run_command_parser_tests {
     #[test]
     fn run_with_stop_condition() {
         let input = "run until A > 0x12";
+        let context = create_test_context();
         let mut parser = PestParser::parse(Rule::run_instruction, input).unwrap();
-        let command = RunCommandParser::from_pairs(parser.next().unwrap().into_inner()).unwrap();
+        let command = RunCommandParser::from_pairs(parser.next().unwrap().into_inner(), &context).unwrap();
 
         if let BooleanExpression::StrictlyGreater(lt, rt) = command.stop_condition {
             assert!(matches!(lt, Source::Register(RegisterSource::Accumulator)));
@@ -402,22 +832,56 @@ mod run_command_parser_tests {
     #[test]
     fn run_init() {
         let input = "run init";
+        let context = create_test_context();
         let mut parser = PestParser::parse(Rule::run_instruction, input).unwrap();
-        let command = RunCommandParser::from_pairs(parser.next().unwrap().into_inner()).unwrap();
+        let command = RunCommandParser::from_pairs(parser.next().unwrap().into_inner(), &context).unwrap();
 
         assert!(matches!(
             command.start_address,
             Some(RunAddress::InitVector)
         ));
     }
+
+    #[test]
+    fn test_run_from_symbol_address_until_memory_at_symbol_matches() {
+        let symbols = setup_test_symbols();
+        let context = ParserContext::new(Some(&symbols));
+        let input = "run $word_var until $counter = 0xff";
+        let pairs = PestParser::parse(Rule::run_instruction, input)
+            .unwrap()
+            .next()
+            .unwrap()
+            .into_inner();
+        let command = RunCommandParser::from_pairs(pairs, &context).unwrap();
+
+        assert!(matches!(command.start_address, Some(RunAddress::Memory(addr)) if addr == 0x1234));
+        assert!(
+            matches!(command.stop_condition, 
+                BooleanExpression::Equal(
+                    Source::Memory(addr),
+                    Source::Value(0xff)
+                ) if addr == 0x2000
+            )
+        );
+    }
 }
 
-pub struct AssertCommandParser;
+pub struct AssertCommandParser<'a> {
+    context: &'a ParserContext<'a>,
+}
 
-impl AssertCommandParser {
-    pub fn from_pairs(mut pairs: Pairs<'_, Rule>) -> AppResult<AssertCommand> {
-        // let mut pairs = pairs.next().unwrap().into_inner();
-        let condition = parse_boolean_condition(pairs.next().unwrap().into_inner())?;
+impl<'a> AssertCommandParser<'a> {
+    pub fn new(context: &'a ParserContext<'a>) -> Self {
+        Self { context }
+    }
+
+    pub fn from_pairs(pairs: Pairs<'_, Rule>, context: &'a ParserContext<'a>) -> AppResult<AssertCommand> {
+        let parser = Self::new(context);
+        parser.parse_pairs(pairs)
+    }
+
+    fn parse_pairs(&self, mut pairs: Pairs<'_, Rule>) -> AppResult<AssertCommand> {
+        let condition = self.context.parse_boolean_condition(pairs.next().unwrap().into_inner())?;
         let comment = pairs.next().unwrap().as_str().to_string();
         let command = AssertCommand { comment, condition };
 
@@ -428,27 +892,69 @@ impl AssertCommandParser {
 #[cfg(test)]
 mod assert_parser_tests {
     use super::*;
+    use super::test_utils::setup_test_symbols;
+
+    fn create_test_context<'a>() -> ParserContext<'a> {
+        ParserContext::new(None)
+    }
 
     #[test]
     fn test_assert_parser() {
         let input = "assert A = 0x00 $$something$$";
+        let context = create_test_context();
         let pairs = PestParser::parse(Rule::assert_instruction, input)
             .unwrap()
             .next()
             .expect("one instruction per line")
             .into_inner();
-        let command = AssertCommandParser::from_pairs(pairs).unwrap();
+        let command = AssertCommandParser::from_pairs(pairs, &context).unwrap();
 
         assert!(
             matches!(command, AssertCommand { comment, condition } if comment.as_str() == "something" && matches!(condition, BooleanExpression::Equal(_, _)))
         )
     }
+
+    #[test]
+    fn test_assert_command_with_symbols() {
+        let symbols = setup_test_symbols();
+        let context = ParserContext::new(Some(&symbols));
+        let input = "assert $byte_var = 0xff $$test description$$";
+        let pairs = PestParser::parse(Rule::assert_instruction, input)
+            .unwrap()
+            .next()
+            .unwrap()
+            .into_inner();
+        let command = AssertCommandParser::from_pairs(pairs, &context).unwrap();
+
+        assert_eq!(command.comment, "test description");
+        assert!(
+            matches!(command.condition,
+                BooleanExpression::Equal(
+                    Source::Memory(addr),
+                    Source::Value(0xff)
+                ) if addr == 0x34
+            )
+        );
+    }
 }
 
-pub struct CliCommandParser;
+pub struct CliCommandParser<'a> {
+    context: ParserContext<'a>,
+}
 
-impl CliCommandParser {
+impl<'a> CliCommandParser<'a> {
+    // Static method for parsing without symbols (mainly used in tests)
     pub fn from(line: &str) -> AppResult<CliCommand> {
+        Self::from_with_context(line, ParserContext::new(None))
+    }
+
+    // Main method used in production code, takes a context with symbols
+    pub fn from_with_context(line: &str, context: ParserContext<'a>) -> AppResult<CliCommand> {
+        let parser = Self { context };
+        parser.parse_line(line)
+    }
+
+    fn parse_line(&self, line: &str) -> AppResult<CliCommand> {
         let line = line.trim();
 
         if line.is_empty() {
@@ -471,24 +977,27 @@ impl CliCommandParser {
 
         let command = match pair.as_rule() {
             Rule::run_instruction => {
-                CliCommand::Run(RunCommandParser::from_pairs(pair.into_inner())?)
+                CliCommand::Run(RunCommandParser::from_pairs(pair.into_inner(), &self.context)?)
             }
             Rule::assert_instruction => {
-                CliCommand::Assert(AssertCommandParser::from_pairs(pair.into_inner())?)
+                CliCommand::Assert(AssertCommandParser::from_pairs(pair.into_inner(), &self.context)?)
             }
             Rule::marker => {
                 let marker = pair.into_inner().next().unwrap().as_str();
                 CliCommand::Marker(marker.to_owned())
             }
             Rule::registers_instruction => {
-                CliCommand::Registers(RegisterCommandParser::from_pairs(pair.into_inner())?)
+                CliCommand::Registers(RegisterCommandParser::from_pairs(pair.into_inner(), &self.context)?)
             }
             Rule::memory_instruction => {
-                CliCommand::Memory(MemoryCommandParser::from_pairs(pair.into_inner())?)
+                CliCommand::Memory(MemoryCommandParser::from_pairs(pair.into_inner(), &self.context)?)
+            }
+            Rule::symbols_instruction => {
+                CliCommand::Memory(MemoryCommandParser::from_pairs(pair.into_inner(), &self.context)?)
             }
             _ => {
                 panic!(
-                    "'{}' was not expected here: 'register|memory|run|assert|reset instruction'.",
+                    "'{}' was not expected here: 'register|memory|run|assert|reset|symbols instruction'.",
                     pair.as_str()
                 );
             }
@@ -514,21 +1023,18 @@ mod cli_command_parser_test {
     #[test]
     fn test_run_cli_parser() {
         let cli_command = CliCommandParser::from("run #0x1aff until X = 0xff").unwrap();
-
         assert!(matches!(cli_command, CliCommand::Run(_)));
     }
 
     #[test]
     fn test_assert_cli_parser() {
         let cli_command = CliCommandParser::from("assert #0x0000=0x00 $$description$$").unwrap();
-
         assert!(matches!(cli_command, CliCommand::Assert(_)));
     }
 
     #[test]
     fn test_marker_cli_parser() {
         let cli_command = CliCommandParser::from("marker $$This is a marker.$$").unwrap();
-
         assert!(
             matches!(cli_command, CliCommand::Marker(comment) if comment == *"This is a marker.")
         );
@@ -537,7 +1043,6 @@ mod cli_command_parser_test {
     #[test]
     fn test_registers_cli_parser() {
         let cli_command = CliCommandParser::from("registers flush").unwrap();
-
         assert!(matches!(
             cli_command,
             CliCommand::Registers(RegisterCommand::Flush)
@@ -547,7 +1052,6 @@ mod cli_command_parser_test {
     #[test]
     fn test_memory_cli_flush_parser() {
         let cli_command = CliCommandParser::from("memory flush").unwrap();
-
         assert!(matches!(
             cli_command,
             CliCommand::Memory(MemoryCommand::Flush)
@@ -557,7 +1061,6 @@ mod cli_command_parser_test {
     #[test]
     fn test_memory_write_parser() {
         let cli_command = CliCommandParser::from("memory write #0x1234 0x(12,23,34,45)").unwrap();
-
         assert!(matches!(
             cli_command,
             CliCommand::Memory(MemoryCommand::Write {
@@ -570,7 +1073,6 @@ mod cli_command_parser_test {
     #[test]
     fn test_memory_load_parser() {
         let cli_command = CliCommandParser::from("memory load #0x1234 \"file.test\"").unwrap();
-
         assert!(matches!(
             cli_command,
             CliCommand::Memory(MemoryCommand::Load {
@@ -583,111 +1085,66 @@ mod cli_command_parser_test {
     #[test]
     fn test_code_comments() {
         let cli_command = CliCommandParser::from("// This is a comment").unwrap();
-
         assert!(matches!(cli_command, CliCommand::None));
     }
-}
 
-fn parse_memory(addr: &str) -> AppResult<usize> {
-    if addr.is_empty() {
-        return Err(anyhow!("Empty string is not a valid Hexadecimal."));
+    #[test]
+    fn test_memory_load_parser_with_symbols() {
+        let mut symbols = SymbolTable::new();
+        symbols.add_symbol(0x1234, "test_var".to_string());
+
+        let cli_command = CliCommandParser::from_with_context(
+            "memory write $test_var 0x(12)",
+            ParserContext::new(Some(&symbols))
+        ).unwrap();
+
+        assert!(matches!(
+            cli_command,
+            CliCommand::Memory(MemoryCommand::Write {
+                address,
+                bytes
+            }) if address == 0x1234 && bytes == vec![0x12]
+        ));
     }
 
-    let bytes = hex::decode(addr)?;
-    let mut addr: usize = 0;
-
-    for byte in bytes.iter() {
-        addr = addr << 8 | (*byte as usize);
+    #[test]
+    fn test_symbols_load_parser() {
+        let cli_command = CliCommandParser::from("symbols load \"tests/symbols.txt\"").unwrap();
+        assert!(matches!(
+            cli_command,
+            CliCommand::Memory(MemoryCommand::LoadSymbols { symbols: _ })
+        ));
     }
 
-    Ok(addr)
-}
-
-pub fn parse_boolean_condition(mut nodes: Pairs<Rule>) -> AppResult<BooleanExpression> {
-    let node = nodes.next().unwrap();
-    let expression = match node.as_rule() {
-        Rule::boolean => BooleanExpression::Value(node.as_str() == "true"),
-        Rule::comparison => parse_comparison(node.into_inner())?,
-        smt => panic!("unknown node type '{smt:?}'. Is the Pest grammar up to date?"),
-    };
-
-    Ok(expression)
-}
-
-fn parse_comparison(mut nodes: Pairs<Rule>) -> AppResult<BooleanExpression> {
-    let node = nodes.next().unwrap();
-    let lh = match node.as_rule() {
-        Rule::register8 | Rule::register16 => parse_source_register(&node),
-        Rule::memory_address => parse_source_memory(&node)?,
-        Rule::value8 | Rule::value16 => parse_source_value(&node)?,
-        v => panic!("unexpected node '{:?}' here.", v),
-    };
-    let middle_node = nodes.next().unwrap();
-    let node = nodes.next().unwrap();
-    let rh = match node.as_rule() {
-        Rule::register8 | Rule::register16 => parse_source_register(&node),
-        Rule::memory_address => parse_source_memory(&node)?,
-        Rule::value8 | Rule::value16 => parse_source_value(&node)?,
-        v => panic!("unexpected node '{:?}' here.", v),
-    };
-    let expression = match middle_node.as_str() {
-        "=" => BooleanExpression::Equal(lh, rh),
-        ">=" => BooleanExpression::GreaterOrEqual(lh, rh),
-        ">" => BooleanExpression::StrictlyGreater(lh, rh),
-        "<=" => BooleanExpression::LesserOrEqual(lh, rh),
-        "<" => BooleanExpression::StrictlyLesser(lh, rh),
-        "!=" => BooleanExpression::Different(lh, rh),
-        v => panic!("unknown 8 bits provider {:?}", v),
-    };
-
-    Ok(expression)
-}
-
-fn parse_source_register(node: &Pair<Rule>) -> Source {
-    match node.as_str() {
-        "A" => Source::Register(RegisterSource::Accumulator),
-        "X" => Source::Register(RegisterSource::RegisterX),
-        "Y" => Source::Register(RegisterSource::RegisterY),
-        "S" => Source::Register(RegisterSource::Status),
-        "SP" => Source::Register(RegisterSource::StackPointer),
-        "CP" => Source::Register(RegisterSource::CommandPointer),
-        v => panic!("unknown register type '{:?}'.", v),
+    #[test]
+    fn test_symbols_add_parser() {
+        let cli_command = CliCommandParser::from("symbols add foo=0x1234").unwrap();
+        assert!(matches!(
+            cli_command,
+            CliCommand::Memory(MemoryCommand::AddSymbol { name, value })
+            if name == "foo" && value == 0x1234
+        ));
     }
-}
-
-fn parse_source_memory(node: &Pair<Rule>) -> AppResult<Source> {
-    let addr = parse_memory(&node.as_str()[3..])?;
-
-    Ok(Source::Memory(addr))
-}
-
-fn parse_source_value(node: &Pair<Rule>) -> AppResult<Source> {
-    let addr = parse_memory(&node.as_str()[2..])?;
-
-    Ok(Source::Value(addr))
-}
-
-#[allow(dead_code)]
-fn parse_bytes(bytes: &str) -> AppResult<Vec<u8>> {
-    bytes
-        .split(',')
-        .map(|x| hex::decode(x.trim()).map(|v| v[0]).map_err(|e| anyhow!(e)))
-        .collect()
 }
 
 #[cfg(test)]
-mod tests {
+mod parser_context_tests {
     use super::*;
-    use crate::until_condition::{BooleanExpression, Source};
+    use crate::until_condition::{BooleanExpression, RegisterSource, Source};
+
+    fn create_test_context<'a>() -> ParserContext<'a> {
+        ParserContext::new(None)
+    }
 
     #[test]
     fn test_parse_boolean_condition() {
         let input = "A != 0xff";
+        let context = create_test_context();
         let node = PestParser::parse(Rule::boolean_condition, input)
             .unwrap()
             .next()
             .expect("There is one node in this input.");
-        let output = parse_boolean_condition(node.into_inner()).unwrap();
+        let output = context.parse_boolean_condition(node.into_inner()).unwrap();
 
         assert!(matches!(
             output,
@@ -699,16 +1156,56 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_memory_ok() {
-        assert_eq!(0x02ff, parse_memory("02ff").unwrap());
-        assert_eq!(0x0000, parse_memory("0000").unwrap());
-        assert_eq!(0xea, parse_memory("ea").unwrap());
+    fn test_parse_hex_ok() {
+        let context = create_test_context();
+        assert_eq!(0x02ff, context.parse_hex("02ff").unwrap());
+        assert_eq!(0x0000, context.parse_hex("0000").unwrap());
+        assert_eq!(0xea, context.parse_hex("ea").unwrap());
     }
 
     #[test]
-    fn test_parse_memory_bad() {
-        parse_memory("").expect_err("Empty string must yield an error.");
-        parse_memory("   ").expect_err("Invisible string must yield an error.");
-        parse_memory("xxx").expect_err("Non hexa must yield an error.");
+    fn test_parse_hex_bad() {
+        let context = create_test_context();
+        context.parse_hex("").expect_err("Empty string must yield an error.");
+        context.parse_hex("   ").expect_err("Invisible string must yield an error.");
+        context.parse_hex("xxx").expect_err("Non hexa must yield an error.");
+    }
+
+    #[test]
+    fn test_parse_memory_with_hex_address() {
+        let context = create_test_context();
+        let input = "#0x1234";
+        let node = PestParser::parse(Rule::hex_address, input)
+            .unwrap()
+            .next()
+            .unwrap();
+        let result = context.parse_memory(&node).unwrap();
+        assert_eq!(0x1234, result);
+    }
+
+    #[test]
+    fn test_parse_memory_with_symbol() {
+        let mut symbols = SymbolTable::new();
+        symbols.add_symbol(0x1234, "test_var".to_string());
+        let context = ParserContext::new(Some(&symbols));
+        
+        let input = "$test_var";
+        let node = PestParser::parse(Rule::symbol_reference, input)
+            .unwrap()
+            .next()
+            .unwrap();
+        let result = context.parse_memory(&node).unwrap();
+        assert_eq!(0x1234, result);
+    }
+
+    #[test]
+    fn test_parse_memory_with_missing_symbol() {
+        let context = create_test_context();
+        let input = "$nonexistent";
+        let node = PestParser::parse(Rule::symbol_reference, input)
+            .unwrap()
+            .next()
+            .unwrap();
+        context.parse_memory(&node).expect_err("Should fail when symbols table is not available");
     }
 }
