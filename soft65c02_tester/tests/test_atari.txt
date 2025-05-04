@@ -54,6 +54,10 @@ assert $INITADH=0x20    $$INITADR = 0x2006 high byte$$
 assert #0x2000=0xa9     $$first byte of code is LDA (0xa9)$$
 assert $main=0xa9       $$symbol main is loaded from table$$
 
+// we can also test byte sequences via address or symbol
+assert #0x2000 ~ 0x(a9,42,8d,c6,02)  $$0x2000 starts with correct byte sequence$$
+assert $main ~ 0x(a9,42,8d,c6,02)    $$main starts with correct byte sequence$$
+
 // validate the code sets X register and transfers to SP
 run #0x2000
 assert A=0x42           $$A is $42$$

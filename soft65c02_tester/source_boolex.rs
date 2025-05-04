@@ -51,6 +51,7 @@ pub enum BooleanExpression {
     Value(bool),
     And(Box<BooleanExpression>, Box<BooleanExpression>),
     Or(Box<BooleanExpression>, Box<BooleanExpression>),
+    MemorySequence(Source, Vec<u8>),
 }
 
 impl BooleanExpression {
@@ -78,6 +79,17 @@ impl BooleanExpression {
             }
             BooleanExpression::Or(expr1, expr2) => {
                 expr1.solve(registers, memory) || expr2.solve(registers, memory)
+            }
+            BooleanExpression::MemorySequence(source, expected_bytes) => {
+                if let Source::Memory(addr) = source {
+                    if let Ok(actual_bytes) = memory.read(*addr, expected_bytes.len()) {
+                        actual_bytes == expected_bytes
+                    } else {
+                        false
+                    }
+                } else {
+                    false
+                }
             }
         }
     }
@@ -110,6 +122,14 @@ impl fmt::Display for BooleanExpression {
             }
             BooleanExpression::Or(expr1, expr2) => {
                 write!(f, "({} OR {})", expr1, expr2)
+            }
+            BooleanExpression::MemorySequence(source, bytes) => {
+                write!(f, "{} ~ 0x({})", source, 
+                    bytes.iter()
+                        .map(|b| format!("{:02x}", b))
+                        .collect::<Vec<_>>()
+                        .join(",")
+                )
             }
         }
     }

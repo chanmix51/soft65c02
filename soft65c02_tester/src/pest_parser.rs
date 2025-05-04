@@ -70,6 +70,15 @@ impl<'a> ParserContext<'a> {
         let expression = match node.as_rule() {
             Rule::boolean => BooleanExpression::Value(node.as_str() == "true"),
             Rule::comparison => self.parse_comparison(node.into_inner())?,
+            Rule::memory_sequence => {
+                let mut seq_nodes = node.into_inner();
+                let addr_node = seq_nodes.next().unwrap();
+                let addr = self.parse_source_memory(&addr_node)?;
+                let bytes_list_node = seq_nodes.next().unwrap();
+                let bytes_node = bytes_list_node.into_inner().next().unwrap();
+                let bytes = self.parse_bytes(bytes_node.as_str())?;
+                BooleanExpression::MemorySequence(addr, bytes)
+            },
             smt => panic!("unknown node type '{smt:?}'. Is the Pest grammar up to date?"),
         };
 
@@ -86,12 +95,14 @@ impl<'a> ParserContext<'a> {
         };
         let middle_node = nodes.next().unwrap();
         let node = nodes.next().unwrap();
+        
         let rh = match node.as_rule() {
             Rule::register8 | Rule::register16 => self.parse_source_register(&node),
             Rule::memory_address => self.parse_source_memory(&node)?,
             Rule::value8 | Rule::value16 => self.parse_source_value(&node)?,
             v => panic!("unexpected node '{:?}' here.", v),
         };
+
         let expression = match middle_node.as_str() {
             "=" => BooleanExpression::Equal(lh, rh),
             ">=" => BooleanExpression::GreaterOrEqual(lh, rh),
@@ -99,7 +110,7 @@ impl<'a> ParserContext<'a> {
             "<=" => BooleanExpression::LesserOrEqual(lh, rh),
             "<" => BooleanExpression::StrictlyLesser(lh, rh),
             "!=" => BooleanExpression::Different(lh, rh),
-            v => panic!("unknown 8 bits provider {:?}", v),
+            v => panic!("unknown operator {:?}", v),
         };
 
         Ok(expression)
@@ -881,11 +892,36 @@ impl<'a> AssertCommandParser<'a> {
     }
 
     fn parse_pairs(&self, mut pairs: Pairs<'_, Rule>) -> AppResult<AssertCommand> {
-        let condition = self.context.parse_boolean_condition(pairs.next().unwrap().into_inner())?;
+        let boolean_condition = pairs.next().unwrap();
+        let condition = match boolean_condition.as_rule() {
+            Rule::boolean_condition => {
+                let first = boolean_condition.into_inner().next().unwrap();
+                match first.as_rule() {
+                    Rule::memory_sequence => self.parse_memory_sequence(first)?,
+                    _ => self.context.parse_boolean_condition(Pairs::single(first))?,
+                }
+            }
+            _ => panic!("Expected boolean_condition, got {:?}", boolean_condition.as_rule()),
+        };
+
         let comment = pairs.next().unwrap().as_str().to_string();
         let command = AssertCommand { comment, condition };
 
         Ok(command)
+    }
+
+    fn parse_memory_sequence(&self, node: Pair<Rule>) -> AppResult<BooleanExpression> {
+        let mut seq_nodes = node.into_inner();
+        let addr_node = seq_nodes.next().expect("memory_sequence should have a memory_address node");
+        let addr = self.context.parse_source_memory(&addr_node)?;
+        
+        // Get the bytes_list node (which contains 0x(...))
+        let bytes_list_node = seq_nodes.next().expect("memory_sequence should have a bytes_list node");
+        // Get the inner bytes node from bytes_list
+        let bytes_node = bytes_list_node.into_inner().next().expect("bytes_list should contain a bytes node");
+        let bytes = self.context.parse_bytes(bytes_node.as_str())?;
+        
+        Ok(BooleanExpression::MemorySequence(addr, bytes))
     }
 }
 
@@ -935,6 +971,64 @@ mod assert_parser_tests {
                 ) if addr == 0x34
             )
         );
+    }
+
+    #[test]
+    fn test_assert_memory_sequence() {
+        let context = create_test_context();
+        let input = "assert #0x8000 ~ 0x(01,a2,f3) $$check memory sequence$$";
+        let pairs = PestParser::parse(Rule::assert_instruction, input)
+            .unwrap()
+            .next()
+            .unwrap()
+            .into_inner();
+        let command = AssertCommandParser::from_pairs(pairs, &context).unwrap();
+
+        assert_eq!(command.comment, "check memory sequence");
+        assert!(
+            matches!(command.condition,
+                BooleanExpression::MemorySequence(
+                    Source::Memory(addr),
+                    bytes
+                ) if addr == 0x8000 && bytes == vec![0x01, 0xa2, 0xf3]
+            )
+        );
+    }
+
+    #[test]
+    fn test_assert_memory_sequence_with_symbols() {
+        let mut symbols = setup_test_symbols();
+        symbols.add_symbol(0x8000, "code_start".to_string());
+        let context = ParserContext::new(Some(&symbols));
+        
+        let input = "assert $code_start ~ 0x(01,a2,f3) $$check memory sequence with symbol$$";
+        let pairs = PestParser::parse(Rule::assert_instruction, input)
+            .unwrap()
+            .next()
+            .unwrap()
+            .into_inner();
+        let command = AssertCommandParser::from_pairs(pairs, &context).unwrap();
+
+        assert_eq!(command.comment, "check memory sequence with symbol");
+        assert!(
+            matches!(command.condition,
+                BooleanExpression::MemorySequence(
+                    Source::Memory(addr),
+                    bytes
+                ) if addr == 0x8000 && bytes == vec![0x01, 0xa2, 0xf3]
+            )
+        );
+    }
+
+    #[test]
+    fn test_assert_memory_sequence_invalid_source() {
+        // Try to use a register with the sequence operator - should be rejected by grammar
+        let input = "assert A ~ 0x(01,02) $$invalid - register with sequence$$";
+        assert!(PestParser::parse(Rule::assert_instruction, input).is_err());
+
+        // Verify that memory addresses still work
+        let input = "assert #0x1234 ~ 0x(01,02) $$valid - memory with sequence$$";
+        assert!(PestParser::parse(Rule::assert_instruction, input).is_ok());
     }
 }
 
@@ -1130,6 +1224,7 @@ mod cli_command_parser_test {
 #[cfg(test)]
 mod parser_context_tests {
     use super::*;
+    use super::test_utils::setup_test_symbols;
     use crate::until_condition::{BooleanExpression, RegisterSource, Source};
 
     fn create_test_context<'a>() -> ParserContext<'a> {
@@ -1152,6 +1247,47 @@ mod parser_context_tests {
                 Source::Register(RegisterSource::Accumulator),
                 Source::Value(0xff)
             )
+        ));
+    }
+
+    #[test]
+    fn test_parse_boolean_condition_memory_sequence() {
+        let input = "#0x8000 ~ 0x(01,a2,f3)";
+        let context = create_test_context();
+        let node = PestParser::parse(Rule::boolean_condition, input)
+            .unwrap()
+            .next()
+            .expect("There is one node in this input.");
+        let output = context.parse_boolean_condition(node.into_inner()).unwrap();
+
+        assert!(matches!(
+            output,
+            BooleanExpression::MemorySequence(
+                Source::Memory(addr),
+                bytes
+            ) if addr == 0x8000 && bytes == vec![0x01, 0xa2, 0xf3]
+        ));
+    }
+
+    #[test]
+    fn test_parse_boolean_condition_memory_sequence_with_symbol() {
+        let mut symbols = setup_test_symbols();
+        symbols.add_symbol(0x8000, "code_start".to_string());
+        let context = ParserContext::new(Some(&symbols));
+        
+        let input = "$code_start ~ 0x(01,a2,f3)";
+        let node = PestParser::parse(Rule::boolean_condition, input)
+            .unwrap()
+            .next()
+            .expect("There is one node in this input.");
+        let output = context.parse_boolean_condition(node.into_inner()).unwrap();
+
+        assert!(matches!(
+            output,
+            BooleanExpression::MemorySequence(
+                Source::Memory(addr),
+                bytes
+            ) if addr == 0x8000 && bytes == vec![0x01, 0xa2, 0xf3]
         ));
     }
 

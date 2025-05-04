@@ -161,6 +161,7 @@ pub enum BooleanExpression {
     Value(bool),
     And(Box<BooleanExpression>, Box<BooleanExpression>),
     Or(Box<BooleanExpression>, Box<BooleanExpression>),
+    MemorySequence(Source, Vec<u8>),  // For comparing memory contents against a sequence of bytes
 }
 
 impl BooleanExpression {
@@ -239,7 +240,7 @@ impl BooleanExpression {
 
                 if left_value == right_value {
                     Some(format!(
-                        "({self}) 0x{:02x} is not different than 0x{:02x}",
+                        "({self}) 0x{:02x} is equal to 0x{:02x}",
                         left_value, right_value
                     ))
                 } else {
@@ -247,18 +248,54 @@ impl BooleanExpression {
                 }
             }
             BooleanExpression::Value(val) => {
-                if !*val {
-                    Some("value is false".to_string())
+                if !val {
+                    Some(format!("({self}) is false"))
                 } else {
                     None
                 }
             }
-            BooleanExpression::And(expr1, expr2) => expr1
-                .solve(registers, memory)
-                .and(expr2.solve(registers, memory)),
-            BooleanExpression::Or(expr1, expr2) => expr1
-                .solve(registers, memory)
-                .or(expr2.solve(registers, memory)),
+            BooleanExpression::And(expr1, expr2) => {
+                if let Some(msg) = expr1.solve(registers, memory) {
+                    Some(msg)
+                } else {
+                    expr2.solve(registers, memory)
+                }
+            }
+            BooleanExpression::Or(expr1, expr2) => {
+                if let Some(msg1) = expr1.solve(registers, memory) {
+                    if let Some(msg2) = expr2.solve(registers, memory) {
+                        Some(format!("({self}) both conditions failed:\n  {msg1}\n  {msg2}"))
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            }
+            BooleanExpression::MemorySequence(source, expected_bytes) => {
+                if let Source::Memory(addr) = source {
+                    if let Ok(actual_bytes) = memory.read(*addr, expected_bytes.len()) {
+                        if &actual_bytes == expected_bytes {
+                            None
+                        } else {
+                            Some(format!(
+                                "({self}) Memory at #0x{:04x} contains {:02x?} instead of expected {:02x?}",
+                                addr, actual_bytes, expected_bytes
+                            ))
+                        }
+                    } else {
+                        Some(format!(
+                            "({self}) Failed to read {} bytes from memory at #0x{:04x}",
+                            expected_bytes.len(), addr
+                        ))
+                    }
+                } else {
+                    Some(format!(
+                        "({self}) Memory sequence comparison requires a memory address source, got {}",
+                        source
+                    ))
+                }
+            }
         }
     }
 }
@@ -266,30 +303,22 @@ impl BooleanExpression {
 impl fmt::Display for BooleanExpression {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            BooleanExpression::Equal(left, right) => write!(f, "{left} = {right}"),
-            BooleanExpression::GreaterOrEqual(left, right) => {
-                write!(f, "{left} ≥ {right}")
-            }
-            BooleanExpression::StrictlyGreater(left, right) => {
-                write!(f, "{left} > {right}")
-            }
-            BooleanExpression::LesserOrEqual(left, right) => {
-                write!(f, "{left} ≤ {right}")
-            }
-            BooleanExpression::StrictlyLesser(left, right) => {
-                write!(f, "{left} < {right}")
-            }
-            BooleanExpression::Different(left, right) => {
-                write!(f, "{left} ≠ {right}")
-            }
-            BooleanExpression::Value(val) => {
-                write!(f, "{}", if *val { "true" } else { "false" })
-            }
-            BooleanExpression::And(expr1, expr2) => {
-                write!(f, "{expr1} AND {expr2}")
-            }
-            BooleanExpression::Or(expr1, expr2) => {
-                write!(f, "({expr1} OR {expr2})")
+            BooleanExpression::Equal(source, val) => write!(f, "{} = {}", source, val),
+            BooleanExpression::GreaterOrEqual(source, val) => write!(f, "{} >= {}", source, val),
+            BooleanExpression::StrictlyGreater(source, val) => write!(f, "{} > {}", source, val),
+            BooleanExpression::LesserOrEqual(source, val) => write!(f, "{} <= {}", source, val),
+            BooleanExpression::StrictlyLesser(source, val) => write!(f, "{} < {}", source, val),
+            BooleanExpression::Different(source, val) => write!(f, "{} != {}", source, val),
+            BooleanExpression::Value(val) => write!(f, "{}", if *val { "true" } else { "false" }),
+            BooleanExpression::And(expr1, expr2) => write!(f, "{} AND {}", expr1, expr2),
+            BooleanExpression::Or(expr1, expr2) => write!(f, "({} OR {})", expr1, expr2),
+            BooleanExpression::MemorySequence(source, bytes) => {
+                write!(f, "{} ~ 0x({})", source, 
+                    bytes.iter()
+                        .map(|b| format!("{:02x}", b))
+                        .collect::<Vec<_>>()
+                        .join(",")
+                )
             }
         }
     }
@@ -298,16 +327,54 @@ impl fmt::Display for BooleanExpression {
 #[cfg(test)]
 mod tests_boolean_expression {
     use super::*;
+    use soft65c02_lib::Memory;
 
     #[test]
-    fn test_equal() {
-        let boolex = BooleanExpression::Equal(
-            Source::Register(RegisterSource::StackPointer),
-            Source::Value(0x2a),
+    fn test_memory_sequence_comparison() {
+        let mut memory = Memory::new_with_ram();
+        let registers = Registers::new(0);
+        
+        // Write test sequence to memory
+        memory.write(0x8000, &[0x01, 0xa2, 0xf3]).unwrap();
+        
+        // Test matching sequence
+        let expr = BooleanExpression::MemorySequence(
+            Source::Memory(0x8000),
+            vec![0x01, 0xa2, 0xf3]
         );
-        let mut registers = Registers::new_initialized(0x0000);
-        registers.stack_pointer = 0x2a;
-        let memory = Memory::new_with_ram();
-        assert!(boolex.solve(&registers, &memory).is_none());
+        assert!(expr.solve(&registers, &memory).is_none());
+        
+        // Test non-matching sequence
+        let expr = BooleanExpression::MemorySequence(
+            Source::Memory(0x8000),
+            vec![0x01, 0xa2, 0xf4]  // Different last byte
+        );
+        assert!(expr.solve(&registers, &memory).is_some());
+        
+        // Test with non-memory source
+        let expr = BooleanExpression::MemorySequence(
+            Source::Register(RegisterSource::Accumulator),
+            vec![0x01, 0x02]
+        );
+        assert!(expr.solve(&registers, &memory).is_some());
+        
+        // Test with out-of-bounds memory access
+        let expr = BooleanExpression::MemorySequence(
+            Source::Memory(0xffff),
+            vec![0x01, 0x02]  // Trying to read past end of memory
+        );
+        assert!(expr.solve(&registers, &memory).is_some());
+    }
+
+    #[test]
+    fn test_memory_sequence_display() {
+        let expr = BooleanExpression::MemorySequence(
+            Source::Memory(0x8000),
+            vec![0x01, 0xa2, 0xf3]
+        );
+        assert_eq!(
+            format!("{}", expr),
+            "#0x8000 ~ 0x(01,a2,f3)"
+        );
     }
 }

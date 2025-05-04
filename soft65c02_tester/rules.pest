@@ -35,12 +35,13 @@ run_address = { ^"init" | memory_address }
 
 assert_instruction = { ^"assert" ~ boolean_condition ~ "$$" ~ description ~ "$$"}
 
-boolean_condition = { boolean | comparison }
+boolean_condition = { boolean | memory_sequence | comparison }
 
 boolean = { ^"true" | ^"false" }
 comparison = { comparison16 | comparison8 }
-comparison16 = _{ location16 ~ comparison_operator ~ value16 }
-comparison8 = _{ location8 ~ comparison_operator ~ value8 }
+comparison16 = _{ location16 ~ standard_operator ~ value16 }
+comparison8 = _{ location8 ~ standard_operator ~ value8 }
+memory_sequence = { memory_address ~ "~" ~ bytes_list }
 
 location16 = _{ register16 }
 location8 = _{ memory_address | register8 }
@@ -54,10 +55,11 @@ register16 = { "CP" }
 register8 = { "A" | "X" | "Y" | "SP" | "S" }
 value16 = { "0x" ~ ASCII_HEX_DIGIT{4} }
 value8 = { "0x" ~ ASCII_HEX_DIGIT{2} | "0b" ~ ASCII_BIN_DIGIT{8} }
+bytes_list = { ^"0x(" ~ bytes ~ ")" }
 bytes = @{ ASCII_HEX_DIGIT{2} ~ ("," ~ ASCII_HEX_DIGIT{2})* }
 size_parameter = { ASCII_DIGIT+ }
 
-comparison_operator = { ">=" | "<=" | "!=" | "=" | ">" | "<" }
+standard_operator = { ">=" | "<=" | "!=" | "=" | ">" | "<" }
 filename = { "\"" ~ filechar+ ~ "\"" }
 filechar = _{ ASCII_ALPHANUMERIC | "." | "_" | "/" }
 description = { ((!"$$") ~ ANY)* }
