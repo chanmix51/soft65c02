@@ -25,7 +25,7 @@ memory_instruction = { ^"memory" ~ memory_action }
 memory_action = _{ memory_load | memory_write | memory_flush }
 memory_flush = { ^"flush" }
 memory_load = { ^"load" ~ (memory_address | target_name)  ~ filename }
-memory_write = { ^"write" ~ memory_address ~ ^"0x(" ~ bytes ~ ")" }
+memory_write = { ^"write" ~ memory_address ~ (^"0x(" ~ bytes ~ ")" | string_literal) }
 
 target_name = { "atari" | "apple" }
 
@@ -43,7 +43,7 @@ comparison16 = _{ location16 ~ standard_operator ~ value16 }
 comparison8 = _{ location8 ~ standard_operator ~ value8 }
 memory_sequence = { memory_address ~ "~" ~ (bytes_list | string_literal) }
 string_literal = { "\"" ~ string_char* ~ "\"" }
-string_char = { !("\"" | "\\") ~ ASCII | "\\" ~ ("\"" | "\\" | "n" | "r" | "t") }
+string_char = { !("\"" | "\\") ~ ASCII | "\\" ~ ("\"" | "\\" | "n" | "r" | "t" | "0") }
 
 location16 = _{ register16 }
 location8 = _{ memory_address | register8 }

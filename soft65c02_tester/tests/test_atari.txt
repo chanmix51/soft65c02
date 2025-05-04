@@ -77,12 +77,15 @@ run
 assert CP=0x0001        $$Exit function$$
 
 // test writing and reading strings
-// use the string "hello" as bytes
 memory write #0x1000 0x(68,65,6c,6c,6f)
-
 assert #0x1000 ~ "hello"  $$string "hello" is at location 0x1000$$
 
 // this would fail:
 // assert #0x1000 ~ "hellox"  $$string "hellox" is at location 0x1000$$
 // with error:
 //  string "hellox" is at location 0x1000 ❌ ((#0x1000 ~ 0x(68,65,6c,6c,6f,78)) Memory at #0x1000 contains [68, 65, 6c, 6c, 6f, 00] instead of expected [68, 65, 6c, 6c, 6f, 78])
+
+// use write with string and escaped characters
+memory write #0x1100 "abc\n\0def"
+assert #0x1100 ~ "abc\n\0def"  $$string matches at location 0x1100 with string comparison$$
+assert #0x1100 ~ 0x(61,62,63,0a,00,64,65,66)  $$string matches at location 0x1100 with bytes comparison$$
