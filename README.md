@@ -13,9 +13,66 @@ regarding this processor, I suggest you have a look
 [there](https://www.masswerk.at/products.php) and
 [there](http://www.6502.org/users/andre/).
 
-
 ![GNU GPL V3.0](https://img.shields.io/github/license/chanmix51/soft65c02)
 ![Rust Language](https://img.shields.io/badge/language-rust-orange)
+
+## Tester
+The tester is the heart of this project. It aims at testing applications from the processor perspective. 
+It features:
+ * raw, apple, atari binary file support
+ * asserter on values in registers or memory
+ * programmable execution unit runs the processor unil a condition is met or step by step execution
+ * tested 65C02 implementation
+ * test plans support
+
+### Example
+
+Here is an example of test script: it loads a binary file (Apple Prodos format)
+and perform some dumb tests to show the tester syntax:
+
+```
+marker $$loading apple single binaries$$
+memory load apple "tests/apple.bin"
+
+// setup initial state of registers, force SP to 00 so we can verify it changed
+registers flush
+registers set SP=0x00
+
+// testing registers and memory
+assert X=0x00           $$X is flushed before running$$
+assert #0x0803=0xa2     $$first byte of code is LDX (0x42)$$
+
+// validate the code sets X register and transfers to SP
+run #0x0803 until X!=0x00
+assert X=0xff           $$register X was set in first instruction to $FF$$
+assert CP=0x0805        $$only 1 instruction was performed$$
+assert SP=0x00          $$stack pointer is still $00$$
+
+run until SP!=0x00
+assert CP=0x0806        $$only TXS was performed$$
+assert SP=0xff          $$x is moved into sp$$
+```
+
+Here is the output of a test run:
+
+```
+$> cargo run -- -v -i tests/test_apple.txt
+📄 loading apple single binaries
+🔧 Setup: 1 segments loaded.
+🔧 Setup: registers flushed
+🔧 Setup: register SP set to 0x00
+⚡ 01 → X is flushed before running ✅
+⚡ 02 → first byte of code is LDX (0x42) ✅
+🚀 #0x0803: (a2 ff)       LDX  #$ff     (#0x0804)  [X=0xff][S=Nv-Bdizc]
+⚡ 03 → register X was set in first instruction to $FF ✅
+⚡ 04 → only 1 instruction was performed ✅
+⚡ 05 → stack pointer is still $00 ✅
+🚀 #0x0805: (9a)          TXS                      [SP=0xff][S=Nv-Bdizc]
+⚡ 06 → only TXS was performed ✅
+⚡ 07 → x is moved into sp ✅
+```
+
+## FAQ
 
 ### Why would you write another simulator for the 65C02?
 
@@ -42,7 +99,7 @@ took advantage of free time to split the project in a Rust workspace to dig more
 in GUI part. I rewrote the Tester with parser tests this time. The Studio is
 yet to write.
 
-### License
+## License
 
 These softwares are released under the terms of the [GNU GPL
 v3](http://www.gnu.org/licenses/gpl-3.0.html).
