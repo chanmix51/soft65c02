@@ -62,6 +62,14 @@ memory write #0x1234 0x(00,01,02,…)
 
 Write a slice of contiguous bytes at the given address.
 
+Additionally writing supports strings, including escaped chars `\t`, `\n`, `\r`, `\0`.
+
+Combined with symbols, you can write memory to named addresses with following:
+
+```
+memory write $main "hello, world\0"
+```
+
 ### registers
 
 The `registers` instructions are used to set the registers in a known state prior to testing.
@@ -82,6 +90,60 @@ registers set A=0x01
 ```
 
 Set a register to the given value.
+
+### symbols
+
+Symbols work exactly the same as memory addresses when dealing with memory, assert commands, and run until statements.
+
+Whereas memory addresses are prefixed with `#0x`, symbols can be used by prefixing their name with `$`.
+
+#### symbols load
+
+Symbols can be loaded from files using the VICE format, for example given a symbols file `tests/symbols.txt` with:
+
+```
+al 002000 .main
+al 002006 .cust_init
+```
+
+This can be loaded with:
+
+```
+symbols load "tests/symbols.txt"
+```
+
+Symbols can then be used in place of memory addresses.
+
+With the above definitions loaded, the following are equivalent:
+
+```
+assert #0x2000=0xa9     $$first byte of code is LDA (0xa9)$$
+assert $main=0xa9       $$symbol main is loaded from table$$
+```
+
+#### symbols add
+
+Symbols can be directly add to the symbols table with:
+
+```
+symbols add RUNADL=0x02e0
+symbols add RUNADH=0x02e1
+```
+
+#### Using symobols with registers
+
+Symbol values also work with setting registers, they must be a single byte for registers, otherwise the command will fail.
+
+```
+symbols add SMALL=0xFF
+symbols add LARGE=0x1234
+
+// this is ok
+registers set A=$SMALL
+
+// this will fail
+registers set A=$LARGE
+```
 
 ### run
 
@@ -172,6 +234,35 @@ Each assertion has a text description that is displayed when evaluated.
 ```
 assert false    $$this assertion always fails$$
 assert true     $$although always ok, this assertion is not evaluated$$
+```
+
+#### asserting sequence of bytes
+
+The keyword `~` can be used to match sequence of bytes for assertions.
+The target can be either the standard list of bytes, or string literals. See below for more information about strings.
+
+For example:
+
+```
+assert #0x1100 ~ 0x(61,62,63,0a,00,64,65,66)
+```
+
+### Strings
+
+String literals are supported in both memory write, and assertions on byte sequences.
+
+Examples can be seen in the [test atari binary script](tests/test_atari.txt)
+
+```
+// equivalent writes
+memory write #0x1100 "abc\n\0def"
+memory write #0x1100 0x(61,62,63,0a,00,64,65,66)
+
+// equivalent assertions
+assert #0x1100 ~ "abc\n\0def"  $$string matches at location 0x1100 with string comparison$$
+assert #0x1100 ~ 0x(61,62,63,0a,00,64,65,66)  $$string matches at location 0x1100 with bytes comparison$$
+```
+
 
 ## Examples
 
