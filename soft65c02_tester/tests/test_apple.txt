@@ -2,7 +2,7 @@ marker $$loading apple single binaries$$
 
 // This is a cc65 generated apple-single format file in prodos format.
 // The load address is embed in the binary, so no need to set an address to load it into.
-memory load_as "tests/apple.bin"
+memory load apple "tests/apple.bin"
 
 // check the file loaded, and into correct memory location.
 // Then load first couple of instructions and test status flags etc.

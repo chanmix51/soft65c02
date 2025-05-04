@@ -35,19 +35,19 @@ memory load #0x1234 "filename"
 Load the given file into memory at the given address. If the file overflows the memory, an error is raised and the program stops.
 This is the preferred way to load programs to be tested into the tester environment.
 
-#### memory load_atari
+#### memory load atari
 
 ```
-memory load_atari "filename.xex"
+memory load atari "filename.xex"
 ```
 
 Loads the given file into memory, as an Atari binary, honouring segments indicating their loading
 locations.
 
-#### memory load_as (Apple Single Format)
+#### memory load apple (Apple Single Format)
 
 ```
-memory load_as "filename.com"
+memory load apple "filename.com"
 ```
 
 Loads the given file into memory, as an Apple Single ProDos file.

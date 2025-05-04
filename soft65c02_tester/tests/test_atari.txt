@@ -2,7 +2,7 @@ marker $$loading atari binaries$$
 
 // This is a cc65 generated atari binary format file.
 // The load address is embed in the binary, so no need to set an address to load it into.
-memory load_atari "tests/atari.bin"
+memory load atari "tests/atari.bin"
 
 // hex bytes in file:
 // 000000 ff ff 00 20 0b 20 a9 42 8d c6 02 60 a2 00 8e c8
