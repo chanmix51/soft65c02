@@ -915,11 +915,19 @@ impl<'a> AssertCommandParser<'a> {
         let addr_node = seq_nodes.next().expect("memory_sequence should have a memory_address node");
         let addr = self.context.parse_source_memory(&addr_node)?;
         
-        // Get the bytes_list node (which contains 0x(...))
-        let bytes_list_node = seq_nodes.next().expect("memory_sequence should have a bytes_list node");
-        // Get the inner bytes node from bytes_list
-        let bytes_node = bytes_list_node.into_inner().next().expect("bytes_list should contain a bytes node");
-        let bytes = self.context.parse_bytes(bytes_node.as_str())?;
+        let sequence_node = seq_nodes.next().expect("memory_sequence should have a bytes_list or string_literal node");
+        let bytes = match sequence_node.as_rule() {
+            Rule::bytes_list => {
+                let bytes_node = sequence_node.into_inner().next().expect("bytes_list should contain a bytes node");
+                self.context.parse_bytes(bytes_node.as_str())?
+            }
+            Rule::string_literal => {
+                // Remove the quotes and handle escape sequences
+                let str_content = &sequence_node.as_str()[1..sequence_node.as_str().len()-1];
+                str_content.bytes().collect()
+            }
+            _ => panic!("Expected bytes_list or string_literal in memory_sequence")
+        };
         
         Ok(BooleanExpression::MemorySequence(addr, bytes))
     }
@@ -1029,6 +1037,28 @@ mod assert_parser_tests {
         // Verify that memory addresses still work
         let input = "assert #0x1234 ~ 0x(01,02) $$valid - memory with sequence$$";
         assert!(PestParser::parse(Rule::assert_instruction, input).is_ok());
+    }
+
+    #[test]
+    fn test_assert_memory_sequence_with_string() {
+        let context = create_test_context();
+        let input = "assert #0x8000 ~ \"hello\" $$check memory sequence with string$$";
+        let pairs = PestParser::parse(Rule::assert_instruction, input)
+            .unwrap()
+            .next()
+            .unwrap()
+            .into_inner();
+        let command = AssertCommandParser::from_pairs(pairs, &context).unwrap();
+
+        assert_eq!(command.comment, "check memory sequence with string");
+        assert!(
+            matches!(command.condition,
+                BooleanExpression::MemorySequence(
+                    Source::Memory(addr),
+                    bytes
+                ) if addr == 0x8000 && bytes == b"hello".to_vec()
+            )
+        );
     }
 }
 

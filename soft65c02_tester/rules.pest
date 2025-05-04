@@ -41,7 +41,9 @@ boolean = { ^"true" | ^"false" }
 comparison = { comparison16 | comparison8 }
 comparison16 = _{ location16 ~ standard_operator ~ value16 }
 comparison8 = _{ location8 ~ standard_operator ~ value8 }
-memory_sequence = { memory_address ~ "~" ~ bytes_list }
+memory_sequence = { memory_address ~ "~" ~ (bytes_list | string_literal) }
+string_literal = { "\"" ~ string_char* ~ "\"" }
+string_char = { !("\"" | "\\") ~ ASCII | "\\" ~ ("\"" | "\\" | "n" | "r" | "t") }
 
 location16 = _{ register16 }
 location8 = _{ memory_address | register8 }

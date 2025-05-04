@@ -75,3 +75,14 @@ run
 assert #0x02C8=0x00     $$Changes to value in X$$
 run
 assert CP=0x0001        $$Exit function$$
+
+// test writing and reading strings
+// use the string "hello" as bytes
+memory write #0x1000 0x(68,65,6c,6c,6f)
+
+assert #0x1000 ~ "hello"  $$string "hello" is at location 0x1000$$
+
+// this would fail:
+// assert #0x1000 ~ "hellox"  $$string "hellox" is at location 0x1000$$
+// with error:
+//  string "hellox" is at location 0x1000 ❌ ((#0x1000 ~ 0x(68,65,6c,6c,6f,78)) Memory at #0x1000 contains [68, 65, 6c, 6c, 6f, 00] instead of expected [68, 65, 6c, 6c, 6f, 78])
