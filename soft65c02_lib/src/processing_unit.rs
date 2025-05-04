@@ -489,7 +489,7 @@ pub struct MemoryParserIterator<'a> {
 }
 
 impl<'a> MemoryParserIterator<'a> {
-    pub fn new(start_address: usize, memory: &'a Memory) -> MemoryParserIterator {
+    pub fn new(start_address: usize, memory: &'a Memory) -> MemoryParserIterator<'a> {
         MemoryParserIterator {
             cp: start_address,
             memory,

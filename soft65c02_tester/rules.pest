@@ -23,8 +23,10 @@ assignment16 = _{ register16 ~ "=" ~ value16 }
 memory_instruction = { ^"memory" ~ memory_action }
 memory_action = _{ memory_load | memory_write | memory_flush }
 memory_flush = { ^"flush" }
-memory_load = { ^"load" ~ memory_address ~ filename }
+memory_load = { ^"load" ~ (memory_address | target_name)  ~ filename }
 memory_write = { ^"write" ~ memory_address ~ ^"0x(" ~ bytes ~ ")" }
+
+target_name = { "atari" | "apple" }
 
 run_instruction = { ^"run" ~ (run_address)? ~ (run_until_condition)? }
 run_until_condition = { ^"until" ~ boolean_condition }

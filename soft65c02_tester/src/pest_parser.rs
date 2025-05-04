@@ -10,6 +10,8 @@ use pest_derive::Parser;
 use crate::{
     commands::*,
     until_condition::{Assignment, BooleanExpression, RegisterSource, Source},
+    atari_binary::AtariBinary,
+    apple_single::AppleSingle,
     AppResult,
 };
 
@@ -26,41 +28,73 @@ impl MemoryCommandParser {
 
         let command = match pair.as_rule() {
             Rule::memory_flush => MemoryCommand::Flush,
-            Rule::memory_write => {
-                let mut pairs = pair.into_inner();
-                let address = parse_memory(
-                    &pairs
-                        .next()
-                        .expect("there shall be a memory address argument to memory write")
-                        .as_str()[3..],
-                )?;
-                let bytes = parse_bytes(
-                    pairs
-                        .next()
-                        .expect("There shall be some bytes to write to memory.")
-                        .as_str(),
-                )?;
-                MemoryCommand::Write { address, bytes }
-            }
-            Rule::memory_load => {
-                let mut pairs = pair.into_inner();
-                let address = parse_memory(
-                    &pairs
-                        .next()
-                        .expect("there shall be a memory address argument to memory load")
-                        .as_str()[3..],
-                )?;
-                let filename = pairs
-                    .next()
-                    .expect("there shall be a filename argumentto memory load")
-                    .as_str();
-                let filepath = PathBuf::from(&filename[1..filename.len() - 1]);
-
-                MemoryCommand::Load { address, filepath }
-            }
+            Rule::memory_write => Self::handle_memory_write(pair.into_inner())?,
+            Rule::memory_load => Self::handle_memory_load(pair.into_inner())?,
             _ => {
                 panic!("Unexpected pair '{pair:?}'. memory_{{load,flush,write}} expected.");
             }
+        };
+
+        Ok(command)
+    }
+
+    fn handle_memory_write(mut pairs: Pairs<'_, Rule>) -> AppResult<MemoryCommand> {
+        let address = parse_memory(
+            &pairs
+                .next()
+                .expect("there shall be a memory address argument to memory write")
+                .as_str()[3..],
+        )?;
+        let bytes = parse_bytes(
+            pairs
+                .next()
+                .expect("There shall be some bytes to write to memory.")
+                .as_str(),
+        )?;
+        Ok(MemoryCommand::Write { address, bytes })
+    }
+
+    fn handle_memory_load(mut pairs: Pairs<'_, Rule>) -> AppResult<MemoryCommand> {
+        let first_arg = pairs
+            .next()
+            .expect("there shall be a memory address or target argument to memory load");
+
+        match first_arg.as_rule() {
+            Rule::target_name => Self::handle_target_load(first_arg, pairs.next()),
+            Rule::memory_address => Self::handle_address_load(first_arg, pairs.next()),
+            _ => panic!("Unexpected first argument to memory load"),
+        }
+    }
+
+    fn handle_address_load(address_pair: Pair<'_, Rule>, filename_pair: Option<Pair<'_, Rule>>) -> AppResult<MemoryCommand> {
+        let address = parse_memory(&address_pair.as_str()[3..])?;
+        let filename = filename_pair
+            .expect("there shall be a filename argument to memory load")
+            .as_str();
+        let filepath = PathBuf::from(&filename[1..filename.len() - 1]);
+
+        Ok(MemoryCommand::Load { address, filepath })
+    }
+
+    fn handle_target_load(target_pair: Pair<'_, Rule>, filename_pair: Option<Pair<'_, Rule>>) -> AppResult<MemoryCommand> {
+        let target = target_pair.as_str();
+        let filename = filename_pair
+            .expect("there shall be a filename argument to memory load")
+            .as_str();
+        let filepath = PathBuf::from(&filename[1..filename.len() - 1]);
+
+        let command = match target {
+            "atari" => {
+                let binary = AtariBinary::from_file(&filepath)?;
+                let segments = binary.into_memory_segments();
+                MemoryCommand::LoadSegments { segments }
+            }
+            "apple" => {
+                let binary = AppleSingle::from_file(&filepath)?;
+                let segments = binary.into_memory_segments();
+                MemoryCommand::LoadSegments { segments }
+            }
+            _ => unreachable!("Grammar ensures only 'atari' or 'apple' can be targets"),
         };
 
         Ok(command)
@@ -113,7 +147,58 @@ mod memory_command_parser_tests {
             matches!(command, MemoryCommand::Load { address, filepath } if address == 0x1000 && filepath == PathBuf::from("script.txt"))
         );
     }
+
+    #[test]
+    fn test_memory_load_target_parsing() {
+        // Test Atari target loading
+        let pairs = PestParser::parse(Rule::memory_instruction, "memory load atari \"test.com\"")
+            .unwrap()
+            .next()
+            .unwrap()
+            .into_inner();
+        let pair = pairs.into_iter().next().unwrap();
+
+        // Verify it's the correct rule type
+        assert!(matches!(pair.as_rule(), Rule::memory_load));
+
+        // Verify the inner parts (target and filename)
+        let mut inner = pair.into_inner();
+        let target = inner.next().unwrap();
+        assert_eq!(target.as_str(), "atari");
+        assert!(matches!(target.as_rule(), Rule::target_name));
+        let filename = inner.next().unwrap();
+        assert_eq!(filename.as_str(), "\"test.com\"");
+
+        // Test Apple target loading
+        let pairs = PestParser::parse(Rule::memory_instruction, "memory load apple \"test.as\"")
+            .unwrap()
+            .next()
+            .unwrap()
+            .into_inner();
+        let pair = pairs.into_iter().next().unwrap();
+
+        // Verify it's the correct rule type
+        assert!(matches!(pair.as_rule(), Rule::memory_load));
+
+        // Verify the inner parts (target and filename)
+        let mut inner = pair.into_inner();
+        let target = inner.next().unwrap();
+        assert_eq!(target.as_str(), "apple");
+        assert!(matches!(target.as_rule(), Rule::target_name));
+        let filename = inner.next().unwrap();
+        assert_eq!(filename.as_str(), "\"test.as\"");
+
+    }
+
+    #[test]
+    fn test_target_name_validation() {
+        // Test that only valid targets are accepted by the grammar
+        assert!(PestParser::parse(Rule::target_name, "atari").is_ok());
+        assert!(PestParser::parse(Rule::target_name, "apple").is_ok());
+        assert!(PestParser::parse(Rule::target_name, "invalid_target").is_err());
+    }
 }
+
 pub struct RegisterCommandParser;
 
 impl RegisterCommandParser {
