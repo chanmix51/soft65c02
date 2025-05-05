@@ -69,9 +69,8 @@ assert CP=0x0001        $$Exit function$$
 
 registers set X=0xFF
 memory write #0x02C8 0x(ff)
-run $cust_init
+run $cust_init until CP=0x200b
 assert X=0x00           $$X is set to 00$$
-run
 assert #0x02C8=0x00     $$Changes to value in X$$
 run
 assert CP=0x0001        $$Exit function$$

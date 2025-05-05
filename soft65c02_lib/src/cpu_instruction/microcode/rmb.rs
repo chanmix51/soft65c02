@@ -49,10 +49,8 @@ mod tests {
         assert!(!registers.c_flag_is_set());
         assert!(!registers.v_flag_is_set());
         assert_eq!(0x1002, registers.command_pointer);
-        assert_eq!(
-            format!("#0x1000: (07 0a)       RMB0 $0a      (#0x000A)  (0xfe)"),
-            format!("{}", log_line)
-        );
+        assert_eq!(5, log_line.cycles);
+        assert_eq!("#0x1000: (07 0a)       RMB0 $0a      (#0x000A)  (0xfe)[5]", log_line.to_string());
     }
 
     #[test]
@@ -71,9 +69,7 @@ mod tests {
         assert!(!registers.c_flag_is_set());
         assert!(!registers.v_flag_is_set());
         assert_eq!(0x1002, registers.command_pointer);
-        assert_eq!(
-            format!("#0x1000: (77 0a)       RMB7 $0a      (#0x000A)  (0x7f)"),
-            format!("{}", log_line)
-        );
+        assert_eq!(5, log_line.cycles);
+        assert_eq!("#0x1000: (77 0a)       RMB7 $0a      (#0x000A)  (0x7f)[5]", log_line.to_string());
     }
 }

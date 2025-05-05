@@ -34,8 +34,8 @@ mod tests {
     #[test]
     fn test_tsx() {
         let cpu_instruction =
-            CPUInstruction::new(0x1000, 0xca, "TSX", AddressingMode::Implied, tsx);
-        let (mut memory, mut registers) = get_stuff(0x1000, vec![0x8a]);
+            CPUInstruction::new(0x1000, 0xBA, "TSX", AddressingMode::Implied, tsx);
+        let (mut memory, mut registers) = get_stuff(0x1000, vec![0xBA]);
         registers.stack_pointer = 0x7e;
         let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
@@ -45,35 +45,41 @@ mod tests {
         assert!(!registers.z_flag_is_set());
         assert!(!registers.n_flag_is_set());
         assert_eq!(0x1001, registers.command_pointer);
+        assert_eq!(2, log_line.cycles); // TSX takes 2 cycles
+        assert_eq!("#0x1000: (ba)          TSX                      [X=0x7e][S=nv-Bdizc][2]", log_line.to_string());
     }
 
     #[test]
     fn test_tsx_with_n_flag() {
         let cpu_instruction =
-            CPUInstruction::new(0x1000, 0xca, "tsx", AddressingMode::Implied, tsx);
-        let (mut memory, mut registers) = get_stuff(0x1000, vec![0x8a, 0x0a, 0x02]);
+            CPUInstruction::new(0x1000, 0xBA, "TSX", AddressingMode::Implied, tsx);
+        let (mut memory, mut registers) = get_stuff(0x1000, vec![0xBA]);
         registers.stack_pointer = 0xfe;
-        let _log_line = cpu_instruction
+        let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!(0xfe, registers.register_x);
         assert!(!registers.z_flag_is_set());
         assert!(registers.n_flag_is_set());
         assert_eq!(0x1001, registers.command_pointer);
+        assert_eq!(2, log_line.cycles);
+        assert_eq!("#0x1000: (ba)          TSX                      [X=0xfe][S=Nv-Bdizc][2]", log_line.to_string());
     }
 
     #[test]
     fn test_tsx_with_z_flag() {
         let cpu_instruction =
-            CPUInstruction::new(0x1000, 0xca, "tsx", AddressingMode::Implied, tsx);
-        let (mut memory, mut registers) = get_stuff(0x1000, vec![0x8a, 0x0a, 0x02]);
+            CPUInstruction::new(0x1000, 0xBA, "TSX", AddressingMode::Implied, tsx);
+        let (mut memory, mut registers) = get_stuff(0x1000, vec![0xBA]);
         registers.stack_pointer = 0x00;
-        let _log_line = cpu_instruction
+        let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!(0x00, registers.register_x);
         assert!(registers.z_flag_is_set());
         assert!(!registers.n_flag_is_set());
         assert_eq!(0x1001, registers.command_pointer);
+        assert_eq!(2, log_line.cycles);
+        assert_eq!("#0x1000: (ba)          TSX                      [X=0x00][S=nv-BdiZc][2]", log_line.to_string());
     }
 }

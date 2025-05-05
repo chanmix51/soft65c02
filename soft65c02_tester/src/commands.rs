@@ -331,7 +331,7 @@ mod run_command_tests {
         memory.write(0x1000, &[0xd0, 0b11111110]).unwrap(); // BNE -1
         let token = command.execute(&mut registers, &mut memory, &mut None).unwrap();
 
-        assert!(matches!(token, OutputToken::Run { loglines } if loglines.len() == 1))
+        assert!(matches!(token, OutputToken::Run { loglines } if loglines.len() == 1));
     }
 }
 

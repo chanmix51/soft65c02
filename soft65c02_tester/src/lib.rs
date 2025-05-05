@@ -11,5 +11,6 @@ pub use commands::*;
 pub use displayer::*;
 pub use executor::*;
 pub use pest_parser::CliCommandParser;
+pub use symbols::SymbolTable;
 
 pub type AppResult<T> = anyhow::Result<T>;

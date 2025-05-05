@@ -164,7 +164,7 @@ The script above, when ran with the `verbose` parameter, will output the followi
 🔧 Setup: registers flushed
 🔧 Setup: register CP set to #0x1000
 🔧 Setup: 2 bytes written
-🚀 #0x1000: (a9 00)       LDA  #$00     (#0x1001)  [A=0x00][S=nv-BdiZc]
+🚀 #0x1000: (a9 00)       LDA  #$00     (#0x1001)  [A=0x00][S=nv-BdiZc][2]
 ```
 
 It is also possible to change the `CP` register prior to execution directly. The example above then becomes:
@@ -200,8 +200,8 @@ The example below outputs the following lines:
 ```
 🔧 Setup: registers flushed
 🔧 Setup: 4 bytes written
-🚀 #0x1000: (a9 c0)       LDA  #$c0     (#0x1001)  [A=0x00][S=Nv-Bdizc]
-🚀 #0x1002: (aa)          TAX                      [X=0x00][S=Nv-Bdizc]
+🚀 #0x1000: (a9 c0)       LDA  #$c0     (#0x1001)  [A=0x00][S=Nv-Bdizc][2]
+🚀 #0x1002: (aa)          TAX                      [X=0x00][S=Nv-Bdizc][2]
 ```
 
 One noticed that the third instruction `TAY` is not executed since the execution stops after `0xaa TAX` set the X register to `0xc0`. The condition is evaluated **after** each instruction is executed.
@@ -217,6 +217,31 @@ run until false
 ```
 
 Note that in all cases, the execution will stop if the command pointer register has not changed after an instruction to prevent dummy infinite loops or when the `STP` instruction is met.
+
+### cycle timing
+
+Cycle times are tracked for each instructions, and are based on 65c02 timings where they differ from standard 6502, which are rare.
+Additionally page boundaries and branches are taken account of in calculating the cycle times.
+
+Each log line ends with the cycle time for that particular instruction.
+If you run multiple instructions, at the end of the run, a total will be output after the execution stops. The total is not displayed if only 1 instruction is executed, as the time is output on the statement itself.
+
+```
+🚀 #0x2006: (a2 00)       LDX  #$00     (#0x2007)  [X=0x00][S=nv-BdiZc][2]
+🚀 #0x2008: (8e c8 02)    STX  $02C8    (#0x02C8)  0x00[S=nv-BdiZc][4]
+🕒 Total cycles: 6
+```
+
+#### resetting the cycle count
+
+`cycle_count` is a fake register, and can be manipulated in the same way as normal registers. This can be useful if wish to capture different cycle times from particular
+points in the test.
+
+```
+registers set cycle_count=0x00
+```
+
+
 
 ### Assertions
 
@@ -267,6 +292,7 @@ assert #0x1100 ~ 0x(61,62,63,0a,00,64,65,66)  $$string matches at location 0x110
 ## Examples
 
 ```shell
+$ cd soft65c02_tester
 $ cargo build
 $ ../target/debug/soft65c02_tester -v -i tests/test_atari.txt
 📄 loading atari binaries
@@ -283,19 +309,27 @@ $ ../target/debug/soft65c02_tester -v -i tests/test_atari.txt
 ⚡ 04 → INITADR = 0x2006 high byte ✅
 ⚡ 05 → first byte of code is LDA (0xa9) ✅
 ⚡ 06 → symbol main is loaded from table ✅
-🚀 #0x2000: (a9 42)       LDA  #$42     (#0x2001)  [A=0x42][S=nv-Bdizc]
-⚡ 07 → A is $42 ✅
-⚡ 08 → Target location is 0 before changed ✅
-🚀 #0x2002: (8d c6 02)    STA  $02C6    (#0x02C6)  (0x42)
-⚡ 09 → Changes to value in A ✅
-🚀 #0x2005: (60)          RTS                      [CP=0x0001]
-⚡ 10 → Exit function ✅
+⚡ 07 → 0x2000 starts with correct byte sequence ✅
+⚡ 08 → main starts with correct byte sequence ✅
+🚀 #0x2000: (a9 42)       LDA  #$42     (#0x2001)  [A=0x42][S=nv-Bdizc][2]
+⚡ 09 → A is $42 ✅
+⚡ 10 → Target location is 0 before changed ✅
+🚀 #0x2002: (8d c6 02)    STA  $02C6    (#0x02C6)  (0x42)[4]
+⚡ 11 → Changes to value in A ✅
+🚀 #0x2005: (60)          RTS                      [CP=0x0001][SP=0x01][S=nv-Bdizc][6]
+⚡ 12 → Exit function ✅
 🔧 Setup: register X set to 0xff
 🔧 Setup: 1 byte written
-🚀 #0x2006: (a2 00)       LDX  #$00     (#0x2007)  [X=0x00][S=nv-BdiZc]
-⚡ 11 → X is set to 00 ✅
-🚀 #0x2008: (8e c8 02)    STX  $02C8    (#0x02C8)  (0x00)
-⚡ 12 → Changes to value in X ✅
-🚀 #0x200B: (60)          RTS                      [CP=0x0001]
-⚡ 13 → Exit function ✅
+🚀 #0x2006: (a2 00)       LDX  #$00     (#0x2007)  [X=0x00][S=nv-BdiZc][2]
+🚀 #0x2008: (8e c8 02)    STX  $02C8    (#0x02C8)  0x00[S=nv-BdiZc][4]
+🕒 Total cycles: 6
+⚡ 13 → X is set to 00 ✅
+⚡ 14 → Changes to value in X ✅
+🚀 #0x200B: (60)          RTS                      [CP=0x0001][SP=0x03][S=nv-BdiZc][6]
+⚡ 15 → Exit function ✅
+🔧 Setup: 5 bytes written
+⚡ 16 → string "hello" is at location 0x1000 ✅
+🔧 Setup: 8 bytes written
+⚡ 17 → string matches at location 0x1100 with string comparison ✅
+⚡ 18 → string matches at location 0x1100 with bytes comparison ✅
 ```

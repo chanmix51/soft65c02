@@ -9,7 +9,8 @@ use std::convert::From;
 use std::error::Error;
 use std::fmt;
 use std::result::Result;
-fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> Result<CPUInstruction, CPUError> {
+
+pub fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> Result<CPUInstruction, CPUError> {
     use microcode as mc;
     use AddressingMode as AM;
     use CPUInstruction as instr;
@@ -455,9 +456,14 @@ fn resolve_opcode(address: usize, opcode: u8, memory: &Memory) -> Result<CPUInst
 
 pub fn execute_step(registers: &mut Registers, memory: &mut Memory) -> Result<LogLine, CPUError> {
     let cpu_instruction = read_step(registers.command_pointer, memory)?;
-    cpu_instruction
-        .execute(memory, registers)
-        .map_err(|e| e.into())
+    
+    // Execute the instruction first
+    let log_line = cpu_instruction.execute(memory, registers)?;
+    
+    // Add all cycles after execution to include any extra cycles added
+    registers.add_cycles(cpu_instruction.cycles.get());
+    
+    Ok(log_line)
 }
 
 pub fn read_step(address: usize, memory: &Memory) -> Result<CPUInstruction, CPUError> {

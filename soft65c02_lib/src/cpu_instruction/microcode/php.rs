@@ -29,13 +29,12 @@ mod tests {
     #[test]
     fn test_php() {
         let cpu_instruction =
-            CPUInstruction::new(0x1000, 0xca, "PHP", AddressingMode::Implied, php);
+            CPUInstruction::new(0x1000, 0x08, "PHP", AddressingMode::Implied, php);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x48, 0x0a]);
         registers.set_d_flag(true);
         let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
-        assert_eq!("[SP=0xfe]", format!("{}", log_line.outcome));
         assert_eq!("PHP".to_owned(), log_line.mnemonic);
         assert_eq!(
             0b00111000,
@@ -43,5 +42,7 @@ mod tests {
         );
         assert_eq!(0xfe, registers.stack_pointer);
         assert_eq!(0x1001, registers.command_pointer);
+        assert_eq!(3, log_line.cycles); // PHP takes 3 cycles
+        assert_eq!("#0x1000: (08)          PHP                      [SP=0xfe][3]", log_line.to_string());
     }
 }
