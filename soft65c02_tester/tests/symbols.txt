@@ -1,0 +1,2 @@
+al 002000 .main
+al 002006 .cust_init

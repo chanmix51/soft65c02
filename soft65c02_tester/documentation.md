@@ -62,6 +62,14 @@ memory write #0x1234 0x(00,01,02,…)
 
 Write a slice of contiguous bytes at the given address.
 
+Additionally writing supports strings, including escaped chars `\t`, `\n`, `\r`, `\0`.
+
+Combined with symbols, you can write memory to named addresses with following:
+
+```
+memory write $main "hello, world\0"
+```
+
 ### registers
 
 The `registers` instructions are used to set the registers in a known state prior to testing.
@@ -82,6 +90,60 @@ registers set A=0x01
 ```
 
 Set a register to the given value.
+
+### symbols
+
+Symbols work exactly the same as memory addresses when dealing with memory, assert commands, and run until statements.
+
+Whereas memory addresses are prefixed with `#0x`, symbols can be used by prefixing their name with `$`.
+
+#### symbols load
+
+Symbols can be loaded from files using the VICE format, for example given a symbols file `tests/symbols.txt` with:
+
+```
+al 002000 .main
+al 002006 .cust_init
+```
+
+This can be loaded with:
+
+```
+symbols load "tests/symbols.txt"
+```
+
+Symbols can then be used in place of memory addresses.
+
+With the above definitions loaded, the following are equivalent:
+
+```
+assert #0x2000=0xa9     $$first byte of code is LDA (0xa9)$$
+assert $main=0xa9       $$symbol main is loaded from table$$
+```
+
+#### symbols add
+
+Symbols can be directly add to the symbols table with:
+
+```
+symbols add RUNADL=0x02e0
+symbols add RUNADH=0x02e1
+```
+
+#### Using symobols with registers
+
+Symbol values also work with setting registers, they must be a single byte for registers, otherwise the command will fail.
+
+```
+symbols add SMALL=0xFF
+symbols add LARGE=0x1234
+
+// this is ok
+registers set A=$SMALL
+
+// this will fail
+registers set A=$LARGE
+```
 
 ### run
 
@@ -172,6 +234,35 @@ Each assertion has a text description that is displayed when evaluated.
 ```
 assert false    $$this assertion always fails$$
 assert true     $$although always ok, this assertion is not evaluated$$
+```
+
+#### asserting sequence of bytes
+
+The keyword `~` can be used to match sequence of bytes for assertions.
+The target can be either the standard list of bytes, or string literals. See below for more information about strings.
+
+For example:
+
+```
+assert #0x1100 ~ 0x(61,62,63,0a,00,64,65,66)
+```
+
+### Strings
+
+String literals are supported in both memory write, and assertions on byte sequences.
+
+Examples can be seen in the [test atari binary script](tests/test_atari.txt)
+
+```
+// equivalent writes
+memory write #0x1100 "abc\n\0def"
+memory write #0x1100 0x(61,62,63,0a,00,64,65,66)
+
+// equivalent assertions
+assert #0x1100 ~ "abc\n\0def"  $$string matches at location 0x1100 with string comparison$$
+assert #0x1100 ~ 0x(61,62,63,0a,00,64,65,66)  $$string matches at location 0x1100 with bytes comparison$$
+```
+
 
 ## Examples
 
@@ -180,25 +271,31 @@ $ cargo build
 $ ../target/debug/soft65c02_tester -v -i tests/test_atari.txt
 📄 loading atari binaries
 🔧 Setup: 3 segments loaded.
+🔧 Setup: 2 symbols loaded
+🔧 Setup: Symbol RUNADL added with value 0x02E0
+🔧 Setup: Symbol RUNADH added with value 0x02E1
+🔧 Setup: Symbol INITADL added with value 0x02E2
+🔧 Setup: Symbol INITADH added with value 0x02E3
 🔧 Setup: registers flushed
 ⚡ 01 → RUNADR = 0x2000 low byte ✅
 ⚡ 02 → RUNADR = 0x2000 high byte ✅
 ⚡ 03 → INITADR = 0x2006 low byte ✅
 ⚡ 04 → INITADR = 0x2006 high byte ✅
 ⚡ 05 → first byte of code is LDA (0xa9) ✅
+⚡ 06 → symbol main is loaded from table ✅
 🚀 #0x2000: (a9 42)       LDA  #$42     (#0x2001)  [A=0x42][S=nv-Bdizc]
-⚡ 06 → A is $42 ✅
-⚡ 07 → Target location is 0 before changed ✅
+⚡ 07 → A is $42 ✅
+⚡ 08 → Target location is 0 before changed ✅
 🚀 #0x2002: (8d c6 02)    STA  $02C6    (#0x02C6)  (0x42)
-⚡ 08 → Changes to value in A ✅
+⚡ 09 → Changes to value in A ✅
 🚀 #0x2005: (60)          RTS                      [CP=0x0001]
-⚡ 09 → Exit function ✅
+⚡ 10 → Exit function ✅
 🔧 Setup: register X set to 0xff
 🔧 Setup: 1 byte written
 🚀 #0x2006: (a2 00)       LDX  #$00     (#0x2007)  [X=0x00][S=nv-BdiZc]
-⚡ 10 → X is set to 00 ✅
+⚡ 11 → X is set to 00 ✅
 🚀 #0x2008: (8e c8 02)    STX  $02C8    (#0x02C8)  (0x00)
-⚡ 11 → Changes to value in X ✅
+⚡ 12 → Changes to value in X ✅
 🚀 #0x200B: (60)          RTS                      [CP=0x0001]
-⚡ 12 → Exit function ✅
+⚡ 13 → Exit function ✅
 ```

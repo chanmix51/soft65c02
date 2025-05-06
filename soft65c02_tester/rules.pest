@@ -6,7 +6,8 @@ instruction = { registers_instruction |
     memory_instruction |
     run_instruction |
     assert_instruction |
-    marker }
+    marker |
+    symbols_instruction }
 
 marker = {^"marker" ~ "$$" ~ description ~ "$$" }
 
@@ -17,14 +18,14 @@ registers_set = { ^"set" ~ register_assignment }
 
 register_assignment = { assignment8 | assignment16 }
 
-assignment8 = _{ register8 ~ "=" ~ value8 }
-assignment16 = _{ register16 ~ "=" ~ value16 }
+assignment8 = _{ register8 ~ "=" ~ (value8 | memory_address) }
+assignment16 = _{ register16 ~ "=" ~ (value16 | memory_address) }
 
 memory_instruction = { ^"memory" ~ memory_action }
 memory_action = _{ memory_load | memory_write | memory_flush }
 memory_flush = { ^"flush" }
 memory_load = { ^"load" ~ (memory_address | target_name)  ~ filename }
-memory_write = { ^"write" ~ memory_address ~ ^"0x(" ~ bytes ~ ")" }
+memory_write = { ^"write" ~ memory_address ~ (^"0x(" ~ bytes ~ ")" | string_literal) }
 
 target_name = { "atari" | "apple" }
 
@@ -34,25 +35,39 @@ run_address = { ^"init" | memory_address }
 
 assert_instruction = { ^"assert" ~ boolean_condition ~ "$$" ~ description ~ "$$"}
 
-boolean_condition = { boolean | comparison }
+boolean_condition = { boolean | memory_sequence | comparison }
 
 boolean = { ^"true" | ^"false" }
 comparison = { comparison16 | comparison8 }
-comparison16 = _{ location16 ~ comparison_operator ~ value16 }
-comparison8 = _{ location8 ~ comparison_operator ~ value8 }
+comparison16 = _{ location16 ~ standard_operator ~ value16 }
+comparison8 = _{ location8 ~ standard_operator ~ value8 }
+memory_sequence = { memory_address ~ "~" ~ (bytes_list | string_literal) }
+string_literal = { "\"" ~ string_char* ~ "\"" }
+string_char = { !("\"" | "\\") ~ ASCII | "\\" ~ ("\"" | "\\" | "n" | "r" | "t" | "0") }
 
 location16 = _{ register16 }
 location8 = _{ memory_address | register8 }
 
-memory_address = { "#0x" ~ ASCII_HEX_DIGIT{4} }
+memory_address = { hex_address | symbol_reference }
+hex_address = { "#0x" ~ ASCII_HEX_DIGIT{4} }
+symbol_reference = { "$" ~ symbol_name }
+symbol_name = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
+
 register16 = { "CP" }
 register8 = { "A" | "X" | "Y" | "SP" | "S" }
 value16 = { "0x" ~ ASCII_HEX_DIGIT{4} }
 value8 = { "0x" ~ ASCII_HEX_DIGIT{2} | "0b" ~ ASCII_BIN_DIGIT{8} }
+bytes_list = { ^"0x(" ~ bytes ~ ")" }
 bytes = @{ ASCII_HEX_DIGIT{2} ~ ("," ~ ASCII_HEX_DIGIT{2})* }
 size_parameter = { ASCII_DIGIT+ }
 
-comparison_operator = { ">=" | "<=" | "!=" | "=" | ">" | "<" }
+standard_operator = { ">=" | "<=" | "!=" | "=" | ">" | "<" }
 filename = { "\"" ~ filechar+ ~ "\"" }
 filechar = _{ ASCII_ALPHANUMERIC | "." | "_" | "/" }
 description = { ((!"$$") ~ ANY)* }
+
+symbols_instruction = { ^"symbols" ~ symbol_action }
+symbol_action = _{ symbol_load | symbol_add }
+symbol_load = { "load" ~ filename }
+symbol_add = { "add" ~ symbol_name ~ "=" ~ symbol_add_value }
+symbol_add_value = { value16 | value8 | symbol_reference }
