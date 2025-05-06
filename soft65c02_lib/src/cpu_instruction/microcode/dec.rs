@@ -35,6 +35,7 @@ pub fn dec(
         cpu_instruction,
         resolution,
         format!("{}[S={}]", outcome, registers.format_status()),
+        registers,
     ))
 }
 

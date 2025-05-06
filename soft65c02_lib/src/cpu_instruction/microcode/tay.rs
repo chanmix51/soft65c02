@@ -23,6 +23,7 @@ pub fn tay(
             registers.register_y,
             registers.format_status()
         ),
+        registers,
     ))
 }
 

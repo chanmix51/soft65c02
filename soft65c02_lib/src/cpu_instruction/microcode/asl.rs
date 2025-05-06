@@ -44,7 +44,12 @@ pub fn asl(
         }
     };
 
-    Ok(LogLine::new(cpu_instruction, resolution, outcome))
+    Ok(LogLine::new(
+        cpu_instruction,
+        resolution,
+        outcome,
+        registers,
+    ))
 }
 
 #[cfg(test)]

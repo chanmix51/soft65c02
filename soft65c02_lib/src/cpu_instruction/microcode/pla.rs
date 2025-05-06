@@ -24,6 +24,7 @@ pub fn pla(
             registers.stack_pointer,
             registers.format_status()
         ),
+        registers,
     ))
 }
 

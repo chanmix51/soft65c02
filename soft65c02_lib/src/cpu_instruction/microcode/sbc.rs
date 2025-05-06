@@ -74,6 +74,7 @@ pub fn sbc(
             registers.accumulator,
             registers.format_status()
         ),
+        registers,
     ))
 }
 

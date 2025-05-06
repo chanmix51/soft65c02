@@ -1,0 +1,9 @@
+marker $$test hex escape edge cases$$
+
+// Test valid edge cases
+memory write #0x1000 "\x00\x01\x7F\x80\xFE\xFF"
+assert #0x1000 ~ 0x(00,01,7F,80,FE,FF) $$valid hex range from 00 to FF$$
+
+// Test mixing with other escape sequences  
+memory write #0x2000 "start\x00\n\x0D\r\x1A\tEND"
+assert #0x2000 ~ "start\x00\n\x0D\r\x1A\tEND" $$mixed escapes work correctly$$ 

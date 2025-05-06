@@ -36,6 +36,7 @@ pub fn and(
             registers.accumulator,
             registers.format_status()
         ),
+        registers,
     ))
 }
 

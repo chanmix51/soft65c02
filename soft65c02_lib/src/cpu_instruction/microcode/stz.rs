@@ -23,6 +23,7 @@ pub fn stz(
             "0x00[S={}]",
             registers.format_status()
         ),
+        registers,
     ))
 }
 

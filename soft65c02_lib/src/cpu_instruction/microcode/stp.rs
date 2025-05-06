@@ -12,7 +12,8 @@ pub fn stp(
     Ok(LogLine::new(
         cpu_instruction,
         resolution,
-        format!("[S={}]", registers.format_status())
+        format!("[S={}]", registers.format_status()),
+        registers,
     ))
 }
 

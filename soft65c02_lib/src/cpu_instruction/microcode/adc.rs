@@ -69,6 +69,7 @@ pub fn adc(
             registers.accumulator,
             registers.format_status()
         ),
+        registers,
     ))
 }
 

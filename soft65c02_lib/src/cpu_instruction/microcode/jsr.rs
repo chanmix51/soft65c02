@@ -25,6 +25,7 @@ pub fn jsr(
             "[CP=0x{:04x}][SP=0x{:02x}][S={}]",
             registers.command_pointer, registers.stack_pointer, registers.format_status()
         ),
+        registers,
     ))
 }
 

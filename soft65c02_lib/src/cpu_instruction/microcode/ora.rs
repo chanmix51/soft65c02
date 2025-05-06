@@ -31,6 +31,7 @@ pub fn ora(
             registers.accumulator,
             registers.format_status()
         ),
+        registers,
     ))
 }
 

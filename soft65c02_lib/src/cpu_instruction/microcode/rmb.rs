@@ -25,6 +25,7 @@ pub fn rmb(
         cpu_instruction,
         resolution,
         format!("(0x{:02x})", byte),
+        registers,
     ))
 }
 

@@ -23,6 +23,7 @@ pub fn txa(
             registers.accumulator,
             registers.format_status()
         ),
+        registers,
     ))
 }
 

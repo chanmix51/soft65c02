@@ -2,9 +2,9 @@ use anyhow::anyhow;
 use soft65c02_lib::{AddressableIO, Memory, Registers};
 use std::fmt::{self};
 
-use crate::AppResult;
+use crate::{AppResult, utils};
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum RegisterSource {
     Accumulator,
     RegisterX,
@@ -132,7 +132,7 @@ mod assignment_tests {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Source {
     Register(RegisterSource),
     Memory(usize),
@@ -170,6 +170,7 @@ pub enum BooleanExpression {
     Value(bool),
     And(Box<BooleanExpression>, Box<BooleanExpression>),
     Or(Box<BooleanExpression>, Box<BooleanExpression>),
+    Not(Box<BooleanExpression>),
     MemorySequence(Source, Vec<u8>),  // For comparing memory contents against a sequence of bytes
 }
 
@@ -281,6 +282,12 @@ impl BooleanExpression {
                     None
                 }
             }
+            BooleanExpression::Not(expr) => {
+                match expr.solve(registers, memory) {
+                    Some(_) => None,  // Expression is false, so Not is true
+                    None => Some(format!("({self}) condition is true when it should be false")),
+                }
+            }
             BooleanExpression::MemorySequence(source, expected_bytes) => {
                 if let Source::Memory(addr) = source {
                     if let Ok(actual_bytes) = memory.read(*addr, expected_bytes.len()) {
@@ -288,8 +295,9 @@ impl BooleanExpression {
                             None
                         } else {
                             Some(format!(
-                                "({self}) Memory at #0x{:04x} contains {:02x?} instead of expected {:02x?}",
-                                addr, actual_bytes, expected_bytes
+                                "({self})\nMemory comparison failed:\n\nExpected:\n{}\n\nActual:\n{}\n",
+                                utils::format_hex_dump(*addr, expected_bytes),
+                                utils::format_hex_dump(*addr, &actual_bytes)
                             ))
                         }
                     } else {
@@ -321,6 +329,7 @@ impl fmt::Display for BooleanExpression {
             BooleanExpression::Value(val) => write!(f, "{}", if *val { "true" } else { "false" }),
             BooleanExpression::And(expr1, expr2) => write!(f, "{} AND {}", expr1, expr2),
             BooleanExpression::Or(expr1, expr2) => write!(f, "({} OR {})", expr1, expr2),
+            BooleanExpression::Not(expr) => write!(f, "NOT ({})", expr),
             BooleanExpression::MemorySequence(source, bytes) => {
                 write!(f, "{} ~ 0x({})", source, 
                     bytes.iter()
@@ -385,5 +394,82 @@ mod tests_boolean_expression {
             format!("{}", expr),
             "#0x8000 ~ 0x(01,a2,f3)"
         );
+    }
+
+    #[test]
+    fn test_not_expression() {
+        let memory = Memory::new_with_ram();
+        let mut registers = Registers::new(0);
+        registers.accumulator = 0x42;
+
+        // Test NOT with a true condition (A = 0x42)
+        let expr = BooleanExpression::Not(Box::new(BooleanExpression::Equal(
+            Source::Register(RegisterSource::Accumulator),
+            Source::Value(0x42),
+        )));
+        assert!(expr.solve(&registers, &memory).is_some()); // NOT true = false
+
+        // Test NOT with a false condition (A != 0x43)
+        let expr = BooleanExpression::Not(Box::new(BooleanExpression::Equal(
+            Source::Register(RegisterSource::Accumulator),
+            Source::Value(0x43),
+        )));
+        assert!(expr.solve(&registers, &memory).is_none()); // NOT false = true
+
+        // Test display formatting
+        assert_eq!(
+            format!("{}", expr),
+            "NOT (A = 0x43)"
+        );
+    }
+
+    #[test]
+    fn test_not_with_complex_conditions() {
+        let memory = Memory::new_with_ram();
+        let mut registers = Registers::new(0);
+        registers.accumulator = 0x42;
+        registers.register_x = 0x10;
+
+        // Test NOT with AND
+        let expr = BooleanExpression::Not(Box::new(BooleanExpression::And(
+            Box::new(BooleanExpression::Equal(
+                Source::Register(RegisterSource::Accumulator),
+                Source::Value(0x42),
+            )),
+            Box::new(BooleanExpression::Equal(
+                Source::Register(RegisterSource::RegisterX),
+                Source::Value(0x10),
+            )),
+        )));
+        assert!(expr.solve(&registers, &memory).is_some()); // NOT (true AND true) = false
+
+        // Test NOT with OR
+        let expr = BooleanExpression::Not(Box::new(BooleanExpression::Or(
+            Box::new(BooleanExpression::Equal(
+                Source::Register(RegisterSource::Accumulator),
+                Source::Value(0x99), // false
+            )),
+            Box::new(BooleanExpression::Equal(
+                Source::Register(RegisterSource::RegisterX),
+                Source::Value(0x99), // false
+            )),
+        )));
+        assert!(expr.solve(&registers, &memory).is_none()); // NOT (false OR false) = true
+    }
+
+    #[test]
+    fn test_hex_dump_formatting() {
+        let test_bytes = vec![
+            0x32, 0x38, 0x2f, 0x31, 0x30, 0x2f, 0x32, 0x30, 
+            0x31, 0x39, 0x20, 0x31, 0x31, 0x3a, 0x30, 0x30,
+            0x00, 0x01, 0x02  // Extra bytes to test partial line
+        ];
+        
+        let formatted = utils::format_hex_dump(0x21C1, &test_bytes);
+        let expected = "\
+21C1 : 32 38 2F 31 30 2F 32 30 31 39 20 31 31 3A 30 30 | 28/10/2019 11:00
+21D1 : 00 01 02                                        | ...";
+        
+        assert_eq!(formatted, expected);
     }
 }

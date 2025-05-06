@@ -17,6 +17,7 @@ pub fn sec(
         cpu_instruction,
         resolution,
         format!("[S={}]", registers.format_status()),
+        registers,
     ))
 }
 

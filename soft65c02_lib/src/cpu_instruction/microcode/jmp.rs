@@ -19,6 +19,7 @@ pub fn jmp(
         cpu_instruction,
         resolution,
         format!("[CP=0x{:04x}][S={}]", registers.command_pointer, registers.format_status()),
+        registers,
     ))
 }
 

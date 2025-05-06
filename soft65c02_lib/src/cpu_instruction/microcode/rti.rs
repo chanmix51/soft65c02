@@ -25,6 +25,7 @@ pub fn rti(
             registers.stack_pointer,
             registers.format_status()
         ),
+        registers,
     ))
 }
 

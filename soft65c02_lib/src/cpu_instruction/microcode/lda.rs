@@ -30,6 +30,7 @@ pub fn lda(
             registers.accumulator,
             registers.format_status()
         ),
+        registers,
     ))
 }
 

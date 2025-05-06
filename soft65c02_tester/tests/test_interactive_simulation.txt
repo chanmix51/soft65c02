@@ -1,0 +1,14 @@
+marker $$interactive mode simulation$$
+
+// Test that single-line commands work immediately
+assert true $$single line command works$$
+
+// Test that simple multi-line strings work in streaming mode  
+memory write #0x1000 "hello\
+world"
+
+assert #0x1000 ~ "helloworld" $$multi-line string in streaming mode$$
+
+// Test mixed single and multi-line
+registers set A=0x42
+assert A=0x42 $$register set works$$ 

@@ -32,6 +32,7 @@ pub fn cmp(
             registers.accumulator,
             registers.format_status()
         ),
+        registers,
     ))
 }
 

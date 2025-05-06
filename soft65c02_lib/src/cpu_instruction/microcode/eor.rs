@@ -31,6 +31,7 @@ pub fn eor(
             registers.accumulator,
             registers.format_status()
         ),
+        registers,
     ))
 }
 

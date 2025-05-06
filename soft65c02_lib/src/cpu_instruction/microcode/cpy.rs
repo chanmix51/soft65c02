@@ -29,6 +29,7 @@ pub fn cpy(
             registers.register_y,
             registers.format_status()
         ),
+        registers,
     ))
 }
 

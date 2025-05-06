@@ -21,11 +21,8 @@ pub fn dex(
     Ok(LogLine::new(
         cpu_instruction,
         resolution,
-        format!(
-            "[X=0x{:02x}][S={}]",
-            registers.register_x,
-            registers.format_status()
-        ),
+        format!("[X=0x{:02x}][S={}]", registers.register_x, registers.format_status()),
+        registers,
     ))
 }
 

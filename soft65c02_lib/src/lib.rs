@@ -4,7 +4,7 @@ pub mod memory;
 mod processing_unit;
 mod registers;
 
-pub use cpu_instruction::{CPUInstruction, LogLine, INIT_VECTOR_ADDR, INTERRUPT_VECTOR_ADDR};
+pub use cpu_instruction::{CPUInstruction, LogLine, RegisterState, INIT_VECTOR_ADDR, INTERRUPT_VECTOR_ADDR};
 pub use memory::{AddressableIO, DisplayBackend};
 pub use memory::MemoryStack as Memory;
 pub use processing_unit::*;
