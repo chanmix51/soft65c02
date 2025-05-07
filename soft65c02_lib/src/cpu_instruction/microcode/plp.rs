@@ -34,8 +34,8 @@ mod tests {
     #[test]
     fn test_plp() {
         let cpu_instruction =
-            CPUInstruction::new(0x1000, 0x08, "PLP", AddressingMode::Implied, plp);
-        let (mut memory, mut registers) = get_stuff(0x1000, vec![0x08, 0x0a]);
+            CPUInstruction::new(0x1000, 0x28, "PLP", AddressingMode::Implied, plp);
+        let (mut memory, mut registers) = get_stuff(0x1000, vec![0x28, 0x0a]);
         registers.set_z_flag(true);
         registers.set_d_flag(true);
         registers.set_c_flag(false);
@@ -58,9 +58,7 @@ mod tests {
         assert!(!registers.n_flag_is_set());
         assert_eq!(0xff, registers.stack_pointer);
         assert_eq!(0x1001, registers.command_pointer);
-        assert_eq!(
-            format!("#0x1000: (08)          PLP                      [SP=0xff][S=nv-BDiZc]"),
-            format!("{}", log_line)
-        );
+        assert_eq!(4, log_line.cycles); // Implied: 4 cycles
+        assert_eq!("#0x1000: (28)          PLP                      [SP=0xff][S=nv-BDiZc][4]", log_line.to_string());
     }
 }

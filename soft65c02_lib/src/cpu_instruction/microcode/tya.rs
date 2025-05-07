@@ -34,8 +34,8 @@ mod tests {
     #[test]
     fn test_tya() {
         let cpu_instruction =
-            CPUInstruction::new(0x1000, 0xca, "TYA", AddressingMode::Implied, tya);
-        let (mut memory, mut registers) = get_stuff(0x1000, vec![0x8a]);
+            CPUInstruction::new(0x1000, 0x98, "TYA", AddressingMode::Implied, tya);
+        let (mut memory, mut registers) = get_stuff(0x1000, vec![0x98]);
         registers.register_y = 0x43;
         registers.accumulator = 0x0a;
         let log_line = cpu_instruction
@@ -46,38 +46,44 @@ mod tests {
         assert!(!registers.z_flag_is_set());
         assert!(!registers.n_flag_is_set());
         assert_eq!(0x1001, registers.command_pointer);
+        assert_eq!(2, log_line.cycles);
+        assert_eq!("#0x1000: (98)          TYA                      [A=0x43][S=nv-Bdizc][2]", log_line.to_string());
     }
 
     #[test]
     fn test_tya_with_n_flag() {
         let cpu_instruction =
-            CPUInstruction::new(0x1000, 0xca, "TYA", AddressingMode::Implied, tya);
-        let (mut memory, mut registers) = get_stuff(0x1000, vec![0x8a, 0x0a, 0x02]);
+            CPUInstruction::new(0x1000, 0x98, "TYA", AddressingMode::Implied, tya);
+        let (mut memory, mut registers) = get_stuff(0x1000, vec![0x98]);
         registers.set_n_flag(false);
         registers.register_y = 0x80;
-        let _log_line = cpu_instruction
+        let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!(0x80, registers.accumulator);
         assert!(!registers.z_flag_is_set());
         assert!(registers.n_flag_is_set());
         assert_eq!(0x1001, registers.command_pointer);
+        assert_eq!(2, log_line.cycles);
+        assert_eq!("#0x1000: (98)          TYA                      [A=0x80][S=Nv-Bdizc][2]", log_line.to_string());
     }
 
     #[test]
     fn test_tya_with_z_flag() {
         let cpu_instruction =
-            CPUInstruction::new(0x1000, 0xca, "TYA", AddressingMode::Implied, tya);
-        let (mut memory, mut registers) = get_stuff(0x1000, vec![0x8a, 0x0a, 0x02]);
+            CPUInstruction::new(0x1000, 0x98, "TYA", AddressingMode::Implied, tya);
+        let (mut memory, mut registers) = get_stuff(0x1000, vec![0x98]);
         registers.set_z_flag(false);
         registers.register_y = 0x00;
         registers.accumulator = 0x0a;
-        let _log_line = cpu_instruction
+        let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!(0x00, registers.accumulator);
         assert!(registers.z_flag_is_set());
         assert!(!registers.n_flag_is_set());
         assert_eq!(0x1001, registers.command_pointer);
+        assert_eq!(2, log_line.cycles);
+        assert_eq!("#0x1000: (98)          TYA                      [A=0x00][S=nv-BdiZc][2]", log_line.to_string());
     }
 }

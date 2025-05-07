@@ -22,8 +22,8 @@ pub fn jsr(
         cpu_instruction,
         resolution,
         format!(
-            "[CP=0x{:04x}][SP=0x{:02x}]",
-            registers.command_pointer, registers.stack_pointer
+            "[CP=0x{:04x}][SP=0x{:02x}][S={}]",
+            registers.command_pointer, registers.stack_pointer, registers.format_status()
         ),
     ))
 }
@@ -38,12 +38,12 @@ mod tests {
     fn test_jsr() {
         let cpu_instruction = CPUInstruction::new(
             0x1000,
-            0xca,
+            0x20,
             "JSR",
             AddressingMode::Absolute([0x0a, 0x20]),
             jsr,
         );
-        let (mut memory, mut registers) = get_stuff(0x1000, vec![0x4c, 0x0a, 0x20]);
+        let (mut memory, mut registers) = get_stuff(0x1000, vec![0x20, 0x0a, 0x20]);
         registers.stack_pointer = 0xff;
         let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
@@ -55,5 +55,28 @@ mod tests {
             vec![0x02, 0x10],
             memory.read(STACK_BASE_ADDR + 0xfe, 2).unwrap()
         );
+        assert_eq!(6, log_line.cycles); // JSR always takes 6 cycles
+        assert_eq!("#0x1000: (20 0a 20)    JSR  $200A    (#0x200A)  [CP=0x200a][SP=0xfd][S=nv-Bdizc][6]", log_line.to_string());
+    }
+
+    #[test]
+    fn test_jsr_verify_return_address() {
+        let cpu_instruction = CPUInstruction::new(
+            0x1000,
+            0x20,
+            "JSR",
+            AddressingMode::Absolute([0x0a, 0x20]),
+            jsr,
+        );
+        let (mut memory, mut registers) = get_stuff(0x1000, vec![0x20, 0x0a, 0x20]);
+        registers.stack_pointer = 0xff;
+        let _log_line = cpu_instruction
+            .execute(&mut memory, &mut registers)
+            .unwrap();
+        
+        // Return address should be one byte before next instruction
+        let return_addr = ((memory.read(STACK_BASE_ADDR + 0xff, 1).unwrap()[0] as usize) << 8) |
+                           memory.read(STACK_BASE_ADDR + 0xfe, 1).unwrap()[0] as usize;
+        assert_eq!(0x1002, return_addr); // Points to last byte of JSR instruction
     }
 }

@@ -9,7 +9,11 @@ pub fn stp(
         cpu_instruction
             .addressing_mode
             .solve(registers.command_pointer, memory, registers)?;
-    Ok(LogLine::new(cpu_instruction, resolution, String::new()))
+    Ok(LogLine::new(
+        cpu_instruction,
+        resolution,
+        format!("[S={}]", registers.format_status())
+    ))
 }
 
 #[cfg(test)]
@@ -27,5 +31,7 @@ mod tests {
             .unwrap();
         assert_eq!("STP".to_owned(), log_line.mnemonic);
         assert_eq!(0x1000, registers.command_pointer);
+        assert_eq!(3, log_line.cycles); // STP: 3 cycles
+        assert_eq!("#0x1000: (db)          STP                      [S=nv-Bdizc][3]", log_line.to_string());
     }
 }

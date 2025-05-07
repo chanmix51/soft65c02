@@ -34,8 +34,10 @@ pub fn brk(
         cpu_instruction,
         resolution,
         format!(
-            "[CP=0x{:04X}][SP=0x{:02x}]",
-            registers.command_pointer, registers.stack_pointer
+            "[CP=0x{:04X}][SP=0x{:02x}][S={}]",
+            registers.command_pointer,
+            registers.stack_pointer,
+            registers.format_status()
         ),
     ))
 }
@@ -49,7 +51,7 @@ mod tests {
     #[test]
     fn test_brk() {
         let cpu_instruction =
-            CPUInstruction::new(0x1000, 0xca, "BRK", AddressingMode::Implied, brk);
+            CPUInstruction::new(0x1000, 0x00, "BRK", AddressingMode::Implied, brk);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x00]);
         memory.write(0xfffe, &[0x00, 0xf0]).unwrap();
         registers.stack_pointer = 0xff;
@@ -65,5 +67,7 @@ mod tests {
         );
         assert!(registers.i_flag_is_set());
         assert!(!registers.d_flag_is_set());
+        assert_eq!(7, log_line.cycles); // Implied: 7 cycles
+        assert_eq!("#0x1000: (00)          BRK                      [CP=0xF000][SP=0xfc][S=nv-BdIzc][7]", log_line.to_string());
     }
 }

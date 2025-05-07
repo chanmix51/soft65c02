@@ -88,7 +88,7 @@ impl<'a> ParserContext<'a> {
     fn parse_comparison(&self, mut nodes: Pairs<Rule>) -> AppResult<BooleanExpression> {
         let node = nodes.next().unwrap();
         let lh = match node.as_rule() {
-            Rule::register8 | Rule::register16 => self.parse_source_register(&node),
+            Rule::register8 | Rule::register16 | Rule::register_cycle => self.parse_source_register(&node),
             Rule::memory_address => self.parse_source_memory(&node)?,
             Rule::value8 | Rule::value16 => self.parse_source_value(&node)?,
             v => panic!("unexpected node '{:?}' here.", v),
@@ -97,7 +97,7 @@ impl<'a> ParserContext<'a> {
         let node = nodes.next().unwrap();
         
         let rh = match node.as_rule() {
-            Rule::register8 | Rule::register16 => self.parse_source_register(&node),
+            Rule::register8 | Rule::register16 | Rule::register_cycle => self.parse_source_register(&node),
             Rule::memory_address => self.parse_source_memory(&node)?,
             Rule::value8 | Rule::value16 => self.parse_source_value(&node)?,
             v => panic!("unexpected node '{:?}' here.", v),
@@ -124,6 +124,7 @@ impl<'a> ParserContext<'a> {
             "S" => Source::Register(RegisterSource::Status),
             "SP" => Source::Register(RegisterSource::StackPointer),
             "CP" => Source::Register(RegisterSource::CommandPointer),
+            "cycle_count" => Source::Register(RegisterSource::CycleCount),
             v => panic!("unknown register type '{:?}'.", v),
         }
     }
@@ -651,7 +652,7 @@ impl<'a> RegisterCommandParser<'a> {
         Ok(command)
     }
 
-    fn parse_register_set(&self, mut pairs: Pairs<'_, Rule>) -> AppResult<RegisterCommand> {
+    fn parse_register_set(&self, mut pairs: Pairs<Rule>) -> AppResult<RegisterCommand> {
         let assignment = pairs.next().unwrap();
         let mut assignment = assignment.into_inner();
         let destination_node = assignment
@@ -671,25 +672,14 @@ impl<'a> RegisterCommandParser<'a> {
                 "CP" => RegisterSource::CommandPointer,
                 v => panic!("unknown destination 16 bits register type '{:?}'.", v),
             }, true),
+            Rule::register_cycle => (RegisterSource::CycleCount, true),
             v => panic!("unexpected node '{:?}' here.", v),
         };
 
         let source_node = assignment.next().unwrap();
         let source = match source_node.as_rule() {
-            Rule::register8 => match source_node.as_str() {
-                "A" => Source::Register(RegisterSource::Accumulator),
-                "X" => Source::Register(RegisterSource::RegisterX),
-                "Y" => Source::Register(RegisterSource::RegisterY),
-                "S" => Source::Register(RegisterSource::Status),
-                "SP" => Source::Register(RegisterSource::StackPointer),
-                "CP" => Source::Register(RegisterSource::CommandPointer),
-                v => panic!("unknown source register type '{:?}'.", v),
-            },
-            Rule::value8 | Rule::value16 => {
-                let value = self.context.parse_source_value(&source_node)?;
-                // Value size validation is handled in parse_source_value
-                value
-            },
+            Rule::register8 | Rule::register16 | Rule::register_cycle => self.parse_source_register(&source_node),
+            Rule::value8 | Rule::value16 => self.context.parse_source_value(&source_node)?,
             Rule::memory_address => {
                 // For symbols, get the value and validate it against register size
                 let value = self.context.parse_memory(&source_node)?;
@@ -707,6 +697,19 @@ impl<'a> RegisterCommandParser<'a> {
                 source,
             },
         })
+    }
+
+    fn parse_source_register(&self, node: &Pair<Rule>) -> Source {
+        match node.as_str() {
+            "A" => Source::Register(RegisterSource::Accumulator),
+            "X" => Source::Register(RegisterSource::RegisterX),
+            "Y" => Source::Register(RegisterSource::RegisterY),
+            "S" => Source::Register(RegisterSource::Status),
+            "SP" => Source::Register(RegisterSource::StackPointer),
+            "CP" => Source::Register(RegisterSource::CommandPointer),
+            "cycle_count" => Source::Register(RegisterSource::CycleCount),
+            v => panic!("unknown register type '{:?}'.", v),
+        }
     }
 }
 
@@ -832,6 +835,46 @@ mod register_parser_tests {
                 RegisterCommand::Set { assignment }
                 if matches!(assignment.destination, RegisterSource::CommandPointer)
                 && matches!(assignment.source, Source::Value(0x1234))
+            )
+        );
+    }
+
+    #[test]
+    fn test_registers_set_cycle_count() {
+        let input = "registers set cycle_count=0x1234";
+        let context = create_test_context();
+        let pairs = PestParser::parse(Rule::registers_instruction, input)
+            .unwrap()
+            .next()
+            .unwrap()
+            .into_inner();
+        let command = RegisterCommandParser::from_pairs(pairs, &context).unwrap();
+
+        assert!(
+            matches!(command,
+                RegisterCommand::Set { assignment }
+                if matches!(assignment.destination, RegisterSource::CycleCount)
+                && matches!(assignment.source, Source::Value(0x1234))
+            )
+        );
+    }
+
+    #[test]
+    fn test_registers_set_cycle_count_zero() {
+        let input = "registers set cycle_count=0x0000";
+        let context = create_test_context();
+        let pairs = PestParser::parse(Rule::registers_instruction, input)
+            .unwrap()
+            .next()
+            .unwrap()
+            .into_inner();
+        let command = RegisterCommandParser::from_pairs(pairs, &context).unwrap();
+
+        assert!(
+            matches!(command,
+                RegisterCommand::Set { assignment }
+                if matches!(assignment.destination, RegisterSource::CycleCount)
+                && matches!(assignment.source, Source::Value(0))
             )
         );
     }
@@ -968,6 +1011,52 @@ mod run_command_parser_tests {
                 ) if addr == 0x2000
             )
         );
+    }
+
+    #[test]
+    fn test_run_until_cycle_count() {
+        let input = "run until cycle_count > 0x0200";
+        let context = create_test_context();
+        let pairs = PestParser::parse(Rule::run_instruction, input)
+            .unwrap()
+            .next()
+            .unwrap()
+            .into_inner();
+        let command = RunCommandParser::from_pairs(pairs, &context).unwrap();
+
+        if let BooleanExpression::StrictlyGreater(lt, rt) = command.stop_condition {
+            assert!(matches!(lt, Source::Register(RegisterSource::CycleCount)));
+            assert!(matches!(rt, Source::Value(data) if data == 0x0200));
+        } else {
+            panic!(
+                "Expected StrictlyGreater boolean expression, got '{:?}'.",
+                command.stop_condition
+            );
+        }
+        assert!(command.start_address.is_none());
+    }
+
+    #[test]
+    fn test_run_with_cycle_count_comparison() {
+        let input = "run #0x1234 until cycle_count = 0x0100";
+        let context = create_test_context();
+        let pairs = PestParser::parse(Rule::run_instruction, input)
+            .unwrap()
+            .next()
+            .unwrap()
+            .into_inner();
+        let command = RunCommandParser::from_pairs(pairs, &context).unwrap();
+
+        assert!(matches!(command.start_address, Some(RunAddress::Memory(addr)) if addr == 0x1234));
+        if let BooleanExpression::Equal(lt, rt) = command.stop_condition {
+            assert!(matches!(lt, Source::Register(RegisterSource::CycleCount)));
+            assert!(matches!(rt, Source::Value(data) if data == 0x0100));
+        } else {
+            panic!(
+                "Expected Equal boolean expression, got '{:?}'.",
+                command.stop_condition
+            );
+        }
     }
 }
 

@@ -12,6 +12,7 @@ pub enum RegisterSource {
     Status,
     StackPointer,
     CommandPointer,
+    CycleCount,
 }
 
 impl RegisterSource {
@@ -23,6 +24,7 @@ impl RegisterSource {
             Self::Status => registers.get_status_register() as usize,
             Self::StackPointer => registers.stack_pointer as usize,
             Self::CommandPointer => registers.command_pointer,
+            Self::CycleCount => registers.cycle_count as usize,
         }
     }
 }
@@ -36,6 +38,7 @@ impl fmt::Display for RegisterSource {
             Self::Status => write!(f, "S"),
             Self::StackPointer => write!(f, "SP"),
             Self::CommandPointer => write!(f, "CP"),
+            Self::CycleCount => write!(f, "cycle_count"),
         }
     }
 }
@@ -91,6 +94,12 @@ impl Assignment {
                 registers.command_pointer = val;
 
                 format!("register CP set to #0x{val:04x}")
+            }
+            RegisterSource::CycleCount => {
+                let val = self.source.get_value(registers, memory);
+                registers.cycle_count = val as u64;
+
+                format!("cycle_count set to {val}")
             }
         };
 

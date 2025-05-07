@@ -6,7 +6,7 @@ use std::{
 use anyhow::anyhow;
 use soft65c02_lib::{Memory, Registers};
 
-use crate::{AppResult, CliCommand, CliCommandParser, Command, OutputToken, symbols::SymbolTable};
+use crate::{AppResult, CliCommand, CliCommandParser, Command, OutputToken, SymbolTable};
 
 #[derive(Debug)]
 struct ExecutionRound {

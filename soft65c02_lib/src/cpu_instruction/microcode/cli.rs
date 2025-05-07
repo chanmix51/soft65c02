@@ -28,8 +28,8 @@ mod tests {
     #[test]
     fn test_cli() {
         let cpu_instruction =
-            CPUInstruction::new(0x1000, 0xca, "CLI", AddressingMode::Implied, cli);
-        let (mut memory, mut registers) = get_stuff(0x1000, vec![0x4c, 0x0a, 0x02]);
+            CPUInstruction::new(0x1000, 0x58, "CLI", AddressingMode::Implied, cli);
+        let (mut memory, mut registers) = get_stuff(0x1000, vec![0x58]);
         registers.set_i_flag(true);
         let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
@@ -37,5 +37,7 @@ mod tests {
         assert_eq!("CLI".to_owned(), log_line.mnemonic);
         assert_eq!(0x1001, registers.command_pointer);
         assert!(!registers.i_flag_is_set());
+        assert_eq!(2, log_line.cycles); // CLI takes 2 cycles
+        assert_eq!("#0x1000: (58)          CLI                      [S=nv-Bdizc][2]", log_line.to_string());
     }
 }

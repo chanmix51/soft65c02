@@ -34,6 +34,7 @@ pub struct Registers {
     status_register: u8,
     pub command_pointer: usize,
     pub stack_pointer: u8,
+    pub cycle_count: u64,
 }
 
 impl Registers {
@@ -45,6 +46,7 @@ impl Registers {
             status_register: (random::<u8>() | 0b00111100) & 0b11110111, // 0bXX1101XX
             command_pointer: init_address,
             stack_pointer: random::<u8>(),
+            cycle_count: 0,
         }
     }
 
@@ -62,6 +64,7 @@ impl Registers {
         self.status_register = 0b00110000;
         self.command_pointer = init_address;
         self.stack_pointer = 0xff;
+        self.cycle_count = 0;
     }
 
     pub fn get_status_register(&self) -> u8 {
@@ -172,6 +175,10 @@ impl Registers {
             if self.z_flag_is_set() { "Z" } else { "z" },
             if self.c_flag_is_set() { "C" } else { "c" },
         )
+    }
+
+    pub fn add_cycles(&mut self, cycles: u8) {
+        self.cycle_count += cycles as u64;
     }
 }
 

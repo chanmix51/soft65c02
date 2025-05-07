@@ -10,6 +10,8 @@ pub fn bpl(
             .addressing_mode
             .solve(registers.command_pointer, memory, registers)?;
 
+    let original_cp = registers.command_pointer;
+
     if registers.n_flag_is_set() {
         registers.command_pointer += 2;
     } else {
@@ -18,6 +20,9 @@ pub fn bpl(
             cpu_instruction.addressing_mode.get_operands()[0],
         )
         .expect("Could not resolve relative address for BPL");
+        
+        // Add cycles after we know the branch was taken
+        cpu_instruction.add_branch_cycles(registers, original_cp);
     }
 
     Ok(LogLine::new(
@@ -33,37 +38,61 @@ mod tests {
     use crate::cpu_instruction::cpu_instruction::tests::get_stuff;
 
     #[test]
-    fn test_bpl_branch() {
+    fn test_bpl_no_branch() {
         let cpu_instruction = CPUInstruction::new(
             0x1000,
-            0xca,
+            0x10,
             "BPL",
             AddressingMode::Relative(0x1000, [0x0a]),
             bpl,
         );
-        let (mut memory, mut registers) = get_stuff(0x1000, vec![0xca, 0x0a, 0x02]);
-        registers.set_n_flag(false);
+        let (mut memory, mut registers) = get_stuff(0x1000, vec![0x10, 0x0a]);
+        registers.set_n_flag(true);
         let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!("BPL".to_owned(), log_line.mnemonic);
-        assert_eq!(0x100c, registers.command_pointer);
+        assert_eq!(0x1002, registers.command_pointer);
+        assert_eq!(2, cpu_instruction.cycles.get(), "BPL not taken should take 2 cycles");
+        assert_eq!("#0x1000: (10 0a)       BPL  $100C               [CP=0x1002][2]", log_line.to_string());
     }
 
     #[test]
-    fn test_bpl_no_branch() {
+    fn test_bpl_branch_no_page_cross() {
         let cpu_instruction = CPUInstruction::new(
             0x1000,
-            0xca,
+            0x10,
             "BPL",
             AddressingMode::Relative(0x1000, [0x0a]),
             bpl,
         );
-        let (mut memory, mut registers) = get_stuff(0x1000, vec![0xca, 0x0a, 0x02]);
-        registers.set_n_flag(true);
-        let _log_line = cpu_instruction
+        let (mut memory, mut registers) = get_stuff(0x1000, vec![0x10, 0x0a]);
+        registers.set_n_flag(false);
+        let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
-        assert_eq!(0x1002, registers.command_pointer);
+        assert_eq!(0x100c, registers.command_pointer);
+        assert_eq!(3, cpu_instruction.cycles.get(), "BPL taken without page cross should take 3 cycles");
+        assert_eq!("#0x1000: (10 0a)       BPL  $100C               [CP=0x100C][3]", log_line.to_string());
+    }
+
+    #[test]
+    fn test_bpl_branch_page_cross() {
+        let cpu_instruction = CPUInstruction::new(
+            0x10f0,
+            0x10,
+            "BPL",
+            AddressingMode::Relative(0x10f0, [0x20]),
+            bpl,
+        );
+        let (mut memory, mut registers) = get_stuff(0x10f0, vec![0x10, 0x20]);
+        registers.command_pointer = 0x10f0;
+        registers.set_n_flag(false);
+        let log_line = cpu_instruction
+            .execute(&mut memory, &mut registers)
+            .unwrap();
+        assert_eq!(0x1112, registers.command_pointer);
+        assert_eq!(4, cpu_instruction.cycles.get(), "BPL taken with page cross should take 4 cycles");
+        assert_eq!("#0x10F0: (10 20)       BPL  $1112               [CP=0x1112][4]", log_line.to_string());
     }
 }

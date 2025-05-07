@@ -34,8 +34,8 @@ mod tests {
     #[test]
     fn test_tax() {
         let cpu_instruction =
-            CPUInstruction::new(0x1000, 0xca, "TAX", AddressingMode::Implied, tax);
-        let (mut memory, mut registers) = get_stuff(0x1000, vec![0x8a, 0x0a, 0x02]);
+            CPUInstruction::new(0x1000, 0xAA, "TAX", AddressingMode::Implied, tax);
+        let (mut memory, mut registers) = get_stuff(0x1000, vec![0xAA]);
         registers.accumulator = 0x28;
         let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
@@ -45,35 +45,41 @@ mod tests {
         assert!(!registers.z_flag_is_set());
         assert!(!registers.n_flag_is_set());
         assert_eq!(0x1001, registers.command_pointer);
+        assert_eq!(2, log_line.cycles); // TAX takes 2 cycles
+        assert_eq!("#0x1000: (aa)          TAX                      [X=0x28][S=nv-Bdizc][2]", log_line.to_string());
     }
 
     #[test]
-    fn test_tax_with_z_flag() {
+    fn test_tax_with_zero_result() {
         let cpu_instruction =
-            CPUInstruction::new(0x1000, 0xca, "TAX", AddressingMode::Implied, tax);
-        let (mut memory, mut registers) = get_stuff(0x1000, vec![0x8a, 0x0a, 0x02]);
-        registers.register_x = 0x28;
-        let _log_line = cpu_instruction
+            CPUInstruction::new(0x1000, 0xAA, "TAX", AddressingMode::Implied, tax);
+        let (mut memory, mut registers) = get_stuff(0x1000, vec![0xAA]);
+        registers.accumulator = 0x00;
+        let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!(0x00, registers.register_x);
         assert!(registers.z_flag_is_set());
         assert!(!registers.n_flag_is_set());
         assert_eq!(0x1001, registers.command_pointer);
+        assert_eq!(2, log_line.cycles);
+        assert_eq!("#0x1000: (aa)          TAX                      [X=0x00][S=nv-BdiZc][2]", log_line.to_string());
     }
 
     #[test]
-    fn test_tax_with_n_flag() {
+    fn test_tax_with_negative_result() {
         let cpu_instruction =
-            CPUInstruction::new(0x1000, 0xca, "TAX", AddressingMode::Implied, tax);
-        let (mut memory, mut registers) = get_stuff(0x1000, vec![0x8a, 0x0a, 0x02]);
-        registers.accumulator = 0xf8;
-        let _log_line = cpu_instruction
+            CPUInstruction::new(0x1000, 0xAA, "TAX", AddressingMode::Implied, tax);
+        let (mut memory, mut registers) = get_stuff(0x1000, vec![0xAA]);
+        registers.accumulator = 0xF8;
+        let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
-        assert_eq!(0xf8, registers.register_x);
+        assert_eq!(0xF8, registers.register_x);
         assert!(!registers.z_flag_is_set());
         assert!(registers.n_flag_is_set());
         assert_eq!(0x1001, registers.command_pointer);
+        assert_eq!(2, log_line.cycles);
+        assert_eq!("#0x1000: (aa)          TAX                      [X=0xf8][S=Nv-Bdizc][2]", log_line.to_string());
     }
 }

@@ -27,18 +27,19 @@ mod tests {
     use crate::STACK_BASE_ADDR;
 
     #[test]
-    fn test_php() {
+    fn test_phx() {
         let cpu_instruction =
-            CPUInstruction::new(0x1000, 0xca, "PHX", AddressingMode::Implied, phx);
+            CPUInstruction::new(0x1000, 0xda, "PHX", AddressingMode::Implied, phx);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x48, 0x0a]);
         registers.register_x = 0xa1;
         let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
-        assert_eq!("[SP=0xfe]", format!("{}", log_line.outcome));
         assert_eq!("PHX".to_owned(), log_line.mnemonic);
         assert_eq!(0xa1, memory.read(STACK_BASE_ADDR + 0x00ff, 1).unwrap()[0]);
         assert_eq!(0xfe, registers.stack_pointer);
         assert_eq!(0x1001, registers.command_pointer);
+        assert_eq!(3, log_line.cycles); // PHX takes 3 cycles
+        assert_eq!("#0x1000: (da)          PHX                      [SP=0xfe][3]", log_line.to_string());
     }
 }
