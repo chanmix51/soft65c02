@@ -60,6 +60,12 @@ where
                         .collect::<Vec<_>>()
                         .join("\n");
                     content.push('\n');
+                    
+                    if loglines.len() > 1 {
+                        let total_cycles: u32 = loglines.iter().map(|l| l.cycles as u32).sum();
+                        content.push_str(&format!("🕒 Total cycles: {}\n", total_cycles));
+                    }
+                    
                     self.output.write_all(content.as_bytes())?;
                 }
                 OutputToken::Setup(lines) if self.verbose => {

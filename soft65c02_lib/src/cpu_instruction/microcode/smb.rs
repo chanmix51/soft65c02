@@ -13,6 +13,7 @@ pub fn smb(
         .target_address
         .expect("SMB expects an operand, crashing the application");
     let byte = memory.read(addr, 1)?[0];
+
     let mut bit = 0b00000001;
     (0..(cpu_instruction.opcode >> 4) - 8).for_each(|_| bit <<= 1);
     let byte = byte | bit;
@@ -37,6 +38,7 @@ mod tests {
         let cpu_instruction =
             CPUInstruction::new(0x1000, 0x87, "SMB0", AddressingMode::ZeroPage([0x0a]), smb);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x87, 0x0a]);
+        memory.write(0x0a, &[0x00]).unwrap();
         let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
@@ -47,10 +49,8 @@ mod tests {
         assert!(!registers.c_flag_is_set());
         assert!(!registers.v_flag_is_set());
         assert_eq!(0x1002, registers.command_pointer);
-        assert_eq!(
-            format!("#0x1000: (87 0a)       SMB0 $0a      (#0x000A)  (0x01)"),
-            format!("{}", log_line)
-        );
+        assert_eq!(5, log_line.cycles);
+        assert_eq!("#0x1000: (87 0a)       SMB0 $0a      (#0x000A)  (0x01)[5]", log_line.to_string());
     }
 
     #[test]
@@ -58,6 +58,7 @@ mod tests {
         let cpu_instruction =
             CPUInstruction::new(0x1000, 0xf7, "SMB7", AddressingMode::ZeroPage([0x0a]), smb);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0xf7, 0x0a]);
+        memory.write(0x0a, &[0x00]).unwrap();
         let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
@@ -68,9 +69,7 @@ mod tests {
         assert!(!registers.c_flag_is_set());
         assert!(!registers.v_flag_is_set());
         assert_eq!(0x1002, registers.command_pointer);
-        assert_eq!(
-            format!("#0x1000: (f7 0a)       SMB7 $0a      (#0x000A)  (0x80)"),
-            format!("{}", log_line)
-        );
+        assert_eq!(5, log_line.cycles);
+        assert_eq!("#0x1000: (f7 0a)       SMB7 $0a      (#0x000A)  (0x80)[5]", log_line.to_string());
     }
 }

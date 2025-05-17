@@ -1,6 +1,6 @@
 use super::memory;
 use super::memory::MemoryStack as Memory;
-use super::memory::{little_endian, AddressableIO, MemoryError};
+use super::memory::{little_endian, AddressableIO, MemoryError, MEMMAX};
 use super::registers::Registers;
 use std::error;
 use std::fmt;
@@ -153,10 +153,10 @@ impl AddressingMode {
                 }
             }
             AddressingMode::ZeroPageIndirectYIndexed(v) => {
-                let dst_addr =
-                    little_endian(memory.read(v[0] as usize, 2)?) + registers.register_y as usize;
+                let base_addr = little_endian(memory.read(v[0] as usize, 2)?);
+                let dst_addr = base_addr + registers.register_y as usize;
 
-                if dst_addr > memory::MEMMAX {
+                if dst_addr > MEMMAX {
                     Err(ResolutionError::Solving(
                         *self,
                         opcode_address,
@@ -242,6 +242,42 @@ impl AddressingMode {
             AddressingMode::Indirect(v) => v.to_vec(),
             AddressingMode::Relative(_addr, v) => v.to_vec(),
             AddressingMode::ZeroPageRelative(_addr, v) => v.to_vec(),
+        }
+    }
+
+    fn crosses_page_boundary(&self, base_addr: usize, index: u8) -> bool {
+        let base_page = (base_addr & 0xFF00) >> 8;
+        let indexed_addr = base_addr.wrapping_add(index as usize);
+        let indexed_page = (indexed_addr & 0xFF00) >> 8;
+        base_page != indexed_page
+    }
+
+    pub fn needs_page_crossing_cycle(&self, registers: &Registers, memory: &Memory) -> bool {
+        match self {
+            // For indexed addressing modes, check if page boundary is crossed
+            AddressingMode::AbsoluteXIndexed(v) => {
+                let base_addr = little_endian(vec![v[0], v[1]]);
+                self.crosses_page_boundary(base_addr, registers.register_x)
+            }
+            AddressingMode::AbsoluteYIndexed(v) => {
+                let base_addr = little_endian(vec![v[0], v[1]]);
+                self.crosses_page_boundary(base_addr, registers.register_y)
+            }
+            AddressingMode::ZeroPageIndirectYIndexed(v) => {
+                if let Ok(bytes) = memory.read(v[0] as usize, 2) {
+                    let base_addr = little_endian(bytes);
+                    self.crosses_page_boundary(base_addr, registers.register_y)
+                } else {
+                    false
+                }
+            }
+            AddressingMode::Relative(addr, offset) => {
+                let next_instr = *addr + 2;
+                let target = resolve_relative(*addr, offset[0]).unwrap_or(next_instr);
+                (next_instr & 0xFF00) != (target & 0xFF00)
+            }
+            // All other addressing modes never incur page crossing penalties
+            _ => false
         }
     }
 }
@@ -588,5 +624,66 @@ mod tests {
         assert_eq!(vec![0x25, 0x20], resolution.operands);
         assert_eq!(0x0025, resolution.target_address.unwrap());
         assert_eq!("$25,$1022(#0x0025)".to_owned(), format!("{}", resolution));
+    }
+
+    #[test]
+    fn test_page_boundary_crossing() {
+        let mut registers = Registers::new(0x1000);
+        let mut memory = Memory::new_with_ram();
+        
+        // Test AbsoluteXIndexed crossing page boundary
+        registers.register_x = 0xFF;
+        let am = AddressingMode::AbsoluteXIndexed([0x01, 0x20]); // Base addr: 0x2001
+        assert!(am.needs_page_crossing_cycle(&registers, &memory)); // 0x2001 + 0xFF = 0x2100 (crosses page)
+        
+        registers.register_x = 0x01;
+        assert!(!am.needs_page_crossing_cycle(&registers, &memory)); // 0x2001 + 0x01 = 0x2002 (same page)
+        
+        // Test AbsoluteYIndexed crossing page boundary
+        registers.register_y = 0xFF;
+        let am = AddressingMode::AbsoluteYIndexed([0x01, 0x20]); // Base addr: 0x2001
+        assert!(am.needs_page_crossing_cycle(&registers, &memory)); // 0x2001 + 0xFF = 0x2100 (crosses page)
+        
+        registers.register_y = 0x01;
+        assert!(!am.needs_page_crossing_cycle(&registers, &memory)); // 0x2001 + 0x01 = 0x2002 (same page)
+        
+        // Test ZeroPageIndirectYIndexed crossing page boundary
+        registers.register_y = 0xFF;
+        // Set up memory at zero page address 0x01 to contain 0x0201
+        // This means base address is 0x0201, and with Y=0xFF will cross page (0x0201 + 0xFF = 0x0300)
+        memory.write(0x01, &[0x01, 0x02]).unwrap();
+        let am = AddressingMode::ZeroPageIndirectYIndexed([0x01]); 
+        assert!(am.needs_page_crossing_cycle(&registers, &memory));
+        
+        registers.register_y = 0x01;
+        // Set up memory at zero page address 0x01 to contain 0x0250
+        // This means base address is 0x0250, and with Y=0x01 will not cross page (0x0250 + 0x01 = 0x0251)
+        memory.write(0x01, &[0x50, 0x02]).unwrap();
+        assert!(!am.needs_page_crossing_cycle(&registers, &memory));
+
+        // Test Relative mode crossing page boundary
+        // Branch from 0x20FD
+        // Next instruction would be at 0x20FF (page 0x20)
+        // Target = 0x20FF + 2 = 0x2101 (page 0x21)
+        let am = AddressingMode::Relative(0x20FD, [0x02]);
+        assert!(am.needs_page_crossing_cycle(&registers, &memory), 
+            "Branch crossing forward to next page should need extra cycle");
+
+        // Branch from 0x2001
+        // Next instruction would be at 0x2003 (page 0x20)
+        // Target = 0x2003 - 6 = 0x1FFD (page 0x1F)
+        let am = AddressingMode::Relative(0x2001, [0xFA]); // -6 in two's complement
+        assert!(am.needs_page_crossing_cycle(&registers, &memory),
+            "Branch crossing backward to previous page should need extra cycle");
+
+        // Branch within same page
+        let am = AddressingMode::Relative(0x2050, [0x04]); // Small forward branch
+        assert!(!am.needs_page_crossing_cycle(&registers, &memory),
+            "Branch within same page should not need extra cycle");
+
+        // Branch to immediately next instruction (BVC LABEL; LABEL:)
+        let am = AddressingMode::Relative(0x2000, [0x00]);
+        assert!(!am.needs_page_crossing_cycle(&registers, &memory),
+            "Branch to next instruction should never need extra cycle");
     }
 }

@@ -28,8 +28,8 @@ mod tests {
     #[test]
     fn test_clc() {
         let cpu_instruction =
-            CPUInstruction::new(0x1000, 0xca, "CLC", AddressingMode::Implied, clc);
-        let (mut memory, mut registers) = get_stuff(0x1000, vec![0x4c, 0x0a, 0x02]);
+            CPUInstruction::new(0x1000, 0x18, "CLC", AddressingMode::Implied, clc);
+        let (mut memory, mut registers) = get_stuff(0x1000, vec![0x18]);
         registers.set_c_flag(true);
         let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
@@ -37,5 +37,7 @@ mod tests {
         assert_eq!("CLC".to_owned(), log_line.mnemonic);
         assert_eq!(0x1001, registers.command_pointer);
         assert!(!registers.c_flag_is_set());
+        assert_eq!(2, log_line.cycles); // CLC takes 2 cycles
+        assert_eq!("#0x1000: (18)          CLC                      [S=nv-Bdizc][2]", log_line.to_string());
     }
 }

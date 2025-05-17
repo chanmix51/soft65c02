@@ -20,6 +20,14 @@ pub fn sbc(
         .target_address
         .expect("SBC must have operands, crashing the application");
 
+    // Add extra cycle for page boundary crossing in indexed addressing modes
+    cpu_instruction.adjust_base_cycles(registers, memory);
+
+    // Add extra cycle for decimal mode on 65C02
+    if registers.d_flag_is_set() {
+        cpu_instruction.cycles.set(cpu_instruction.cycles.get() + 1);
+    }
+
     let byte = memory.read(target_address, 1)?[0];
     let a = registers.accumulator;
     if registers.d_flag_is_set() {
@@ -91,6 +99,8 @@ mod tests {
         assert!(!registers.z_flag_is_set());
         assert!(!registers.v_flag_is_set());
         assert!(!registers.n_flag_is_set());
+        assert_eq!(2, log_line.cycles); // Immediate mode: 2 cycles
+        assert_eq!("#0x1000: (ca 0a)       SBC  #$0a     (#0x1001)  (0x0a)[A=0x1e][S=nv-BdizC][2]", log_line.to_string());
     }
 
     #[test]
@@ -100,7 +110,7 @@ mod tests {
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x4c, 0x00, 0x02]);
         registers.accumulator = 0x28;
         registers.set_c_flag(true);
-        let _log_line = cpu_instruction
+        let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!(0x28, registers.accumulator);
@@ -109,6 +119,8 @@ mod tests {
         assert!(!registers.z_flag_is_set());
         assert!(!registers.v_flag_is_set());
         assert!(!registers.n_flag_is_set());
+        assert_eq!(2, log_line.cycles); // Immediate mode: 2 cycles
+        assert_eq!("#0x1000: (ca 00)       SBC  #$00     (#0x1001)  (0x00)[A=0x28][S=nv-BdizC][2]", log_line.to_string());
     }
 
     #[test]
@@ -118,7 +130,7 @@ mod tests {
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x4c, 0x01, 0x02]);
         registers.accumulator = 0x28;
         registers.set_c_flag(false);
-        let _log_line = cpu_instruction
+        let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!(0x26, registers.accumulator);
@@ -127,6 +139,8 @@ mod tests {
         assert!(!registers.z_flag_is_set());
         assert!(!registers.v_flag_is_set());
         assert!(!registers.n_flag_is_set());
+        assert_eq!(2, log_line.cycles); // Immediate mode: 2 cycles
+        assert_eq!("#0x1000: (ca 01)       SBC  #$01     (#0x1001)  (0x01)[A=0x26][S=nv-BdizC][2]", log_line.to_string());
     }
 
     #[test]
@@ -136,7 +150,7 @@ mod tests {
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x4c, 0x01, 0x02]);
         registers.accumulator = 0x01;
         registers.set_c_flag(true);
-        let _log_line = cpu_instruction
+        let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!(0x00, registers.accumulator);
@@ -145,6 +159,8 @@ mod tests {
         assert!(registers.z_flag_is_set());
         assert!(!registers.v_flag_is_set());
         assert!(!registers.n_flag_is_set());
+        assert_eq!(2, log_line.cycles); // Immediate mode: 2 cycles
+        assert_eq!("#0x1000: (ca 01)       SBC  #$01     (#0x1001)  (0x01)[A=0x00][S=nv-BdiZC][2]", log_line.to_string());
     }
 
     #[test]
@@ -154,7 +170,7 @@ mod tests {
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x4c, 0xff, 0x02]);
         registers.accumulator = 0xfb;
         registers.set_c_flag(true);
-        let _log_line = cpu_instruction
+        let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!(0xfc, registers.accumulator);
@@ -163,6 +179,8 @@ mod tests {
         assert!(!registers.z_flag_is_set());
         assert!(!registers.v_flag_is_set());
         assert!(registers.n_flag_is_set());
+        assert_eq!(2, log_line.cycles); // Immediate mode: 2 cycles
+        assert_eq!("#0x1000: (ca ff)       SBC  #$ff     (#0x1001)  (0xff)[A=0xfc][S=Nv-Bdizc][2]", log_line.to_string());
     }
 
     #[test]
@@ -172,7 +190,7 @@ mod tests {
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x4c, 0x02, 0x02]);
         registers.accumulator = 0x81;
         registers.set_c_flag(true);
-        let _log_line = cpu_instruction
+        let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!(0x7f, registers.accumulator);
@@ -181,6 +199,8 @@ mod tests {
         assert!(!registers.z_flag_is_set());
         assert!(registers.v_flag_is_set());
         assert!(!registers.n_flag_is_set());
+        assert_eq!(2, log_line.cycles); // Immediate mode: 2 cycles
+        assert_eq!("#0x1000: (ca 02)       SBC  #$02     (#0x1001)  (0x02)[A=0x7f][S=nV-BdizC][2]", log_line.to_string());
     }
 
     #[test]
@@ -189,7 +209,7 @@ mod tests {
             CPUInstruction::new(0x1000, 0xca, "SBC", AddressingMode::Immediate([0xff]), sbc);
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x4c, 0xff, 0x02]);
         registers.accumulator = 0x00;
-        let _log_line = cpu_instruction
+        let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!(0x00, registers.accumulator);
@@ -198,6 +218,8 @@ mod tests {
         assert!(registers.z_flag_is_set());
         assert!(!registers.v_flag_is_set());
         assert!(!registers.n_flag_is_set());
+        assert_eq!(2, log_line.cycles); // Immediate mode: 2 cycles
+        assert_eq!("#0x1000: (ca ff)       SBC  #$ff     (#0x1001)  (0xff)[A=0x00][S=nv-BdiZc][2]", log_line.to_string());
     }
 
     #[test]
@@ -207,7 +229,7 @@ mod tests {
         let (mut memory, mut registers) = get_stuff(0x1000, vec![0x4c, 0xff, 0x02]);
         registers.accumulator = 0xff;
         registers.set_c_flag(true);
-        let _log_line = cpu_instruction
+        let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!(0x00, registers.accumulator);
@@ -216,6 +238,8 @@ mod tests {
         assert!(registers.z_flag_is_set());
         assert!(!registers.v_flag_is_set());
         assert!(!registers.n_flag_is_set());
+        assert_eq!(2, log_line.cycles); // Immediate mode: 2 cycles
+        assert_eq!("#0x1000: (ca ff)       SBC  #$ff     (#0x1001)  (0xff)[A=0x00][S=nv-BdiZC][2]", log_line.to_string());
     }
 
     #[test]
@@ -226,7 +250,7 @@ mod tests {
         registers.accumulator = 0x40;
         registers.set_d_flag(true);
         registers.set_c_flag(true);
-        let _log_line = cpu_instruction
+        let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!(0x27, registers.accumulator);
@@ -235,7 +259,10 @@ mod tests {
         assert!(!registers.z_flag_is_set());
         assert!(!registers.v_flag_is_set());
         assert!(!registers.n_flag_is_set());
+        assert_eq!(3, log_line.cycles, "SBC in decimal mode should take 3 cycles on 65C02");
+        assert_eq!("#0x1000: (ca 13)       SBC  #$13     (#0x1001)  (0x13)[A=0x27][S=nv-BDizC][3]", log_line.to_string());
     }
+
     #[test]
     fn test_sbc_decmode_negative() {
         let cpu_instruction =
@@ -244,7 +271,7 @@ mod tests {
         registers.accumulator = 0x12;
         registers.set_d_flag(true);
         registers.set_c_flag(true);
-        let _log_line = cpu_instruction
+        let log_line = cpu_instruction
             .execute(&mut memory, &mut registers)
             .unwrap();
         assert_eq!(0x91, registers.accumulator);
@@ -253,5 +280,7 @@ mod tests {
         assert!(!registers.z_flag_is_set());
         assert!(!registers.v_flag_is_set());
         assert!(registers.n_flag_is_set());
+        assert_eq!(3, log_line.cycles, "SBC in decimal mode should take 3 cycles on 65C02");
+        assert_eq!("#0x1000: (ca 21)       SBC  #$21     (#0x1001)  (0x21)[A=0x91][S=Nv-BDizc][3]", log_line.to_string());
     }
 }
