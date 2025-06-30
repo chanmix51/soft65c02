@@ -2,13 +2,11 @@ use std::fmt;
 
 mod error;
 mod memory_stack;
-mod minifb_sub;
 mod ram;
 mod rom;
 
 pub use error::MemoryError;
 pub use memory_stack::MemoryStack;
-pub use minifb_sub::MiniFBMemory;
 pub use ram::RAM;
 pub use rom::ROM;
 
@@ -32,6 +30,22 @@ pub trait AddressableIO {
     fn read(&self, addr: usize, len: usize) -> Result<Vec<u8>, MemoryError>;
     fn write(&mut self, location: usize, data: &[u8]) -> Result<(), MemoryError>;
     fn get_size(&self) -> usize;
+}
+
+/*
+ * DisplayBackend
+ * This trait defines the interface for display/graphics backends
+ * Graphics backends implement this and can be used as memory-mapped I/O
+ */
+pub trait DisplayBackend: AddressableIO + Send {
+    /// Get the display dimensions
+    fn get_dimensions(&self) -> (usize, usize);
+    
+    /// Check if the display window is still open/active
+    fn is_active(&self) -> bool;
+    
+    /// Get keyboard input events if available
+    fn get_input_events(&mut self) -> Vec<u32>;
 }
 
 pub trait DebugIO: AddressableIO {

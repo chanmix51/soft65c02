@@ -1,5 +1,5 @@
 /*
- * Soft65C02 Mini Framebuffer
+ * MiniFB Display Backend for Soft65C02
  *
  * The framebuffer memory subsystem is composed as following:
  * #0x0000 → #0x002F    palette (16 × 3 bytes for RGB)
@@ -10,14 +10,14 @@
  * ¹ Technically this is still RAM so it can be used to just store data. Be aware that it will
  * trigger token inspection on write hence might be less performant than a RAM memory subsystem.
  */
-use super::*;
+use soft65c02_lib::{AddressableIO, DisplayBackend, memory::MemoryError};
 use minifb::{InputCallback, Key, Scale, ScaleMode, Window, WindowOptions};
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{mpsc, Arc, Mutex};
 use std::{thread, time};
 
-pub const MINIFB_WIDTH: usize = 128;
-pub const MINIFB_HEIGHT: usize = 96;
+pub const DISPLAY_WIDTH: usize = 128;
+pub const DISPLAY_HEIGHT: usize = 96;
 pub const BUFFER_VIDEO_START_ADDR: usize = 256;
 
 struct InterruptHandler {
@@ -34,11 +34,13 @@ pub struct CommunicationToken {
     is_calling: AtomicBool,
     address: AtomicUsize,
     len: AtomicUsize,
+    is_active: AtomicBool,
 }
 
-pub struct MiniFBMemory {
+pub struct MiniFBDisplay {
     token: Arc<CommunicationToken>,
     buffer: Arc<Mutex<Vec<u8>>>,
+    input_receiver: Option<mpsc::Receiver<u32>>,
 }
 
 #[allow(dead_code)]
@@ -155,27 +157,28 @@ fn get_key_code(key: Key) -> u8 {
     }
 }
 
-impl MiniFBMemory {
-    pub fn new(interrupt: Option<mpsc::Sender<u32>>) -> MiniFBMemory {
+impl MiniFBDisplay {
+    pub fn new() -> MiniFBDisplay {
         let buffer: Arc<Mutex<Vec<u8>>> = Arc::new(Mutex::new(vec![
             0;
-            MINIFB_WIDTH * MINIFB_HEIGHT
-                / 2
-                + BUFFER_VIDEO_START_ADDR
+            DISPLAY_WIDTH * DISPLAY_HEIGHT / 2 + BUFFER_VIDEO_START_ADDR
         ]));
         let token = Arc::new(CommunicationToken {
             is_calling: AtomicBool::new(false),
             address: AtomicUsize::new(0),
             len: AtomicUsize::new(0),
+            is_active: AtomicBool::new(true),
         });
+        
+        let (input_tx, input_rx) = mpsc::channel();
         let rtoken = token.clone();
         let rbuffer = buffer.clone();
 
         thread::spawn(move || {
             let mut window = Window::new(
-                "Soft-65C02 Mini Framebuffer",
-                MINIFB_WIDTH,
-                MINIFB_HEIGHT,
+                "Soft-65C02 Display",
+                DISPLAY_WIDTH,
+                DISPLAY_HEIGHT,
                 WindowOptions {
                     resize: true,
                     scale: Scale::X4,
@@ -185,13 +188,16 @@ impl MiniFBMemory {
             )
             .expect("Failed to open window.");
 
-            if let Some(tx) = interrupt {
-                window.set_input_callback(Box::new(InterruptHandler { sender: tx }));
-            }
-            let mut memory: Vec<u32> = vec![0; MINIFB_WIDTH * MINIFB_HEIGHT];
-            // 4ms is the default
-            //window.limit_update_rate(Some(std::time::Duration::from_micros(4000)));
+            window.set_input_callback(Box::new(InterruptHandler { sender: input_tx }));
+            
+            let mut memory: Vec<u32> = vec![0; DISPLAY_WIDTH * DISPLAY_HEIGHT];
+            
             loop {
+                if !window.is_open() {
+                    rtoken.is_active.store(false, Ordering::SeqCst);
+                    break;
+                }
+                
                 if rtoken.is_calling.load(Ordering::Acquire) {
                     let addr = rtoken.address.load(Ordering::SeqCst);
                     let len = rtoken.len.load(Ordering::SeqCst);
@@ -220,32 +226,26 @@ impl MiniFBMemory {
                     }
                     rtoken.is_calling.store(false, Ordering::SeqCst);
                 }
+                
                 window
-                    .update_with_buffer(&(memory), MINIFB_WIDTH, MINIFB_HEIGHT)
+                    .update_with_buffer(&memory, DISPLAY_WIDTH, DISPLAY_HEIGHT)
                     .unwrap();
-                /*
-                let mut codes = if let Some(keys) = window.get_keys_pressed(KeyRepeat::No) {
-                    keys.iter().map(|x| get_key_code(*x)).collect()
-                } else {
-                    vec![]
-                };
-                codes.resize(16, 0);
-                {
-                    let mut buffer = rbuffer.lock().unwrap();
-                    let _a:Vec<u8> = buffer.splice(KEYB_ADDRESS..KEYB_ADDRESS + 16, codes).collect();
-                }
-                */
+                    
                 thread::sleep(time::Duration::from_micros(100));
             }
         });
 
-        MiniFBMemory { token, buffer }
+        MiniFBDisplay { 
+            token, 
+            buffer,
+            input_receiver: Some(input_rx),
+        }
     }
 }
 
-impl AddressableIO for MiniFBMemory {
+impl AddressableIO for MiniFBDisplay {
     fn get_size(&self) -> usize {
-        MINIFB_WIDTH * MINIFB_HEIGHT / 2 + BUFFER_VIDEO_START_ADDR
+        DISPLAY_WIDTH * DISPLAY_HEIGHT / 2 + BUFFER_VIDEO_START_ADDR
     }
 
     fn read(&self, addr: usize, len: usize) -> Result<Vec<u8>, MemoryError> {
@@ -268,3 +268,23 @@ impl AddressableIO for MiniFBMemory {
         Ok(())
     }
 }
+
+impl DisplayBackend for MiniFBDisplay {
+    fn get_dimensions(&self) -> (usize, usize) {
+        (DISPLAY_WIDTH, DISPLAY_HEIGHT)
+    }
+    
+    fn is_active(&self) -> bool {
+        self.token.is_active.load(Ordering::SeqCst)
+    }
+    
+    fn get_input_events(&mut self) -> Vec<u32> {
+        let mut events = Vec::new();
+        if let Some(ref receiver) = self.input_receiver {
+            while let Ok(event) = receiver.try_recv() {
+                events.push(event);
+            }
+        }
+        events
+    }
+} 
