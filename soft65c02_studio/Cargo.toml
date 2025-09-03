@@ -1,0 +1,11 @@
+[package]
+name = "soft65c02_studio"
+version = "0.1.0"
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+crossterm = "0.27.0"
+ratatui = "0.26.2"
