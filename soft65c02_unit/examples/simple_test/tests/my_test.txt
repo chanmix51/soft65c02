@@ -1,0 +1,26 @@
+marker $$testing fn_under_test function$$
+
+memory load atari "${BINARY_PATH}"
+symbols load "${SYMBOLS_PATH}"
+
+// some debug output of the application, including the startup code from crt0
+disassemble $start 0x3A
+
+// the atari min crt0 sets up the FFFC/D RESET vector to the correct start address, which itself calls _main
+// so we can isolate the setup code with the following:
+run init until CP = $_main
+
+
+assert A = 0        $$A is clear$$
+assert X = 0        $$X is clear$$
+assert Y = 0        $$Y is clear$$
+
+// we don't have a way to check the status flags yet without testing whole status value, which is awkward
+// assert C = 0        $$C is clear$$
+
+// clear the cycle_count, so we can get a true count of the tested function
+registers set cycle_count = 0
+run $_main while (CP >= $_main AND CP <= 0x2100) AND cycle_count < 50
+
+// this is a failing test, as our cycle_count condition is hit before X gets to 0
+assert X = 0         $$X ends up being 0$$

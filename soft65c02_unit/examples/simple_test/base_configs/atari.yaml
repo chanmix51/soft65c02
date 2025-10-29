@@ -1,0 +1,9 @@
+# this could also be "none" but allows for including atari include files which are guarded
+target: atari
+compiler: cc65
+
+config_file: "./config_min_atari.cfg"
+
+# setup files for a basic application
+src_files:
+  - ./min_crt0.s

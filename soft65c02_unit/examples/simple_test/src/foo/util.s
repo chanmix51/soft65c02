@@ -1,0 +1,4 @@
+        .export foo
+
+foo:
+        rts

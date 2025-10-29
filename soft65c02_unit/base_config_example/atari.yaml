@@ -1,0 +1,3 @@
+target: atari
+config_file: "config_min_atari.cfg"
+compiler: cc65
