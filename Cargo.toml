@@ -2,9 +2,11 @@
 
 resolver = "2"
 
-members = [
-	"soft65c02_lib"
-, "soft65c02_tester"]
+members = [ 
+	"soft65c02_lib",
+	"soft65c02_graphics",
+	"soft65c02_tester"
+]
 
 [workspace.package]
 authors = ["greg <hubert.greg@gmail.com>"]

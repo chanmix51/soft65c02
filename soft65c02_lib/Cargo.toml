@@ -9,7 +9,6 @@ repository.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-range-map   = "0.1.5"
-minifb      = "0.15.1"
+range-map   = "0.2.0"
 hex         = "0.4.0"
-rand        = "0.7.3"
+rand        = "0.9.1"
