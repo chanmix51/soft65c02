@@ -35,7 +35,12 @@ pub fn inc(
     };
     registers.command_pointer += 1 + resolution.operands.len();
 
-    Ok(LogLine::new(cpu_instruction, resolution, outcome))
+    Ok(LogLine::new(
+        cpu_instruction,
+        resolution,
+        outcome,
+        registers,
+    ))
 }
 
 #[cfg(test)]

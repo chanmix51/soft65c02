@@ -29,6 +29,7 @@ pub fn cpx(
             registers.register_x,
             registers.format_status()
         ),
+        registers,
     ))
 }
 

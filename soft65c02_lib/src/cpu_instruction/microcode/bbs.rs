@@ -33,6 +33,7 @@ pub fn bbs(
         cpu_instruction,
         resolution,
         format!("[CP=0x{:04X}]", registers.command_pointer),
+        registers,
     ))
 }
 

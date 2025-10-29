@@ -24,6 +24,7 @@ pub fn sty(
             registers.register_y,
             registers.format_status()
         ),
+        registers,
     ))
 }
 

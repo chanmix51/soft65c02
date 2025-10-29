@@ -23,6 +23,7 @@ pub fn rts(
             registers.stack_pointer,
             registers.format_status()
         ),
+        registers,
     ))
 }
 

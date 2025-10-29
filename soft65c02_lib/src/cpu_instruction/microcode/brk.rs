@@ -39,6 +39,7 @@ pub fn brk(
             registers.stack_pointer,
             registers.format_status()
         ),
+        registers,
     ))
 }
 

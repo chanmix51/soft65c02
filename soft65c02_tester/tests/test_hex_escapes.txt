@@ -1,0 +1,27 @@
+ marker $$test hex escape sequences$$
+
+// Test basic hex escape sequences in memory writes
+memory write #0x1000 "\xFF\x00\x42"
+assert #0x1000 = 0xFF $$first byte is 0xFF$$
+assert #0x1001 = 0x00 $$second byte is 0x00$$  
+assert #0x1002 = 0x42 $$third byte is 0x42$$
+
+// Test mixed text and hex escape sequences
+memory write #0x2000 "Hello\x00World\xFF"
+assert #0x2000 ~ "Hello\x00World\xFF" $$mixed string with hex escapes matches$$
+assert #0x2000 ~ 0x(48,65,6c,6c,6f,00,57,6f,72,6c,64,ff) $$same data as byte sequence$$
+
+// Test combining standard and hex escapes
+memory write #0x3000 "data:\x0A\t\xFF\n"
+assert #0x3000 = 0x64 $$d (first char)$$
+assert #0x3005 = 0x0A $$hex escape \x0A (newline)$$
+assert #0x3006 = 0x09 $$\t (tab)$$
+assert #0x3007 = 0xFF $$hex escape \xFF$$
+assert #0x3008 = 0x0A $$\n (newline)$$
+
+// Test case insensitive hex digits
+memory write #0x4000 "\xAB\xcd\x12\xEF"
+assert #0x4000 = 0xAB $$uppercase AB$$
+assert #0x4001 = 0xCD $$lowercase cd (converted to CD)$$
+assert #0x4002 = 0x12 $$mixed case 12$$
+assert #0x4003 = 0xEF $$uppercase EF$$

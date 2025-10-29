@@ -40,6 +40,7 @@ pub fn bit(
             registers.accumulator,
             registers.format_status()
         ),
+        registers,
     ))
 }
 

@@ -1,0 +1,34 @@
+marker $$test line continuation functionality$$
+
+symbols add screen_memory=0x2000
+
+memory write $screen_memory "\
++-------+\
+| Hello |\
++-------+"
+
+assert $screen_memory ~ "+-------+| Hello |+-------+" $$screen layout matches expected content$$
+
+memory write #0x3000 "line1  \
+  line2    \
+    line3"
+assert #0x3000 ~ "line1    line2        line3" $$spaces are preserved correctly$$
+
+memory write #0x4000 "Header:\
+\n  Data: \xFF\
+\n  End"
+assert #0x4000 ~ "Header:\n  Data: \xFF\n  End" $$mixed line continuation and escapes$$
+
+assert $screen_memory ~ "\
++-------+\
+| Hello |\
++-------+" $$multi-line assert works correctly$$
+
+memory write #0x5000 "\
++-----------+\
+| Program   |\
+| Status:   |\
+| Running   |\
++-----------+"
+
+assert #0x5000 ~ "+-----------+| Program   || Status:   || Running   |+-----------+" $$complex layout matches$$ 

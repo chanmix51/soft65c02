@@ -29,6 +29,7 @@ pub fn ldy(
             registers.register_y,
             registers.format_status()
         ),
+        registers,
     ))
 }
 

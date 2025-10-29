@@ -113,13 +113,49 @@ impl fmt::Display for CPUInstruction {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
+pub struct RegisterState {
+    pub accumulator: u8,
+    pub register_x: u8,
+    pub register_y: u8,
+    pub status: u8,
+    pub stack_pointer: u8,
+    pub command_pointer: usize,
+}
+
+impl RegisterState {
+    pub fn new(registers: &Registers) -> Self {
+        Self {
+            accumulator: registers.accumulator,
+            register_x: registers.register_x,
+            register_y: registers.register_y,
+            status: registers.get_status_register(),
+            stack_pointer: registers.stack_pointer,
+            command_pointer: registers.command_pointer,
+        }
+    }
+
+    pub fn format_status(&self) -> String {
+        format!(
+            "{}{}-B{}{}{}{}",
+            if self.status & 0b10000000 != 0 { "N" } else { "n" },
+            if self.status & 0b01000000 != 0 { "V" } else { "v" },
+            if self.status & 0b00001000 != 0 { "D" } else { "d" },
+            if self.status & 0b00000100 != 0 { "I" } else { "i" },
+            if self.status & 0b00000010 != 0 { "Z" } else { "z" },
+            if self.status & 0b00000001 != 0 { "C" } else { "c" },
+        )
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct LogLine {
     pub address: usize,
     pub opcode: u8,
     pub mnemonic: String,
     pub resolution: AddressingModeResolution,
     pub outcome: String,
+    pub registers: RegisterState,
     pub cycles: u8,
 }
 
@@ -128,6 +164,7 @@ impl LogLine {
         cpu_instruction: &CPUInstruction,
         resolution: AddressingModeResolution,
         outcome: String,
+        registers: &Registers,
     ) -> LogLine {
         LogLine {
             address: cpu_instruction.address,
@@ -135,6 +172,7 @@ impl LogLine {
             mnemonic: cpu_instruction.mnemonic.clone(),
             resolution,
             outcome,
+            registers: RegisterState::new(registers),
             cycles: cpu_instruction.cycles.get(),
         }
     }
@@ -167,6 +205,40 @@ pub mod tests {
     use super::*;
     use crate::memory::AddressableIO;
     use crate::processing_unit::resolve_opcode;
+
+    #[test]
+    fn test_register_state_format_status() {
+        let test_cases = vec![
+            // Test all flags off
+            (0b00000000, "nv-Bdizc"),
+            // Test individual flags
+            (0b10000000, "Nv-Bdizc"),  // Negative flag
+            (0b01000000, "nV-Bdizc"),  // Overflow flag
+            (0b00001000, "nv-BDizc"),  // Decimal flag
+            (0b00000100, "nv-BdIzc"),  // Interrupt disable flag
+            (0b00000010, "nv-BdiZc"),  // Zero flag
+            (0b00000001, "nv-BdizC"),  // Carry flag
+            // Test multiple flags
+            (0b11000000, "NV-Bdizc"),  // N + V
+            (0b10000001, "Nv-BdizC"),  // N + C
+            (0b01000010, "nV-BdiZc"),  // V + Z
+            // Test all flags on
+            (0b11001111, "NV-BDIZC"),
+        ];
+
+        for (status, expected) in test_cases {
+            let register_state = RegisterState {
+                accumulator: 0,
+                register_x: 0,
+                register_y: 0,
+                status,
+                stack_pointer: 0,
+                command_pointer: 0,
+            };
+            assert_eq!(register_state.format_status(), expected, 
+                "Status formatting failed for {:08b}", status);
+        }
+    }
 
     pub fn get_stuff(addr: usize, program: Vec<u8>) -> (Memory, Registers) {
         let mut memory = Memory::new_with_ram();

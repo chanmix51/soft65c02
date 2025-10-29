@@ -23,6 +23,7 @@ pub fn tya(
             registers.accumulator,
             registers.format_status()
         ),
+        registers,
     ))
 }
 

@@ -23,6 +23,7 @@ pub fn tsx(
             registers.register_x,
             registers.format_status()
         ),
+        registers,
     ))
 }
 

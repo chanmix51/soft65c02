@@ -54,7 +54,7 @@ assert CP=0x080C $$command pointer points at EOP$$"#;
         OutputToken::Setup(lines) if lines == vec!["2 bytes written"]
     ));
     let token = receiver.recv().unwrap();
-    assert!(matches!(token, OutputToken::Run { loglines: _logs }));
+    assert!(matches!(token, OutputToken::Run { loglines: _logs, symbols: None }));
     let token = receiver.recv().unwrap();
 
     assert!(

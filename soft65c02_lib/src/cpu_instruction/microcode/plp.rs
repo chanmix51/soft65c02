@@ -22,6 +22,7 @@ pub fn plp(
             registers.stack_pointer,
             registers.format_status()
         ),
+        registers,
     ))
 }
 

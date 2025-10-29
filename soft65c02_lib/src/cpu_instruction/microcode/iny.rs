@@ -23,11 +23,8 @@ pub fn iny(
     Ok(LogLine::new(
         cpu_instruction,
         resolution,
-        format!(
-            "[Y=0x{:02x}][S={}]",
-            registers.register_y,
-            registers.format_status()
-        ),
+        format!("[Y=0x{:02x}][S={}]", registers.register_y, registers.format_status()),
+        registers,
     ))
 }
 

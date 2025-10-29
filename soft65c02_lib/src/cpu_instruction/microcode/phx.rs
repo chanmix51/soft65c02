@@ -17,6 +17,7 @@ pub fn phx(
         cpu_instruction,
         resolution,
         format!("[SP=0x{:02x}]", registers.stack_pointer),
+        registers,
     ))
 }
 

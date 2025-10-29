@@ -12,6 +12,10 @@ symbols add RUNADL=0x02e0
 symbols add RUNADH=0x02e1
 symbols add INITADL=0x02e2
 symbols add INITADH=0x02e3
+symbols add COLOR1=0x02C5
+symbols add COLOR2=0x02C6
+symbols add COLOR3=0x02C7
+symbols add COLOR4=0x02C8
 
 // hex bytes in file:
 // 000000 ff ff 00 20 0b 20 a9 42 8d c6 02 60 a2 00 8e c8
@@ -57,6 +61,9 @@ assert $main=0xa9       $$symbol main is loaded from table$$
 // we can also test byte sequences via address or symbol
 assert #0x2000 ~ 0x(a9,42,8d,c6,02)  $$0x2000 starts with correct byte sequence$$
 assert $main ~ 0x(a9,42,8d,c6,02)    $$main starts with correct byte sequence$$
+
+// Disassemble the main routine (12 bytes)
+disassemble $main 0xC
 
 // validate the code sets X register and transfers to SP
 run #0x2000

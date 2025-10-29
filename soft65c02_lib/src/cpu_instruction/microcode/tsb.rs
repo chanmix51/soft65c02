@@ -23,6 +23,7 @@ pub fn tsb(
         cpu_instruction,
         resolution,
         format!("(0x{:02x})[S={}]", res, registers.format_status()),
+        registers,
     ))
 }
 

@@ -22,6 +22,7 @@ pub fn sta(
         cpu_instruction,
         resolution,
         format!("(0x{:02x})", registers.accumulator),
+        registers,
     ))
 }
 

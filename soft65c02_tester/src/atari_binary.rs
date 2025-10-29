@@ -172,10 +172,19 @@ impl AtariBinary {
 
     /// Creates an AtariBinary by reading and parsing a file
     pub fn from_file(path: impl AsRef<Path>) -> AppResult<Self> {
-        let mut f = File::open(path)?;
+        let path = path.as_ref();
+        if !path.exists() {
+            return Err(anyhow!("File not found: {}", path.display()));
+        }
+        
+        let mut f = File::open(path)
+            .map_err(|e| anyhow!("Failed to open file {}: {}", path.display(), e))?;
+            
         let mut buffer = Vec::new();
-        f.read_to_end(&mut buffer)?;
-        Self::new(buffer).map_err(|e| anyhow!(e))
+        f.read_to_end(&mut buffer)
+            .map_err(|e| anyhow!("Failed to read file {}: {}", path.display(), e))?;
+            
+        Self::new(buffer).map_err(|e| anyhow!("Failed to parse Atari binary {}: {}", path.display(), e))
     }
 }
 
@@ -311,5 +320,54 @@ mod tests {
         let result = AtariBinary::new(bad_binary);
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("Unhandled header type: 00ff"));
+    }
+
+    #[test]
+    fn test_load_from_hyphenated_path() {
+        use tempfile::tempdir;
+        
+        // Create a temporary directory with a hyphenated path
+        let dir = tempdir().unwrap();
+        let test_dir = dir.path().join("build");
+        std::fs::create_dir(&test_dir).unwrap();
+        let test_file = test_dir.join("test-app.bin");
+        
+        // Create a simple binary file
+        let binary_data = vec![
+            // Header
+            0xff, 0xff,
+            // Data block: Load at $2000, 3 bytes
+            0x00, 0x20, // Start address $2000
+            0x02, 0x20, // End address $2002
+            0xA9, 0x42, 0x60, // LDA #$42, RTS
+            // Run address: $2000
+            0xe0, 0x02, 0xe1, 0x02,
+            0x00, 0x20,
+        ];
+        
+        std::fs::write(&test_file, binary_data).unwrap();
+        
+        // Load and verify the binary
+        let binary = AtariBinary::from_file(&test_file).unwrap();
+        let sections = binary.get_sections();
+        
+        assert_eq!(sections.len(), 2);
+        
+        // Verify data section
+        match &sections[0] {
+            Section::Data { start_address, data } => {
+                assert_eq!(*start_address, 0x2000);
+                assert_eq!(data, &vec![0xA9, 0x42, 0x60]);
+            }
+            _ => panic!("First section should be Data"),
+        }
+        
+        // Verify run address
+        match &sections[1] {
+            Section::Run { run_address } => {
+                assert_eq!(*run_address, 0x2000);
+            }
+            _ => panic!("Second section should be Run"),
+        }
     }
 } 

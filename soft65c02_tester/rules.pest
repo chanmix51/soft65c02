@@ -1,5 +1,5 @@
 WHITESPACE = _{ " " }
-COMMENT = _{ "//" ~ ANY* }
+COMMENT = _{ ("//" | ";") ~ ANY* }
 sentence = _{ SOI ~ instruction | COMMENT ~ EOI }
 
 instruction = { registers_instruction |
@@ -7,14 +7,18 @@ instruction = { registers_instruction |
     run_instruction |
     assert_instruction |
     marker |
-    symbols_instruction }
+    symbols_instruction |
+    disassemble_instruction |
+    enable_instruction |
+    disable_instruction }
 
 marker = {^"marker" ~ "$$" ~ description ~ "$$" }
 
 registers_instruction = { ^"registers" ~ registers_action }
-registers_action = _{ registers_set | registers_flush }
+registers_action = _{ registers_set | registers_flush | registers_show }
 registers_flush = { ^"flush" }
 registers_set = { ^"set" ~ register_assignment }
+registers_show = { ^"show" ~ (register8 | register16 | register_cycle)? }
 
 register_assignment = { assignment8 | assignment16 | assignment_cycle }
 
@@ -23,55 +27,95 @@ assignment16 = _{ register16 ~ "=" ~ (value16 | memory_address) }
 assignment_cycle = _{ register_cycle ~ "=" ~ value16 }
 
 memory_instruction = { ^"memory" ~ memory_action }
-memory_action = _{ memory_load | memory_write | memory_flush }
+memory_action = _{ memory_load | memory_write | memory_fill | memory_flush | memory_show }
 memory_flush = { ^"flush" }
-memory_load = { ^"load" ~ (memory_address | target_name)  ~ filename }
-memory_write = { ^"write" ~ memory_address ~ (^"0x(" ~ bytes ~ ")" | string_literal) }
+memory_load = { ^"load" ~ (memory_address | target_name) ~ filename }
+memory_write = { ^"write" ~ memory_address ~ (^"0x(" ~ bytes ~ ")" | string_literal | memory_location) }
+memory_fill = { ^"fill" ~ memory_location ~ "~" ~ memory_location ~ (value8)? }
+memory_show = { ^"show" ~ memory_location ~ (value16 | value8) ~ (value8)? ~ ("$$" ~ description ~ "$$")? }
 
 target_name = { "atari" | "apple" }
 
-run_instruction = { ^"run" ~ (run_address)? ~ (run_until_condition)? }
+run_instruction = { ^"run" ~ (run_address)? ~ (run_until_condition | run_while_condition)? }
 run_until_condition = { ^"until" ~ boolean_condition }
+run_while_condition = { ^"while" ~ boolean_condition }
 run_address = { ^"init" | memory_address }
 
 assert_instruction = { ^"assert" ~ boolean_condition ~ "$$" ~ description ~ "$$"}
 
-boolean_condition = { boolean | memory_sequence | comparison }
+boolean_condition = { boolean_term ~ (OR_OP ~ boolean_term)* }
+boolean_term = { boolean_factor ~ (AND_OP ~ boolean_factor)* }
+boolean_factor = { 
+    boolean |
+    memory_sequence |
+    comparison |
+    pointer_assertion |
+    "(" ~ boolean_condition ~ ")" |
+    NOT_OP ~ boolean_factor
+}
+
+AND_OP = { ^"AND" }
+OR_OP = { ^"OR" }
+NOT_OP = { ^"NOT" }
 
 boolean = { ^"true" | ^"false" }
 comparison = { comparison16 | comparison8 | comparison_cycle }
-comparison16 = _{ location16 ~ standard_operator ~ value16 }
-comparison8 = _{ location8 ~ standard_operator ~ value8 }
+comparison16 = _{ location16 ~ standard_operator ~ (value16 | symbol_reference) }
+comparison8 = _{ location8 ~ standard_operator ~ (value8 | symbol_reference | symbol_byte_reference) }
 comparison_cycle = _{ location_cycle ~ standard_operator ~ value16 }
-memory_sequence = { memory_address ~ "~" ~ (bytes_list | string_literal) }
+
+// Memory sequence and offset rules
+memory_sequence = { memory_location ~ "~" ~ (bytes_list | string_literal) }
+memory_location = { memory_address ~ (address_offset)? }
+memory_address = { hex_address | symbol_reference }
+
 string_literal = { "\"" ~ string_char* ~ "\"" }
-string_char = { !("\"" | "\\") ~ ASCII | "\\" ~ ("\"" | "\\" | "n" | "r" | "t" | "0") }
+string_char = { !("\"" | "\\") ~ ASCII | "\\" ~ ("\"" | "\\" | "n" | "r" | "t" | "0" | "x" ~ ASCII_HEX_DIGIT{2} | ("\n" | "\r\n" | "\r")) }
 
 location16 = _{ register16 }
-location8 = _{ memory_address | register8 }
+location8 = _{ memory_location | register8 }
 location_cycle = _{ register_cycle }
 
-memory_address = { hex_address | symbol_reference }
-hex_address = { "#0x" ~ ASCII_HEX_DIGIT{4} }
+hex_address = @{ "#0x" ~ ASCII_HEX_DIGIT{1,4} }
+hex_length = @{ "0x" ~ ASCII_HEX_DIGIT{1,4} }
 symbol_reference = { "$" ~ symbol_name }
+symbol_byte_reference = { symbol_low_byte | symbol_high_byte }
+symbol_low_byte = { "<" ~ "$" ~ symbol_name }
+symbol_high_byte = { ">" ~ "$" ~ symbol_name }
 symbol_name = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
 
 register16 = { "CP" }
 register8 = { "A" | "X" | "Y" | "SP" | "S" }
 register_cycle = { "cycle_count" }
-value16 = { "0x" ~ ASCII_HEX_DIGIT{4} }
-value8 = { "0x" ~ ASCII_HEX_DIGIT{2} | "0b" ~ ASCII_BIN_DIGIT{8} }
+value16 = @{ "0x" ~ ASCII_HEX_DIGIT{1,4} | ASCII_DIGIT+ }
+value8 = @{ "0x" ~ ASCII_HEX_DIGIT{1,2} | "0b" ~ ASCII_BIN_DIGIT{8} | ASCII_DIGIT+ }
 bytes_list = { ^"0x(" ~ bytes ~ ")" }
-bytes = @{ ASCII_HEX_DIGIT{2} ~ ("," ~ ASCII_HEX_DIGIT{2})* }
+bytes = @{ ASCII_HEX_DIGIT{1,2} ~ ("," ~ ASCII_HEX_DIGIT{1,2})* }
 size_parameter = { ASCII_DIGIT+ }
 
 standard_operator = { ">=" | "<=" | "!=" | "=" | ">" | "<" }
-filename = { "\"" ~ filechar+ ~ "\"" }
-filechar = _{ ASCII_ALPHANUMERIC | "." | "_" | "/" }
+filename = { "\"" ~ (ASCII_ALPHANUMERIC | "." | "_" | "/" | "-" | "$" | "{" | "}" | "(" | ")")+ ~ "\"" }
 description = { ((!"$$") ~ ANY)* }
 
 symbols_instruction = { ^"symbols" ~ symbol_action }
-symbol_action = _{ symbol_load | symbol_add }
+symbol_action = _{ symbol_load | symbol_add | symbol_remove }
 symbol_load = { "load" ~ filename }
 symbol_add = { "add" ~ symbol_name ~ "=" ~ symbol_add_value }
 symbol_add_value = { value16 | value8 | symbol_reference }
+symbol_remove = { "remove" ~ symbol_name }
+
+disassemble_instruction = { ^"disassemble" ~ memory_address ~ hex_length }
+
+// Add new rules for pointer assertions
+pointer_assertion = { memory_address ~ "->" ~ pointer_target }
+pointer_target = { memory_address ~ (address_offset)? }
+
+// Common offset rule used by both memory and pointer operations
+address_offset = { (plus_op | minus_op) ~ (value16 | value8) }
+plus_op = { "+" }
+minus_op = { "-" }
+
+// Enable/disable instruction rules
+enable_instruction = { ^"enable" ~ function_name }
+disable_instruction = { ^"disable" ~ function_name }
+function_name = { "trace_logging" }

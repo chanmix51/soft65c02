@@ -27,6 +27,7 @@ pub fn trb(
         cpu_instruction,
         resolution,
         format!("(0x{:02x})[S={}]", byte, registers.format_status()),
+        registers,
     ))
 }
 

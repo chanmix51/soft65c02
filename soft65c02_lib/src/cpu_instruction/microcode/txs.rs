@@ -21,6 +21,7 @@ pub fn txs(
             registers.stack_pointer,
             registers.format_status()
         ),
+        registers,
     ))
 }
 
