@@ -1,0 +1,40 @@
+name: "example_with_flags"
+target: "atari"
+compiler: cc65
+config_file: "platform/atari.cfg"
+
+# Source files to compile
+src_files:
+  - "src/main.c"
+  - "src/utils.c" 
+  - "src/init.s"
+  - "src/graphics.s"
+
+# Include paths for C files
+include_paths:
+  - "include"
+  - "lib/include"
+
+# Include paths for assembly files  
+asm_include_paths:
+  - "asm/include"
+
+# Flags specific to C file compilation
+c_flags:
+  - "-O"              # Enable optimizations
+  - "-g"              # Include debug info
+  - "-Wall"           # Enable all warnings
+  - "-DDEBUG=1"       # Define DEBUG macro
+
+# Flags specific to assembly file compilation  
+asm_flags:
+  - "-g"              # Include debug info
+  - "-DDEBUG"         # Define DEBUG symbol
+  - "--auto-import"   # Auto-import symbols
+
+# Flags for linking the final binary
+ld_flags:
+  - "-m"              # Generate map file
+  - "game.map"        # Map file name
+  - "--dbgfile"       # Generate debug file
+  - "game.dbg"        # Debug file name 

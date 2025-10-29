@@ -5,7 +5,8 @@ resolver = "2"
 members = [ 
 	"soft65c02_lib",
 	"soft65c02_graphics",
-	"soft65c02_tester"
+	"soft65c02_tester",
+	"soft65c02_unit"
 ]
 
 [workspace.package]

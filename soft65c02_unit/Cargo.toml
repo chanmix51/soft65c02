@@ -1,0 +1,22 @@
+[package]
+name = "soft65c02_unit"
+version = "0.1.0"
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+anyhow = "1.0"
+serde = { version = "1.0.219", features = ["derive"] }
+serde_yaml = "0.9"
+clap = { version = "4.5.37", features = ["derive"] }
+tempfile = "3.19"
+regex = "1.11.1"
+
+[[bin]]
+name = "soft65c02_unit"
+path = "src/main.rs"
+
+[dev-dependencies]
+tempfile = "3.19"
