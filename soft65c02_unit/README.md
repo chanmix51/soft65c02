@@ -22,30 +22,28 @@ A complete test setup consists of three files:
 3. **Test script** (`.txt`) - Automated tests using the soft65c02 DSL
 
 When compiling the test for running in the emulator, you need a folder for the build artifacts
-to be written to. This can be anywhere, including some tmp folder. Examples below just use a simple
-local folder.
+to be written to. This can be anywhere, e.g. under a /tmp folder, but the folder is not cleaned
+up automatically. It is cleared down every run, so you can use the same folder each time.
 
 Example minimal setup:
 ```bash
 cd soft65c02_unit/examples/simple_test/tests
 
 # Compile and run tests
-soft65c02_unit -i my_test.yaml -b /tmp/my-build
+soft65c02_unit -i your_test.yaml -b /tmp/test-build
 
 # Or with verbose output
-soft65c02_unit -v -i my_test.yaml -b /tmp/my-build
+soft65c02_unit -v -i your_test.yaml -b /tmp/test-build
 
 # Using environment variable for build directory
-export SOFT65C02_BUILD_DIR=/tmp/build
-soft65c02_unit -i my_test.yaml
+export SOFT65C02_BUILD_DIR=/tmp/test-build
+soft65c02_unit -i your_test.yaml
 ```
-
-See `examples/simple_test/` for a complete working example.
 
 ## Command Line Usage
 
 ```bash
-soft65c02_unit [OPTIONS] --input <INPUT>
+soft65c02_unit [OPTIONS] --input <INPUT> --build-dir <DIR>
 ```
 
 ### Required Arguments
@@ -114,54 +112,6 @@ soft65c02_unit -i test2.yaml
 soft65c02_unit -i test3.yaml
 ```
 
-### Example Usage Patterns
-
-```bash
-# Basic test run
-soft65c02_unit -i tests/basic.yaml -b ./build
-
-# Verbose debugging of failing test
-soft65c02_unit -v -i tests/debug.yaml -b ./debug_build
-
-# Check build commands without executing
-soft65c02_unit --dry-run -i tests/complex.yaml -b ./build
-
-# Development workflow with persistent build dir
-export SOFT65C02_BUILD_DIR=./build
-soft65c02_unit -i tests/unit_test.yaml        # Quick iteration
-soft65c02_unit -v -i tests/integration.yaml   # Detailed output when needed
-```
-
-## File Structure
-
-### Source Files (`.s` / `.c`)
-
-Your 6502/65C02 source code written in assembly or C. The build system supports:
-- **Assembly files** (`.s`) - 6502/65C02 assembly using CC65 syntax
-- **C files** (`.c`) - C code that compiles to 6502/65C02 using CC65
-
-Example assembly (`src/main.s`):
-```assembly
-.include "atari.inc"
-
-.export start
-.proc start
-    lda #$42
-    sta COLOR2
-    rts
-.endproc
-```
-
-Example C (`src/main.c`):
-```c
-#include <atari.h>
-
-int main() {
-    POKE(COLOR2, 0x42);
-    return 0;
-}
-```
-
 ### Build Configuration (`.yaml`)
 
 Defines how to compile your code and where to find dependencies. The YAML file specifies:
@@ -172,38 +122,6 @@ Defines how to compile your code and where to find dependencies. The YAML file s
 - **Compiler flags** - Custom flags for C, assembly, and linking
 - **Test script** - Which DSL test file to run
 
-Example configuration (`my_test.yaml`):
-```yaml
-name: "my_test"
-target: "atari"
-compiler: cc65
-config_file: "base_configs/config_min_atari.cfg"
-
-src_files:
-  - "src/main.s"
-  - "src/utils.c"
-
-include_paths:
-  - "include"
-  
-asm_include_paths:
-  - "include"
-
-test_script: "tests/my_test.txt"
-
-# Optional compiler flags
-c_flags:
-  - "-O"        # Enable optimizations
-  - "-Wall"     # Enable warnings
-  
-asm_flags:
-  - "-g"        # Include debug info
-  
-ld_flags:
-  - "-m"        # Generate map file
-  - "game.map"
-```
-
 ### Test Script (`.txt`)
 
 Automated tests written in the soft65c02 DSL. These scripts can:
@@ -213,19 +131,6 @@ Automated tests written in the soft65c02 DSL. These scripts can:
 - Assert expected behavior
 - Test edge cases and error conditions
 
-Example test script (`tests/my_test.txt`):
-```
-marker $$basic functionality test$$
-
-memory load ${BINARY_PATH}
-symbols load ${SYMBOLS_PATH}
-
-registers set CP=$start
-run until false
-
-assert #0x302 = 0x42  $$color register set correctly$$
-```
-
 ## YAML Configuration
 
 ### File Inclusion and Composition
@@ -234,25 +139,6 @@ YAML configurations support modular composition through the `configs` field. Thi
 - Share common settings across multiple tests
 - Separate platform-specific configuration from project logic
 - Build hierarchical configuration systems
-
-```yaml
-# Platform configuration (atari_base.yaml)
-compiler: cc65
-target: atari
-config_file: "platform/atari.cfg"
-include_paths:
-  - "platform/include"
-
-# Project configuration (my_project.yaml) 
-configs:
-  - "atari_base.yaml"  # Include platform settings
-
-name: "my_project"
-src_files:
-  - "src/main.s"
-include_paths:
-  - "src/include"      # Added to platform includes
-```
 
 **Configuration Loading Order:**
 1. Dependencies are loaded first (depth-first)
@@ -280,31 +166,6 @@ src_files:
 #         src_files = ["lib/common.s", "src/main.s"]
 ```
 
-### Environment Variables
-
-Environment variables can be used in YAML files using `${VARIABLE_NAME}` syntax:
-
-```yaml
-name: "${PROJECT_NAME}"
-include_paths:
-  - "${SDK_PATH}/include"
-config_file: "${PLATFORM_CONFIG}/atari.cfg"
-```
-
-**Automatically Defined Variables:**
-
-The test runner automatically defines these environment variables for use in test scripts:
-
-- **`BINARY_PATH`** - Path to the compiled binary file
-- **`SYMBOLS_PATH`** - Path to the generated symbols file (for debugging)
-
-These are particularly useful in test scripts:
-```
-# In your test script (.txt file)
-memory load ${BINARY_PATH}    $$load the compiled program$$
-symbols load ${SYMBOLS_PATH}  $$load symbol table for debugging$$
-```
-
 ## Compiler Support
 
 ### CC65 Toolchain
@@ -315,31 +176,6 @@ The primary supported compiler is **CC65**, a complete cross-development package
 - **Assembler** - Native 6502/65C02 assembly with macro support  
 - **Linker** - Flexible memory layout configuration
 - **Target platforms** - Built-in support for Apple II, Atari, C64, NES, and more
-
-Configuration example:
-```yaml
-compiler: cc65
-target: "atari"                    # Target platform
-config_file: "platform/atari.cfg" # Memory layout configuration
-
-# Compiler-specific flags
-c_flags:
-  - "-O"          # Enable optimizations
-  - "-g"          # Include debug information
-  - "-Wall"       # Enable all warnings
-  - "-DDEBUG=1"   # Define preprocessor macros
-
-asm_flags:
-  - "-g"              # Include debug information  
-  - "--auto-import"   # Auto-import symbols
-  - "-DDEBUG"         # Define assembly symbols
-
-ld_flags:
-  - "-m"          # Generate map file
-  - "game.map"    # Map file name
-  - "--dbgfile"   # Generate debug file
-  - "game.dbg"    # Debug file name
-```
 
 ### Extensible Architecture
 
@@ -431,9 +267,9 @@ memory load ${TEST_DATA_PATH}/sample.bin
 
 ### Complete Example
 
-See `examples/simple_test/` for a complete working example that demonstrates:
+- See `examples/simple_test/` for a complete working example with minimal setup.
+- See `examples/full_setup_test/` for more complex setup including full crt0 for typical cc65 app, and test runner to control elements of the test being run.
 
-- **Multi-file project** with C and assembly sources
 - **Hierarchical configuration** using base configs
 - **Comprehensive testing** with setup, execution, and assertions
 - **Symbol usage** for readable test scripts
@@ -441,78 +277,59 @@ See `examples/simple_test/` for a complete working example that demonstrates:
 
 ```bash
 cd examples/simple_test
-soft65c02_unit -v -i tests/my_test.yaml -b ./build
+soft65c02_unit -v -i tests/your_test.yaml -b ./build
 ```
 
 ### Directory Structure
 ```
-examples/simple_test/
-├── base_configs/
-│   ├── atari.yaml              # Platform configuration
-│   └── config_min_atari.cfg    # CC65 memory layout
-├── src/
-│   ├── fn_under_test.s         # Assembly function
-│   ├── test_runner.s           # Test harness
-│   └── bar/util.s              # Utility functions
-├── tests/
-│   ├── my_test.txt             # DSL test script
-│   └── my_test.yaml            # Build configuration
-```
-
-### Build Configuration with Flags
-```yaml
-configs:
-  - "base_configs/atari.yaml"
-
-name: "comprehensive_test"
-src_files:
-  - "src/test_runner.s"
-  - "src/fn_under_test.s"
-  - "src/bar/util.s"
-
-# Optimized build with debugging
-c_flags:
-  - "-O2"
-  - "-g"
-  - "-Wall"
-  - "-DRELEASE_BUILD"
-
-asm_flags:
-  - "-g"
-  - "--auto-import"
-
-ld_flags:
-  - "-m"
-  - "build.map"
-
-test_script: "tests/comprehensive_test.txt"
-```
-
-## Installation
-
-To install into `$HOME/.cargo/bin`:
-
-```bash
-cargo install --path soft65c02_unit
+examples/
+├── full_setup_test
+│   ├── base_configs
+│   │   ├── atari.yaml
+│   │   ├── basic.cfg
+│   │   └── crt0.s
+│   ├── src
+│   │   └── fn_under_test.s
+│   └── tests
+│       ├── test1.txt
+│       ├── test1.yaml
+│       └── test_runner.s
+└── simple_test
+    ├── base_configs
+    │   ├── crt0.s
+    │   ├── simple.cfg
+    │   └── simple.yaml
+    ├── src
+    │   └── fn_under_test.s
+    └── tests
+        ├── your_test.yaml
+        └── test_script.txt
 ```
 
 ### Dependencies
 
 - **Rust toolchain** (1.70+)
 - **CC65** cross-development package
-  - Ubuntu/Debian: `apt install cc65`
-  - macOS: `brew install cc65`
-  - Windows: Download from [cc65.github.io](https://cc65.github.io/)
 
 ### Development Build
 
 ```bash
+# ensure you are in the project root folder
+
 # Build from source
 cargo build --release
 
 # Run tests
 cargo test
 
-# Run with local build
-./target/release/soft65c02_unit -i examples/simple_test/tests/my_test.yaml -b ./build
+# Fire up the emulator with an application and test it
+# simple test without a test "runner"
+./target/release/soft65c02_unit -i soft65c02_unit/examples/simple_test/tests/your_test.yaml -b /tmp/test_build1
+
+# more complex setup with more complete crt0 setup, and test runner
+./target/release/soft65c02_unit -i soft65c02_unit/examples/full_setup_test/tests/test1.yaml -b /tmp/test_build2
+
+# Add "-v" flag to see the full trace logging and additional output during the test:
+./target/release/soft65c02_unit -v -i soft65c02_unit/examples/simple_test/tests/your_test.yaml -b /tmp/test_build1
+
 ```

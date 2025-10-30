@@ -2,8 +2,8 @@
 target: atari
 compiler: cc65
 
-config_file: "./config_min_atari.cfg"
+config_file: "./basic.cfg"
 
-# setup files for a basic application
+# setup files for a basic application that uses startup, and calls _main
 src_files:
-  - ./min_crt0.s
+  - ./crt0.s

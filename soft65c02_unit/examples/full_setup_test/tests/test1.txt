@@ -10,7 +10,7 @@ disassemble $start 0x3A
 // so we can isolate the setup code with the following:
 run init until CP = $_main
 
-
+// Check the registers are cleared down by startup routine before entry of _main by the
 assert A = 0        $$A is clear$$
 assert X = 0        $$X is clear$$
 assert Y = 0        $$Y is clear$$

@@ -1,0 +1,71 @@
+//////////////////////////////////////////////////////////////////////////////////
+marker $$testing fn_under_test function without test runner$$
+//////////////////////////////////////////////////////////////////////////////////
+memory load atari "${BINARY_PATH}"
+symbols load "${SYMBOLS_PATH}"
+
+registers set A = 1
+registers set X = 2
+registers set Y = 3
+
+// run the function directly until just before the loop starts
+run $fn_under_test while CP != $x_loop
+
+// validate various locations
+assert $a_save = 1                $$a was set at start of function$$
+assert $x_save = 2                $$x was set at start of function$$
+assert $y_save = 3                $$y was set at start of function$$
+
+assert $my_loc_low = <$my_loc     $$my_loc low address correctly saved$$
+assert $my_loc_low = <$my_loc     $$my_loc hi address correctly saved$$
+
+// reset the cycle counter for the loop
+registers set cycle_count = 0
+
+// some arbitrary run condition continuing from where we were, but bounded so the test exits early with an error
+run while (CP >= $fn_under_test AND CP <= 0x2200) AND cycle_count < 50
+
+// this would be a failing test, but our cycle_count condition exits with failure before we get here
+assert X = 0         $$X ends up being 0$$
+
+
+//////////////////////////////////////////////////////////////////////////////////
+marker $$retesting fn_under_test to completion$$
+//////////////////////////////////////////////////////////////////////////////////
+memory load atari "${BINARY_PATH}"
+symbols load "${SYMBOLS_PATH}"
+
+// For fun, show some disassembly in verbose output
+disassemble #0x2000 0x21
+
+// setup the stack to return to $2000 where STP is for the RTS from fn_under_test
+// Need to write address-1 in low/high order from memory point of view
+// We don't have a syntax for this in our tester yet to do it from symbols
+memory write #0x01FE 0x(FF,1F)
+registers set SP = 0xFD
+
+// dump the top of stack in output so we can validate it visually
+memory show #0x01F0 0x0010
+
+registers set A = 1
+registers set X = 2
+registers set Y = 3
+
+// run until halts.
+// As there is nothing setting a return address on the stack with JSR
+// the function's RTS will read 00 (BRK) and cause a HALT
+run $fn_under_test until false
+
+// validations
+assert X = 0             $$X ends up being 0$$
+
+// use offsets to check the written data
+assert $my_loc     = 1   $$my_loc + 00 written correctly$$
+assert $my_loc + 1 = 2   $$my_loc + 01 written correctly$$
+assert $my_loc + 2 = 3   $$my_loc + 02 written correctly$$
+
+// ... or all bytes in single assert
+assert $my_loc ~ 0x(1,2,3,4,5,6,7,8,9,A,B,C,D,E,F,10,0)  $$test writes to my_loc$$
+
+// check it ran in expected time frame
+assert cycle_count < 300 $$cycle count was under expected value of 300$$

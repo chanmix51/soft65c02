@@ -1,0 +1,23 @@
+name: test1_with_runner
+
+# base config file for the test, bootstraps our test application
+configs:
+  - ../base_configs/atari.yaml
+
+# source files for the test, includes the test runner and the function under test
+src_files:
+  - ./test_runner.s
+  - ../src/fn_under_test.s
+
+# used for C compiler to find headers
+include_paths:
+  - "../src"
+
+# used for assembly compiler to find headers
+asm_include_paths:
+  # current directory for the test runner
+  - "./"
+  # source directory for the function under test
+  - "../src"
+
+test_script: ./test1.txt

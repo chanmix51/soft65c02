@@ -1,0 +1,8 @@
+target: none
+compiler: cc65
+
+config_file: "./simple.cfg"
+
+# extremely minimal crt0 setup for a cc65 application
+src_files:
+  - ./crt0.s

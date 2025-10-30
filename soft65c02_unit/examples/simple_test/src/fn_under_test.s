@@ -1,31 +1,39 @@
-        .export     _fn_under_test
+        .export     fn_under_test
+
+        ; export symbols that will be used in the test script
+        .export     my_loc, a_save, x_save, y_save, my_loc_low, my_loc_hi
         .export     x_loop
 
-        .import     bar
-        .import     foo
+a_save     = $80
+x_save     = $81
+y_save     = $82
+my_loc_low = $83
+my_loc_hi  = $84
 
-        .include    "zeropage.inc"
+fn_under_test:
+        ; save registers for testing
+        sta     $80
+        stx     $81
+        sty     $82
 
-; this is some function under test, could be any name any code
-_fn_under_test:
-    jsr     bar
-    jsr     foo
+        ; now do some code that causes the counter to increment for a while, so we can test the cycle count
+        ; the loop will write 
+        lda     #<my_loc
+        sta     $83
+        lda     #>my_loc
+        sta     $84
 
-    ldy     #$00
-    lda     #<my_loc
-    sta     ptr1
-    lda     #>my_loc
-    sta     ptr1+1
-    ldx     #$10
-    lda     #$8a        ; test if a literal with the same value as a symbol is affected
+        ldy     #$00
+        ldx     #$10
+        lda     $80
+        clc
 x_loop:
-    stx     tmp1
-    lda     (ptr1), y
-    iny
-    dex
-    bne     x_loop
-    
-    rts
+        sta     ($83), y
+        adc     #$01           ; increment A
+        iny
+        dex
+        bne     x_loop
+        rts
 
-.bss
-my_loc:     .res 2
+my_loc:
+        .word $00

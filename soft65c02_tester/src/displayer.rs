@@ -259,6 +259,28 @@ where
     fn should_show_trace(&self) -> bool {
         self.verbose && self.trace_logging_enabled
     }
+
+    /// Format trace output for loglines
+    fn format_trace_output(&self, loglines: &[LogLine], symbols: &Option<SymbolTable>) -> String {
+        let mut content = String::new();
+        let show_total = loglines.len() > 1;
+        let total_cycles: u32 = if show_total {
+            loglines.iter().map(|l| l.cycles as u32).sum()
+        } else {
+            0
+        };
+
+        for line in loglines {
+            let formatted = LogLineFormatter::new(line, symbols.as_ref()).format();
+            content.push_str(&format!("🚀 {}\n", formatted));
+        }
+
+        if show_total {
+            content.push_str(&format!("🕒 Total cycles: {}\n", total_cycles));
+        }
+
+        content
+    }
 }
 
 impl<T> Displayer for CliDisplayer<T>
@@ -290,29 +312,23 @@ where
                     self.output
                         .write_all(format!("📄 {description}\n").as_bytes())?;
                 }
-                OutputToken::Run { loglines, symbols } | OutputToken::TerminatedRun { loglines, symbols, .. } if self.should_show_trace() => {
+                OutputToken::Run { loglines, symbols } | OutputToken::TerminatedRun { loglines, symbols, .. } => {
                     let mut content = String::new();
-                    let show_total = loglines.len() > 1;
-                    let total_cycles: u32 = if show_total {
-                        loglines.iter().map(|l| l.cycles as u32).sum()
-                    } else {
-                        0
-                    };
-
-                    for line in loglines {
-                        let formatted = LogLineFormatter::new(&line, symbols.as_ref()).format();
-                        content.push_str(&format!("🚀 {}\n", formatted));
+                    
+                    // Show trace details if trace logging is enabled
+                    if self.should_show_trace() {
+                        content.push_str(&self.format_trace_output(loglines, symbols));
                     }
-
-                    if show_total {
-                        content.push_str(&format!("🕒 Total cycles: {}\n", total_cycles));
-                    }
-
+                    
+                    // For TerminatedRun, always show the termination message
                     if let OutputToken::TerminatedRun { reason, .. } = &token {
                         content.push_str(&format!("⛔ Run terminated: {}\n", reason));
                     }
                     
-                    self.output.write_all(content.as_bytes())?;
+                    // Only write if there's content to write
+                    if !content.is_empty() {
+                        self.output.write_all(content.as_bytes())?;
+                    }
                 }
                 OutputToken::Setup(lines) if self.verbose => {
                     self.output
@@ -872,9 +888,57 @@ mod tests {
             };
 
             let formatted = LogLineFormatter::new(&log_line, Some(&symbols)).format();
-            assert!(formatted.contains(expected_sym), 
-                "Failed for address 0x{:04X}: Expected '{}' in output but got '{}'", 
+            assert!(formatted.contains(expected_sym),
+                "Failed for address 0x{:04X}: Expected '{}' in output but got '{}'",
                 addr, expected_sym, formatted);
         }
+    }
+
+    #[test]
+    fn test_terminated_run_shows_message_without_verbose() {
+        let mut buffer = Vec::new();
+        let mut displayer = CliDisplayer::new(&mut buffer, false); // verbose = false
+        let (sender, receiver) = channel();
+
+        // Create a simple log line
+        let log_line = LogLine {
+            address: 0x2000,
+            opcode: 0xa9,
+            mnemonic: "LDA".to_string(),
+            resolution: AddressingModeResolution {
+                target_address: None,
+                operands: vec![0x42],
+                addressing_mode: AddressingMode::Immediate([0x42]),
+            },
+            outcome: "(0x42)".to_string(),
+            cycles: 2,
+            registers: RegisterState {
+                accumulator: 0x42,
+                register_x: 0,
+                register_y: 0,
+                status: 0,
+                stack_pointer: 0xFF,
+                command_pointer: 0x2002,
+            },
+        };
+
+        // Send a TerminatedRun token
+        sender.send(OutputToken::TerminatedRun {
+            loglines: vec![log_line],
+            symbols: None,
+            reason: "Cycle count limit exceeded".to_string(),
+        }).unwrap();
+        drop(sender);
+        
+        displayer.display(receiver).unwrap();
+
+        let output = String::from_utf8(buffer).unwrap();
+        
+        // Should NOT show the instruction trace (verbose is false)
+        assert!(!output.contains("🚀"), "Should not show trace when verbose is false");
+        
+        // Should ALWAYS show the termination reason
+        assert!(output.contains("⛔ Run terminated: Cycle count limit exceeded"),
+            "Termination message should always be shown, even without verbose logging");
     }
 }

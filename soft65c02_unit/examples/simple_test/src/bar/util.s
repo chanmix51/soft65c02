@@ -1,4 +1,0 @@
-        .export bar
-
-bar:
-        rts
